@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Calendar, ChevronLeft, ChevronRight, MapPin, Moon, MoveRight, PhoneCall, Plane, Tag, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Info, MapPin, Moon, MoveRight, PhoneCall, Plane, Tag, UtensilsCrossed } from "lucide-react";
 import { extractDurationMinFromUrl, normalizeApiUrl } from "@/components/cardprice";
 import { BOARD_BASIS_ID_TO_CODE, BOARD_BASIS_NAMES, getBoardBasisCode, getBoardBasisIdFromCode } from "@/lib/mappings/board-basis";
 import { trackEvent } from "@/lib/storage";
@@ -144,36 +144,20 @@ function formatCompactCount(n: number): string {
   return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
 }
 
-function GoogleStars({ rating }: { rating: number }) {
-  const num = Math.round(rating);
-  return (
-    <span className="inline-flex items-center">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <svg key={i} width="9" height="9" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="inline-block mr-[1px]">
-          <path d={STAR_PATH} fill={num >= i + 1 ? "#FBBC05" : "#D3D3D3"} />
-        </svg>
-      ))}
-    </span>
-  );
-}
-
 function GoogleRatingCard({ rating, reviewCount }: { rating?: string; reviewCount?: number }) {
   const parsed = rating ? parseFloat(rating) : NaN;
   if (!rating || Number.isNaN(parsed)) return null;
   return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl px-3.5 py-2 flex items-center gap-3 shadow-xs self-start">
+    <div className="bg-white border border-slate-200/80 rounded-[8px] px-2.5 py-1 flex items-center gap-3 shadow-xs self-start">
       <GoogleIcon className="w-6 h-6 flex-shrink-0" />
       <div className="flex items-center gap-2">
         <span className="text-base font-extrabold text-slate-900 leading-none">{parsed.toFixed(1)}</span>
-        <div>
-          <GoogleStars rating={parsed} />
-          {typeof reviewCount === "number" && reviewCount > 0 && (
-            <div className="text-[10px] font-medium text-slate-400 leading-none mt-0.5">
-              <span className="hidden sm:inline">{reviewCount.toLocaleString("en-GB")} reviews</span>
-              <span className="sm:hidden">{formatCompactCount(reviewCount)} reviews</span>
-            </div>
-          )}
-        </div>
+        {typeof reviewCount === "number" && reviewCount > 0 && (
+          <span className="text-[10px] font-medium text-slate-400 leading-none">
+            <span className="hidden sm:inline">{reviewCount.toLocaleString("en-GB")} reviews</span>
+            <span className="sm:hidden">{formatCompactCount(reviewCount)} reviews</span>
+          </span>
+        )}
       </div>
     </div>
   );
@@ -198,7 +182,7 @@ function FeatureChips({ nights, boardBasis, checkinDate, departureAirportCode, a
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-2">
       {cells.map(({ key, icon: Icon, value }) => (
-        <div key={key} className="bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-2 flex items-center gap-2 min-w-0">
+        <div key={key} className="bg-slate-50 border border-slate-200/80 rounded-[8px] px-2.5 py-1.5 flex items-center gap-2 min-w-0">
           <Icon className="w-4 h-4 text-[#CB2187] flex-shrink-0" />
           <span className="text-xs font-semibold text-slate-700 truncate">{value}</span>
         </div>
@@ -210,7 +194,7 @@ function FeatureChips({ nights, boardBasis, checkinDate, departureAirportCode, a
 function OfferBanner({ label, saveAmount, compact }: { label: string; saveAmount: number | null; compact?: boolean }) {
   if (compact) {
     return (
-      <div className="h-full bg-[#EAFAF0] border border-[#bbf7d0] rounded-xl px-3 py-2 flex flex-col justify-center gap-0.5 min-w-0">
+      <div className="h-full bg-[#EAFAF0] border border-[#bbf7d0] rounded-[8px] px-3 py-2 flex md:flex-col justify-between md:justify-center gap-0.5 min-w-0">
         <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#0F8A3D] min-w-0">
           <Tag className="w-3.5 h-3.5 flex-shrink-0" />
           <span className="truncate">{label}</span>
@@ -247,6 +231,7 @@ function computeDiscount(rawPrice: number, saveUpToText?: string): { pct: number
 }
 
 function PriceSection({ price, oldPrice, tax }: { price: number; oldPrice: number | null; tax?: number }) {
+  const [showTaxNote, setShowTaxNote] = useState(false);
   return (
     <div>
       <div className="flex items-baseline gap-1 leading-none flex-wrap">
@@ -261,8 +246,21 @@ function PriceSection({ price, oldPrice, tax }: { price: number; oldPrice: numbe
         <span className="text-slate-500 font-medium text-[13px] md:text-sm">/pp</span>
       </div>
       {typeof tax === "number" && tax > 0 && (
-        <div className="text-[11px] font-semibold text-emerald-600 mt-0.5">
-          Tax: &pound;{tax.toFixed(2)} Included
+        <div className="group relative inline-block mt-0.5">
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTaxNote((v) => !v); }}
+            aria-expanded={showTaxNote}
+            className="flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold text-emerald-600 cursor-help"
+          >
+            Tax: &pound;{tax.toFixed(2)} Excluded
+            <Info className="w-3 h-3 flex-shrink-0" />
+          </button>
+          <div
+            className={`absolute z-10 top-full left-0 mt-1 w-56 rounded-lg bg-slate-900 text-white text-[10px] font-medium leading-snug p-2 shadow-lg ${showTaxNote ? "block" : "hidden group-hover:block"}`}
+          >
+            Payable directly at the hotel at check-in or check-out — it is not paid to us. Calculated using live exchange rates, so the final figure can shift slightly.
+          </div>
         </div>
       )}
     </div>
@@ -401,6 +399,7 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
     () => computeDiscount(rawPriceValue, hotel.saveuptotext),
     [rawPriceValue, hotel.saveuptotext]
   );
+  const offerLabel = hotel.offer_on_card?.toString().trim() || (pct ? `${pct}% OFF` : "");
 
   const resolvedArrivalAirportCode = hotel.arrivalAirportCode ? String(hotel.arrivalAirportCode).trim() || undefined : undefined;
   const resolvedDepartureAirportCode = String(
@@ -467,18 +466,22 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
       {/* Content */}
       <div className="flex flex-col justify-between w-full min-w-0 gap-3">
         <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-[1.15] line-clamp-1 flex-1 min-w-0" title={hotel.hotel_name || hotel.offer_header}>
+          {/* Location + stars together, Google rating at the far end, name below (same on mobile and desktop) */}
+          <div>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 text-slate-500 min-w-0">
+                  <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                  <span className="text-sm font-medium text-slate-600 line-clamp-1">{hotel.location}</span>
+                </div>
+                <PmlStars rating={hotel.property_rating} />
+              </div>
+              <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-[1.15] line-clamp-1 mt-1" title={hotel.hotel_name || hotel.offer_header}>
               {hotel.hotelName || hotel.hotel_name}
             </h3>
-            <PmlStars rating={hotel.property_rating} />
           </div>
-          {hotel.location && (
-            <div className="flex items-center gap-1.5 text-slate-500 mt-1">
-              <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <span className="text-sm font-medium text-slate-600 line-clamp-1">{hotel.location}</span>
-            </div>
-          )}
           {hotel.quoteReference && (
             <div className="text-[12px] text-gray-500 font-semibold mt-1.5">
               Quote Ref: {hotel.quoteReference}
@@ -493,24 +496,21 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
               arrivalAirportCode={resolvedArrivalAirportCode}
             />
           </div>
-          {isOffer && (
+          {isOffer && offerLabel && (
             <div className="flex sm:hidden items-stretch gap-2 mt-1">
               <div className="flex-1 min-w-0">
                 <OfferBanner
-                  label={hotel.offer_on_card?.toString().trim() || `${pct}% OFF`}
+                  label={offerLabel}
                   saveAmount={saveAmount}
                   compact
                 />
               </div>
-              <div className="flex-shrink-0">
-                <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
-              </div>
             </div>
           )}
-          {isOffer && (
+          {isOffer && offerLabel && (
             <div className="hidden sm:block mt-1">
               <OfferBanner
-                label={hotel.offer_on_card?.toString().trim() || `${pct}% OFF`}
+                label={offerLabel}
                 saveAmount={saveAmount}
               />
             </div>
@@ -520,10 +520,7 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
         {!isOffer && <div className="border-t border-slate-100" />}
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className={isOffer ? "hidden sm:flex" : "flex"}>
-            <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
-          </div>
-          <div className="flex items-center justify-between sm:justify-end gap-4 sm:ml-auto">
+          <div className="flex items-center justify-between sm:w-full gap-4">
             {price > 0 && <PriceSection price={price} oldPrice={oldPrice} tax={hotel.tax} />}
             <div className="flex items-center gap-2 flex-shrink-0">
               <a

@@ -259,34 +259,12 @@ export async function POST(request: NextRequest) {
         "X-Client-Signature": clientSignature,
         "X-Visitor-Country": visitorCountry,
         "X-Visitor-Location": visitorLocation,
-        // Django's own search-create rate limit (views.py:enforce_rate_limit)
-        // keys on get_client_ip(request) — but the ONLY caller Django ever
-        // accepts on /client/api/* is this Next.js server itself
-        // (NextServerOnlyMiddleware requires X-NEXT-SERVER-KEY), and this
-        // handler previously forwarded no IP header at all. That left Django
-        // rate-limiting its one trusted caller's own egress connection
-        // instead of each individual visitor — every real visitor shared the
-        // same bucket. `clientIp` above (from antiSpam.ts's getClientIp,
-        // already used for this same route's own Vercel-edge rate limit) is
-        // resolved from the ACTUAL incoming browser request, so forward it
-        // as X-Real-IP — the same header name/pattern lib/backendProxy.ts
-        // already uses for other backend-proxied routes — and trust it in
-        // Django specifically because it only ever arrives alongside the
-        // already-authenticated X-NEXT-SERVER-KEY (search redesign
-        // follow-up: P2.2 revisited after the Phase 4 review).
         ...(clientIp && clientIp !== "unknown" ? { "X-Real-IP": clientIp } : {}),
-        // Forwarded to Django so its Redis-backed idempotency cache
-        // (idempotency:{key}, ~90s TTL) can actually short-circuit a
-        // retried/duplicate POST with the same key. Previously read via
-        // getIdempotencyKey() above but never forwarded here, so the
-        // backend mechanism was unreachable. Conditional so an empty
-        // string is never sent as a literal header value.
         ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
       },
       body: JSON.stringify(payload),
       cache: "no-store",
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Django searches v2 backend error response:", errorText);
@@ -297,7 +275,8 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
-    
+    // console.log("Backend response data:", data);
+
     // Set cookies received from Django backend (like device_token) back to browser response
     const responseCookies = response.headers.getSetCookie();
     const nextResponse = NextResponse.json({ success: true, ...data }, { status: 201 });

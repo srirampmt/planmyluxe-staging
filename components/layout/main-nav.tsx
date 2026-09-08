@@ -230,7 +230,7 @@ export function MainNav() {
                   width={320}
                   height={52}
                   src="https://planmylux.s3.eu-west-2.amazonaws.com/uploads/media-library/homepage/logo-nav.png"
-                  className="w-[220px] md:w-[280px] lg:w-[320px] h-auto"
+                  className="w-[200px] md:w-[260px] h-auto"
                   alt="Logo"
                   priority
                 />

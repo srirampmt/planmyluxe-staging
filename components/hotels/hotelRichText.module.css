@@ -1,0 +1,22 @@
+.hotelRichText {
+  color: #595858;
+  line-height: 1.75;
+}
+
+.hotelRichText p {
+  margin: 0.5rem 0;
+}
+
+.hotelRichText p strong {
+  font-weight: 600;
+  color: #4c4c4c;
+}
+
+.hotelRichText ul {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  list-style: disc;
+}
+
+.hotelRichText li {
+  margin: 0.25rem 0;
+}

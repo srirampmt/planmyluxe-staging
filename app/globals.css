@@ -1,0 +1,79 @@
+ 
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+	--main-nav-height: 76px;
+	--search-bar-height: 84px;
+	--results-header-height: 60px;
+}
+
+html, body {
+	/* overflow-x:hidden on html/body can break position:sticky in some browsers */
+	overflow-x: clip;
+}
+
+@supports not (overflow-x: clip) {
+	html, body {
+		overflow-x: hidden;
+	}
+}
+
+/* Hide scrollbar for carousel/horizontal scroll */
+.scrollbar-hide {
+	-webkit-overflow-scrolling: touch;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none;
+}
+
+/* Auto-hide scrollbar: invisible at rest, shown briefly while scrolling */
+.scroll-autohide {
+	scrollbar-width: thin;
+	scrollbar-color: transparent transparent;
+}
+.scroll-autohide::-webkit-scrollbar {
+	width: 6px;
+}
+.scroll-autohide::-webkit-scrollbar-track {
+	background: transparent;
+}
+.scroll-autohide::-webkit-scrollbar-thumb {
+	background-color: transparent;
+	border-radius: 3px;
+	transition: background-color 0.3s;
+}
+.scroll-autohide.is-scrolling {
+	scrollbar-color: #aaa transparent;
+}
+.scroll-autohide.is-scrolling::-webkit-scrollbar-thumb {
+	background-color: #aaa;
+}
+
+.fine-print ul {
+  list-style-type: disc !important;
+  padding-left: 1.25rem !important;
+  margin: 0;
+}
+
+.fine-print li {
+  margin-bottom: 0.5rem;
+}
+
+.safe-area-bottom {
+	padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.animate-in,
+	.animate-out {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

@@ -155,7 +155,15 @@ export async function POST(request: NextRequest) {
 
     const idempotencyKey = getIdempotencyKey(request.headers);
 
-    const body = await request.json();
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "Request body must be valid JSON." },
+        { status: 400 }
+      );
+    }
 
     // Map inputs to match backend search criteria structure. Each entry is
     // {destination_id, <resort|region|country|top_level>: true} — drop

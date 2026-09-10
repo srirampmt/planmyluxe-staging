@@ -300,6 +300,7 @@ export function MainNav() {
                             <a href="/holiday-styles/beach-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Beach Holidays</a>
                             <a href="/holiday-styles/family-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Family Holidays</a>
                             <a href="/holiday-styles/multi-centre" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Multi Centre Holidays</a>
+                            <a href="/holiday-styles/christmas-market-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Christmas Market Holidays</a>
                             <a href="/holiday-styles" className="py-1 text-pml-primary text-sm font-semibold hover:text-pml-primary/80">Discover more →</a>
                           </div>
                         </div>
@@ -351,6 +352,7 @@ export function MainNav() {
                             <a href="/holiday-styles/beach-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Beach Holidays</a>
                             <a href="/holiday-styles/family-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Family Holidays</a>
                             <a href="/holiday-styles/multi-centre" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Multi Centre Holidays</a>
+                            <a href="/holiday-styles/christmas-market-holidays" className="py-1 text-pml-primary text-sm hover:text-pml-primary/80">Christmas Market Holidays</a>
                             <a href="/holiday-styles" className="py-1 text-pml-primary text-sm font-semibold hover:text-pml-primary/80">Discover more →</a>
                           </div>
                         </div>

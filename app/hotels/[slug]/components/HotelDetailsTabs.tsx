@@ -1,28 +1,89 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MapPin } from "lucide-react";
 import DOMPurify from "isomorphic-dompurify";
 import { calculateSaveStrikePricing, formatPrice } from "@/lib/hotel-utils";
+import type { HotelGoogleReview } from "@/types/hotel";
 
 import styles from "./hotelRichText.module.css";
 
 type LocationData = {
   description: string;
-  distances: string[];
+  address?: string;
+  latitude?: string;
+  longitude?: string;
   mapEmbedUrl: string;
 };
-
-type LocationInput = LocationData | [string, string];
 
 type ReviewsData = {
   rating: number | string;
   total: number | string;
   updatedAt: string;
+  google?: {
+    rating?: string;
+    count?: number;
+    reviews?: HotelGoogleReview[];
+  };
 };
+
+// Same star path used by HotelCard.tsx / FilterSidebar.tsx for rating rows —
+// kept local rather than shared across route folders, matching this
+// codebase's existing per-file icon convention.
+const STAR_PATH = "M14.0001 5.4091L8.91313 5.07466L6.99734 0.261719L5.08156 5.07466L0.0001297 5.4091L3.89754 8.7184L2.61862 13.7384L6.99734 10.9707L11.3761 13.7384L10.0972 8.7184L14.0001 5.4091Z";
+
+function renderStars(rating: number) {
+  const n = Math.round(rating);
+  return (
+    <span className="inline-flex items-center gap-[1px]">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d={STAR_PATH} fill={n >= i + 1 ? "#FBBC05" : "#E5E7EB"} />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className}>
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+    </svg>
+  );
+}
+
+function GoogleReviewCard({ review }: { review: HotelGoogleReview }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <div className="rounded-2xl border border-gray-100 p-4">
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        <span className="font-bold text-[14px] text-[#27272a] truncate">{review.author}</span>
+        <span className="text-[12px] text-gray-400 flex-shrink-0">{review.relative_time}</span>
+      </div>
+      {renderStars(review.rating)}
+      <p className={`mt-2 text-[14px] leading-[150%] text-[#595858] whitespace-pre-line ${expanded ? "" : "line-clamp-4"}`}>
+        {review.text}
+      </p>
+      {review.text.length > 220 && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="text-pml-primary text-[12px] font-semibold mt-1 hover:underline cursor-pointer bg-transparent border-none p-0"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </div>
+  );
+}
 
 interface HotelDetailsTabsProps {
   overview: string;
-  location: LocationInput;
+  location: LocationData;
   facilities?: string;
   reviews: ReviewsData;
   finePrint?: string;
@@ -93,6 +154,22 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
     const num = Number.parseFloat(normalized);
     return Number.isFinite(num) ? num : 0;
   };
+
+  // Each review source is shown/hidden independently based on its own data —
+  // a rating (or, for Google, an actual review list) counts as "available".
+  const hasTripAdvisor = parseRating(reviews.rating) > 0 || (Number(reviews.total) || 0) > 0;
+  const hasGoogleReviewsList = (reviews.google?.reviews?.length ?? 0) > 0;
+  const hasGoogle = parseRating(reviews.google?.rating) > 0 || hasGoogleReviewsList;
+  const hasFacilities = Boolean(facilities.trim());
+  const hasWhyWeLove = Boolean(whyWeLoveThisHotel?.trim());
+
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "facilities") return hasFacilities;
+    if (tab.id === "reviews") return hasTripAdvisor || hasGoogle;
+    if (tab.id === "whywelovethishotel") return hasWhyWeLove;
+    return true;
+  });
+
   const [activeTab, setActiveTab] = useState("details");
   const [isSticky, setIsSticky] = useState(false);
 
@@ -116,21 +193,23 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
 
   const looksLikeUrl = (value: string) => /^(https?:\/\/|\/\/)/i.test(value.trim());
 
-  const normalizeMapSrc = (value: string) => {
+  const normalizeMapSrc = (value: string, latitude?: string, longitude?: string) => {
     const raw = (value || "").trim();
-    if (!raw) return "";
 
     if (raw.includes("<iframe")) {
       const match = raw.match(/src\s*=\s*["']([^"']+)["']/i);
-      return match?.[1] || "";
-    }
-
-    if (looksLikeUrl(raw)) {
+      if (match?.[1]) return match[1];
+    } else if (raw && looksLikeUrl(raw)) {
       return raw.startsWith("//") ? `https:${raw}` : raw;
     }
 
-    // Treat anything else as a location query (coords or address)
-    return `https://www.google.com/maps?q=${encodeURIComponent(raw)}&output=embed`;
+    // No usable iframe/URL in hotel_cordinates — fall back to an exact pin
+    // from the hotel's own lat/long, rather than guessing from free text.
+    if (latitude && longitude) {
+      return `https://www.google.com/maps?q=${latitude},${longitude}&output=embed`;
+    }
+
+    return "";
   };
 
   const normalizeLocationHtml = (html: string) => {
@@ -214,20 +293,9 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
     );
   };
 
-  const { mapSrc, locationDescription } = (() => {
-    if (Array.isArray(location)) {
-      const [mapValue, descriptionValue] = location;
-      return {
-        mapSrc: normalizeMapSrc(mapValue || ""),
-        locationDescription: descriptionValue || "",
-      };
-    }
-
-    return {
-      mapSrc: normalizeMapSrc(location.mapEmbedUrl || ""),
-      locationDescription: location.description || "",
-    };
-  })();
+  const mapSrc = normalizeMapSrc(location.mapEmbedUrl || "", location.latitude, location.longitude);
+  const locationDescription = location.description || "";
+  const address = location.address || "";
 
   return (
     <div className="max-w-[1280px] font-['Montserrat'] mb-12 rounded-2xl border border-gray-200 bg-white p-4 shadow-xl shadow-pml-primary/5 md:p-6" >
@@ -271,7 +339,7 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
                 )}
               </div>
               <div className="flex items-center gap-6 overflow-x-auto text-sm font-medium">
-                {TABS.map((tab) => (
+                {visibleTabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -349,7 +417,7 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
         ) : (
           /* ── normal underline tab strip ── */
           <div className="flex overflow-x-auto gap-6 text-sm font-medium">
-            {TABS.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
@@ -379,6 +447,12 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
         <section id="location" className="pt-4 md:pt-5 text-[#595858]">
           <h2 className="text-xl text-pml-primary font-extrabold tracking-tight mb-3 ">Location</h2>
 
+          {address ? (
+            <p className="flex items-start gap-2 text-[15px] font-medium text-[#27272a] mb-3">
+              <MapPin className="w-4 h-4 mt-0.5 text-pml-primary flex-shrink-0" />
+              {address}
+            </p>
+          ) : null}
           {locationDescription ? (
             <div className="mb-3">
               {renderRichText(normalizeLocationHtml(locationDescription))}
@@ -406,35 +480,71 @@ export default function HotelDetailsTabs(props: HotelDetailsTabsProps) {
       {activeTab === "reviews" && (
         <section id="reviews" className="pt-4 md:pt-5 text-[#595858]">
           <h2 className="text-xl text-pml-primary font-extrabold tracking-tight mb-2 ">Reviews</h2>
-          <p className="text-[16px] text-[#595858] leading-[140%] font-medium mt-1 mb-[12px]">
-            TripAdvisor Reviews
-          </p>
-          <div className="flex items-center gap-3 mb-[12px]">
-            <div className="flex gap-1">
-              {(() => {
-                const rating = parseRating((reviews as any)?.rating);
-                const count = Math.max(0, Math.min(5, Math.floor(rating)));
-                return Array.from({ length: count }).map((_, i) => i);
-              })().map((i) => (
-                <svg
-                  key={`review-dot-${i}`}
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle cx="12" cy="12" r="12" fill="#00AF87" />
-                </svg>
-              ))}
+
+          {hasTripAdvisor && (
+            <>
+              <p className="text-[16px] text-[#595858] leading-[140%] font-medium mt-1 mb-[12px]">
+                TripAdvisor Reviews
+              </p>
+              <div className="flex items-center gap-3 mb-[12px]">
+                <div className="flex gap-1">
+                  {(() => {
+                    const rating = parseRating((reviews as any)?.rating);
+                    const count = Math.max(0, Math.min(5, Math.floor(rating)));
+                    return Array.from({ length: count }).map((_, i) => i);
+                  })().map((i) => (
+                    <svg
+                      key={`review-dot-${i}`}
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle cx="12" cy="12" r="12" fill="#00AF87" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-[14px] text-[#595858] leading-[140%] font-medium">
+                  {(Number(reviews.total) || 0).toLocaleString()} reviews
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Last updated: {reviews.updatedAt}
+              </p>
+            </>
+          )}
+
+          {hasGoogle && (
+            <div className={hasTripAdvisor ? "mt-6 pt-6 border-t border-gray-100" : "mt-1"}>
+              <p className="text-[16px] text-[#595858] leading-[140%] font-medium mb-[12px]">
+                Google Reviews
+              </p>
+              <div className="flex items-center gap-3 mb-4">
+                <GoogleIcon className="w-6 h-6" />
+                {parseRating(reviews.google?.rating) > 0 && (
+                  <>
+                    <span className="text-base font-extrabold text-[#27272a]">
+                      {parseRating(reviews.google?.rating).toFixed(1)}
+                    </span>
+                    {renderStars(parseRating(reviews.google?.rating))}
+                  </>
+                )}
+                {(Number(reviews.google?.count) || reviews.google?.reviews?.length || 0) > 0 && (
+                  <span className="text-[14px] text-[#595858] font-medium">
+                    {(Number(reviews.google?.count) || reviews.google?.reviews?.length || 0).toLocaleString()} reviews
+                  </span>
+                )}
+              </div>
+              {hasGoogleReviewsList && (
+                <div className="space-y-4">
+                  {reviews.google!.reviews!.map((r, i) => (
+                    <GoogleReviewCard key={`${r.author}-${i}`} review={r} />
+                  ))}
+                </div>
+              )}
             </div>
-            <span className="text-[14px] text-[#595858] leading-[140%] font-medium">
-              {(Number(reviews.total) || 0).toLocaleString()} reviews
-            </span>
-          </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Last updated: {reviews.updatedAt}
-          </p>
+          )}
         </section>
       )}
 

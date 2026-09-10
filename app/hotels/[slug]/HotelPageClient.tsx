@@ -378,6 +378,11 @@ export default function HotelPageClient({ slug, initialHotelData, initialLive }:
     rating: page.trip_advisor_rating || page.trip_advisor_reviews_rating,
     total: page.trip_advisor_reviews,
     updatedAt: page.trip_advisor_reviews_last_updated_date,
+    google: {
+      rating: page.google_rating,
+      count: page.google_review_count,
+      reviews: page.google_reviews,
+    },
   };
 
   // Mobile price breakdown
@@ -542,7 +547,13 @@ export default function HotelPageClient({ slug, initialHotelData, initialLive }:
                 )}
                 <HotelDetailsTabs
                   overview={page.about_the_hotel}
-                  location={[page.hotel_cordinates, page.location_detail]}
+                  location={{
+                    mapEmbedUrl: page.hotel_cordinates,
+                    description: page.location_detail,
+                    address: page.address,
+                    latitude: page.latitude,
+                    longitude: page.longitude,
+                  }}
                   facilities={Array.isArray(page.facilities) ? asHtmlList(page.facilities) : String(page.facilities ?? "")}
                   reviews={reviewsData}
                   finePrint={page.fine_print}

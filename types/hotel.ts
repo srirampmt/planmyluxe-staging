@@ -128,6 +128,13 @@ export interface HotelAddon {
   unit: string;               // "", "/person/night", "/day" etc.
 }
 
+export interface HotelGoogleReview {
+  author: string;
+  text: string;
+  rating: number;
+  relative_time: string;
+}
+
 export interface HotelPageData {
   hotel_name: string;
   slug: string;
@@ -173,7 +180,15 @@ export interface HotelPageData {
   trip_advisor_reviews: string;
   trip_advisor_reviews_last_updated_date: string;
   trip_advisor_reviews_rating: string;
-  
+
+  // Google
+  address?: string;
+  latitude?: string;
+  longitude?: string;
+  google_rating?: string;
+  google_review_count?: number;
+  google_reviews?: HotelGoogleReview[];
+
   // Tax
   Tax_per_night?: number;
   tax_country?: string;

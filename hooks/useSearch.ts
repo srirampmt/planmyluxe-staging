@@ -59,6 +59,11 @@ type BackendSearchResponse = {
   next_cursor: string | null;
   facets: FilterOptions;
   total_count: number;
+  // Total hotels matching the base search (destination/dates/airports/
+  // nights) only, ignoring rating/board_basis/resorts/holiday_types/price/
+  // flight-time filters -- unlike total_count, this stays the same across
+  // every filter combination within the same search.
+  base_total_count: number;
   expires_at: string;
   destination_unavailable?: boolean;
 };
@@ -102,6 +107,7 @@ export type UseSearchOptions = {
     results: HotelResult[];
     next_cursor: string | null;
     total_count?: number;
+    base_total_count?: number;
     facets?: FilterOptions | null;
     destination_unavailable?: boolean;
     expires_at?: string;
@@ -154,6 +160,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
   const [cursor, setCursor] = useState<string | null>(null);
   const [allHotels, setAllHotels] = useState<HotelResult[]>([]);
   const [total, setTotal] = useState(0);
+  const [baseTotalCount, setBaseTotalCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [options, setOptions] = useState<FilterOptions | null>(null);
@@ -277,6 +284,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
         setCursor(initial.next_cursor ?? null);
         setAllHotels(initial.results || []);
         setTotal(initial.total_count ?? (initial.results ? initial.results.length : 0));
+        setBaseTotalCount(initial.base_total_count ?? 0);
         setDestinationUnavailable(Boolean(initial.destination_unavailable));
         setRateLimitRetryAfter(null);
 
@@ -312,6 +320,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
           results: initial.results || [],
           next_cursor: initial.next_cursor ?? null,
           total_count: initial.total_count ?? (initial.results ? initial.results.length : 0),
+          base_total_count: initial.base_total_count ?? 0,
           facets: initial.facets ?? null,
           destination_unavailable: Boolean(initial.destination_unavailable),
           expires_at: initial.expires_at,
@@ -384,6 +393,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
       setCursor(cached.next_cursor);
       setAllHotels(cached.results);
       setTotal(cached.total_count);
+      setBaseTotalCount(cached.base_total_count ?? 0);
       setDestinationUnavailable(Boolean(cached.destination_unavailable));
       setRateLimitRetryAfter(null);
       setLoading(false);
@@ -471,6 +481,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
           const resultsList = data.results || [];
           setAllHotels(resultsList);
           setTotal(data.total_count);
+          setBaseTotalCount(data.base_total_count ?? 0);
           setDestinationUnavailable(Boolean(data.destination_unavailable));
           setRateLimitRetryAfter(null);
 
@@ -515,6 +526,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
             setRateLimitRetryAfter(null);
             setAllHotels([]);
             setTotal(0);
+            setBaseTotalCount(0);
           }
         }
       })
@@ -593,6 +605,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
   return {
     hotels: allHotels,
     total,
+    baseTotalCount,
     loading,
     loadingMore,
     hasMore: cursor !== null,

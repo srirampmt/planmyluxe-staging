@@ -335,12 +335,7 @@ export function MainNav() {
                       </svg>
                     </button>
                     
-                    <MegaMenu
-                      isOpen={openDropdown === 'holiday'}
-                      onRequestClose={handleMegaMenuaClick}
-                      onMouseEnter={clearHoverCloseTimeout}
-                      onMouseLeave={handleDropdownMouseLeave}
-                    >
+                    <MegaMenu isOpen={openDropdown === 'holiday'} onRequestClose={handleMegaMenuaClick} onMouseEnter={clearHoverCloseTimeout} onMouseLeave={handleDropdownMouseLeave} >
                       <div className="flex flex-col items-center xl:items-stretch xl:flex-row xl:justify-between w-full gap-4 xl:gap-0">
                         {/* Holiday Styles */}
                         <div className="xl:flex-[0_0_32%] xl:border-r xl:border-pml-border xl:pr-6 text-center xl:text-left">
@@ -357,7 +352,6 @@ export function MainNav() {
                           </div>
                         </div>
 
-                        {/* Latest Offers - Desktop only */}
                         <div className="hidden xl:block xl:flex-[0_0_30%] xl:pl-6">
                           <p className="text-[0.95rem] font-bold mb-3 text-[#595858]">Latest Offers & Exclusive Deals</p>
                           <div className="flex flex-col gap-1 items-center xl:items-start">
@@ -372,7 +366,6 @@ export function MainNav() {
                           </div>
                         </div>
 
-                        {/* Image Card - Desktop only */}
                         <div className="hidden xl:flex xl:flex-[0_0_38%] items-center justify-end">
                           <ImageCard
                             href="/holiday-styles"

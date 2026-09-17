@@ -309,7 +309,7 @@ type HotelCardProps = {
   isHighlighted?: boolean;
 };
 
-const PLACEHOLDER = "https://planmylux.s3.eu-west-2.amazonaws.com/placeholder.webp";
+
 import { resolveAirportIataToId } from "@/lib/mappings/airports";
 
 export default function HotelCard({ hotel, innerRef, index, isHighlighted }: HotelCardProps) {
@@ -322,7 +322,7 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
     });
   }, [hotel.card_image, hotel.thumbnail_1, hotel.thumbnail_2, hotel.thumbnail_3]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const img = images[activeImageIndex] || PLACEHOLDER;
+  const img = images[activeImageIndex] ;
 
   const handlePrevImage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -544,8 +544,7 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
                 <PhoneCall className="w-4 h-4 text-pink-600" />
               </button>
               <a href={href}
-                style={isOffer ? { background: "#CB2187" } : { background: "#0f1d38" }}
-                className={`px-5 sm:px-6 py-2.5 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-white text-[13px] sm:text-[14px] font-semibold whitespace-nowrap shadow-lg ${isOffer ? "shadow-pink-500/25" : "shadow-slate-900/20"} group-hover:opacity-90 transition-opacity cursor-pointer`}
+                className={`px-5 sm:px-6 bg-pml-primary py-2.5 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-white text-[13px] sm:text-[14px] font-semibold whitespace-nowrap shadow-lg ${isOffer ? "shadow-pink-500/25" : "shadow-slate-900/20"} group-hover:opacity-90 transition-opacity cursor-pointer`}
               >
                 View Deal
                 <ArrowRight className="w-4 h-4" />

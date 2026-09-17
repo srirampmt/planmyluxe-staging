@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, use } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
 import { useDebounce, useInfiniteScroll } from '@/hooks/useDebounce';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
@@ -18,7 +19,7 @@ import { encodeDestinationParam, isDestinationSelection } from '@/lib/mappings/d
 
 export const dynamic = "force-dynamic";
 
-function ResultsHeader({ total, loading, sortValue, onSortChange }: { total: number; loading: boolean; sortValue: string; onSortChange: (v: string) => void }) {
+function ResultsHeader({ sortValue, onSortChange }: { sortValue: string; onSortChange: (v: string) => void }) {
   return (
     <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
       <span className="text-[13px] text-gray-500">Sort by:</span>
@@ -88,6 +89,17 @@ export default function SearchPage({
     removeOneFilter(key, value);
   };
 
+  const activeCount = useMemo(() => (
+    (filters.holiday_types?.length || 0) +
+    (filters.rating?.length || 0) +
+    (filters.outbound_flight_time?.length || 0) +
+    (filters.inbound_flight_time?.length || 0) +
+    (filters.board_basis?.length || 0) +
+    (filters.resorts?.length || 0) +
+    ((filters.price_min != null || filters.price_max != null) ? 1 : 0) +
+    (filters.special_offers_only ? 1 : 0)
+  ), [filters]);
+
   // Any deliberate change to the search criteria always supersedes an
   // "expired" screen for the PREVIOUS criteria — the user picking a new
   // destination shouldn't be blocked behind a stale "refresh?" prompt.
@@ -110,6 +122,7 @@ export default function SearchPage({
   const {
     hotels,
     total,
+    baseTotalCount,
     loading,
     loadingMore,
     hasMore,
@@ -265,6 +278,7 @@ export default function SearchPage({
             results: payload.results || [],
             next_cursor: payload.next_cursor || null,
             total_count: payload.total_count || (payload.results ? payload.results.length : 0),
+            base_total_count: payload.base_total_count || 0,
             facets: payload.facets || null,
             destination_unavailable: Boolean(payload.destination_unavailable),
             // Was previously dropped here even though the type/backend both
@@ -507,7 +521,7 @@ export default function SearchPage({
     } catch (e) {
       // ignore
     }
-  }, [filters.q, filters.destinations, filters.holiday_types, filters.sort, filters.date, filters.nights, filters.departure_airports, filters.outbound_flight_time, filters.inbound_flight_time, filters.board_basis, filters.resorts, filters.rating]);
+  }, [filters.q, filters.destinations, filters.holiday_types, filters.sort, filters.date, filters.date_max, filters.nights, filters.departure_airports, filters.outbound_flight_time, filters.inbound_flight_time, filters.board_basis, filters.resorts, filters.rating]);
 
   // Sync searchPrefill to sessionStorage. `airports` stores IATA codes
   // directly (filters.departure_airports already is that shape) — no local
@@ -529,6 +543,7 @@ export default function SearchPage({
   const displayHotels = initialData && !firstMounted && hotels.length === 0 ? initialData.results : hotels;
   const hasSpecialOffers = useMemo(() => displayHotels.some(isHotelOnOffer), [displayHotels]);
   const displayTotal = initialData && !firstMounted && hotels.length === 0 ? initialData.total_count : total;
+  const displayBaseTotalCount = initialData && !firstMounted && hotels.length === 0 ? (initialData.base_total_count ?? 0) : baseTotalCount;
   const isCurrentlyLoading = initialLoading || loading;
 
   return (
@@ -569,15 +584,42 @@ export default function SearchPage({
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] md:pb-[18px]">
         <div className="w-full max-w-[1280px] mx-auto">
           <div className="flex gap-4 xl:gap-6 items-start xl:items-stretch min-h-0 ">
-            <div
-              ref={sidebarRef}
-              className="hidden xl:block w-[290px] flex-shrink-0 pr-1 scrollbar-hide lg:sticky lg:z-[15]"
-              style={{
-                top: (isCompact && isDesktop) ? `${searchBarHeightPx}px` : '110px',
-                transition: 'top 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-            >
-              <FilterSidebar options={displayOptions} filters={filters} onFilterChange={updateFilters} onClearAll={clearAll} total={displayTotal} hasSpecialOffers={hasSpecialOffers} />
+            <div ref={sidebarRef} className="hidden w-[320px] flex-shrink-0 lg:block">
+              <div
+                className={`sticky z-[15] bg-white py-2 mb-3 ${!(isCompact && isDesktop) ? 'top-[97px]' : ''}`}
+                style={{
+                  top: (isCompact && isDesktop) ? `${searchBarHeightPx}px` : undefined,
+                  transition: 'top 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#CB2187] text-white">
+                      <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span className="text-lg font-bold text-[#4C4C4C]">Filters</span>
+                    {activeCount > 0 && (
+                      <span className="flex min-w-5 items-center justify-center rounded-full bg-[#FFF7FC] px-1.5 py-0.5 text-[11px] font-bold text-[#CB2187]">
+                        {activeCount}
+                      </span>
+                    )}
+                  </div>
+                  {activeCount > 0 && (
+                    <button
+                      type="button"
+                      data-testid="clear-all-filters"
+                      onClick={clearAll}
+                      className="cursor-pointer rounded-md border-none bg-transparent px-2 py-1 text-[12px] font-semibold text-[#CB2187] outline-none hover:bg-[#FFF7FC] focus-visible:ring-2 focus-visible:ring-[#CB2187]/30"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <FilterSidebar options={displayOptions} filters={filters} onFilterChange={updateFilters} onClearAll={clearAll} total={displayTotal} hasSpecialOffers={hasSpecialOffers} />
+              </div>
             </div>
 
             <div className="flex-1 min-w-0 ">
@@ -601,12 +643,15 @@ export default function SearchPage({
                   />
                 </div>
 
-                <div className="hidden lg:flex items-center justify-end gap-2 px-3 sm:px-4 lg:px-0">
+                <div className="hidden lg:flex items-center justify-between gap-2 px-3 sm:px-4 lg:px-0">
                   {/* <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide whitespace-nowrap flex-1 min-w-0">
                     <ActiveFilters filters={filters} options={displayOptions} onRemove={removeFilter} onClearAll={clearAll} />
                   </div> */}
-                  <ResultsHeader total={displayTotal} loading={isCurrentlyLoading} sortValue={filters.sort} onSortChange={handleSortChange} />
-                </div> 
+                  <span className="text-[16px] font-semibold text-[#4C4C4C]">
+                    {!isCurrentlyLoading && displayBaseTotalCount > 0 ? `${displayBaseTotalCount} Deals Found` : ''}
+                  </span>
+                  <ResultsHeader sortValue={filters.sort} onSortChange={handleSortChange} />
+                </div>
               </div>
 
               <div ref={resultsRef} className="scrollbar-hide md:overflow-x-hidden">

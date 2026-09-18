@@ -1146,10 +1146,6 @@ export default function SearchBar({
     { value: '11', label: '11 Nights' },
     { value: '14', label: '14 Nights' },
   ], []);
-  const generalNightOptions = useMemo((): FilterOption[] =>
-    Array.from({ length: 28 }, (_, i) => i + 1).map(n => ({ value: String(n), label: `${n} Night${n === 1 ? '' : 's'}` })),
-  []);
-  const [nightsTab, setNightsTab] = useState<'favourites' | 'general'>('favourites');
 
   // Search-button double-submit guard. submitLockRef is checked/set
   // synchronously (a useState alone isn't visible until the next render, so
@@ -1722,21 +1718,9 @@ export default function SearchBar({
           )}
 
           {activeMobileTab === 'nights' && (
-            <div className="flex flex-col h-full">
-              <div className="flex gap-2 mb-4 flex-shrink-0">
-                {(['favourites', 'general'] as const).map(tab => (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => setNightsTab(tab)}
-                    className={`flex-1 px-3 py-2.5 rounded-xl text-[13px] font-bold transition-all cursor-pointer border ${nightsTab === tab ? 'bg-[#CB2187] border-[#CB2187] text-white' : 'bg-white border-gray-200 text-gray-500'}`}
-                  >
-                    {tab === 'favourites' ? 'Favourites' : 'General'}
-                  </button>
-                ))}
-              </div>
-              <div className="flex-1 overflow-y-auto space-y-3 pb-8">
-              {(nightsTab === 'favourites' ? nightOptions : generalNightOptions).map(opt => (
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-scroll pb-8 [scrollbar-width:thin] [scrollbar-color:#c4c4c4_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300">
+              {nightOptions.map(opt => (
                 <button
                   key={opt.value}
                   type="button"
@@ -2028,21 +2012,9 @@ export default function SearchBar({
                         <X size={20} />
                       </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto px-4 py-4 min-h-0 bg-white">
-                      <div className="flex gap-1.5 mb-4 border-b border-gray-100">
-                        {(['favourites', 'general'] as const).map(tab => (
-                          <button
-                            key={tab}
-                            type="button"
-                            onClick={() => setNightsTab(tab)}
-                            className={`px-3 py-2 text-[13px] font-semibold border-b-2 -mb-px transition-colors cursor-pointer bg-transparent ${nightsTab === tab ? 'border-[#CB2187] text-[#CB2187]' : 'border-transparent text-gray-500 hover:text-[#CB2187]'}`}
-                          >
-                            {tab === 'favourites' ? 'Favourites' : 'General'}
-                          </button>
-                        ))}
-                      </div>
+                    <div className="min-h-0 flex-1 overflow-y-scroll bg-white px-4 py-4 [scrollbar-width:thin] [scrollbar-color:#c4c4c4_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300">
                       <div className="flex flex-col space-y-3 pb-8">
-                        {(nightsTab === 'favourites' ? nightOptions : generalNightOptions).map(opt => (
+                        {nightOptions.map(opt => (
                           <button
                             key={opt.value}
                             type="button"
@@ -2058,20 +2030,8 @@ export default function SearchBar({
                   document.body
                 )
               ) : (
-                <div className="absolute top-[calc(100%+12px)] left-0 right-0 bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 pb-2 z-50 max-h-[340px] min-w-[220px] overflow-y-auto scroll-autohide">
-                  <div className="flex gap-1.5 px-2 pt-2 pb-2 mb-1 border-b border-gray-100 sticky top-0 bg-white z-10">
-                    {(['favourites', 'general'] as const).map(tab => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setNightsTab(tab)}
-                        className={`px-2.5 py-1.5 text-[12px] font-semibold border-b-2 -mb-px transition-colors cursor-pointer bg-transparent ${nightsTab === tab ? 'border-[#CB2187] text-[#CB2187]' : 'border-transparent text-gray-500 hover:text-[#CB2187]'}`}
-                      >
-                        {tab === 'favourites' ? 'Favourites' : 'General'}
-                      </button>
-                    ))}
-                  </div>
-                  {(nightsTab === 'favourites' ? nightOptions : generalNightOptions).map(opt => (
+                <div className="absolute top-[calc(100%+12px)] right-0 z-50 w-[180px] max-h-[280px] overflow-y-scroll rounded-[16px] border border-gray-100 bg-white py-1.5 shadow-[0_20px_50px_rgba(30,12,26,0.18)] [scrollbar-width:thin] [scrollbar-color:#c4c4c4_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300">
+                  {nightOptions.map(opt => (
                     <button key={opt.value} type="button" onClick={() => { handleNightsChange(opt.value); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[14px] border-none cursor-pointer transition-colors ${opt.value === nights ? 'bg-[#CB2187]/20 text-[#CB2187] font-bold' : 'bg-transparent text-gray-700 hover:bg-gray-50 hover:text-[#CB2187]'}`} >
                       {opt.label}
                     </button>

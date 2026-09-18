@@ -77,7 +77,7 @@ function PmlStars({ rating }: { rating?: string | number }) {
 function DiscountRibbon({ pct }: { pct: number | null }) {
   if (!pct) return null;
   return (
-    <span className="pointer-events-none absolute top-[18px] -right-[40px] z-10 w-[140px] rotate-45 bg-pml-primary py-1 text-center text-[12px] font-bold tracking-wide text-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+    <span className="pointer-events-none absolute top-[18px] -right-[40px] z-[1] w-[140px] rotate-45 bg-pml-primary py-1 text-center text-[12px] font-bold tracking-wide text-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
       {pct}% OFF
     </span>
   );

@@ -625,7 +625,7 @@ export default function SearchPage({
             <div className="flex-1 min-w-0 ">
               <div
                 ref={resultsHeaderRef}
-                className={`sticky z-[30] lg:z-[10] bg-white py-2 px-0 lg:px-4 ${!(isCompact && isDesktop) ? 'top-[84px] sm:top-[60px] lg:top-[97px]' : ''}`}
+                className={`sticky z-30 bg-white py-2 px-0 lg:px-4 ${!(isCompact && isDesktop) ? 'top-[84px] sm:top-[60px] lg:top-[97px]' : ''}`}
                 style={{
                   top: (isCompact && isDesktop) ? `${searchBarHeightPx}px` : undefined,
                   transition: 'top 0.4s cubic-bezier(0.16, 1, 0.3, 1)'

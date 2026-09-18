@@ -1,6 +1,6 @@
 import {
-  BadgePoundSterling, Check, Clock3, MapPin, Palmtree,
-  PlaneLanding, PlaneTakeoff, Star, Tag, UtensilsCrossed,
+  BadgePoundSterling, Check, Clock3, MapPin, Moon, Palmtree,
+  PlaneLanding, PlaneTakeoff, Star, Sun, Sunrise, Sunset, Tag, UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
 import { useState, useMemo, useCallback } from 'react';
@@ -25,7 +25,7 @@ function SectionHeading({ title, icon: Icon, right }: {
         <span className="flex h-7 w-7 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] text-[#CB2187]">
           <Icon className="h-3.5 w-3.5" aria-hidden="true" />
         </span>
-        <h3 className="m-0 text-[14px] font-semibold text-[#4C4C4C]">{title}</h3>
+        <h3 className="m-0 text-[14px] font-semibold text-black">{title}</h3>
       </div>
       {right}
     </div>
@@ -46,10 +46,10 @@ function GoldStars({ count }: { count: number }) {
 
 function SpecialOffersToggle({ checked, onToggle }: { checked: boolean; onToggle: () => void }) {
   return (
-    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#FBE3F1] bg-[#FFF7FC] p-3 transition-colors hover:border-[#CB2187]/30">
+    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-3 rounded-[10px] border border-[#bbf7d0] bg-[#EAFAF0] p-1.5 transition-colors hover:border-[#0F8A3D]/30">
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-white">
-          <Tag className="h-3.5 w-3.5 text-[#CB2187]" aria-hidden="true" />
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] border border-[#bbf7d0] bg-white">
+          <Tag className="h-3.5 w-3.5 text-[#0F8A3D]" aria-hidden="true" />
         </div>
         <div className="min-w-0">
           <span className="block text-[14px] font-semibold leading-tight text-[#4C4C4C]">Special offers</span>
@@ -60,9 +60,9 @@ function SpecialOffersToggle({ checked, onToggle }: { checked: boolean; onToggle
         checked={checked}
         onCheckedChange={onToggle}
         aria-label="Show discounted holidays only"
-        className="relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border border-[#EDEDED] bg-[#EDEDED] outline-none transition-colors data-[state=checked]:border-[#CB2187] data-[state=checked]:bg-[#CB2187] focus-visible:ring-2 focus-visible:ring-[#CB2187]/30 focus-visible:ring-offset-2"
+        className="relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-[#bbf7d0] bg-white outline-none transition-colors data-[state=checked]:border-white data-[state=checked]:bg-[#0F8A3D] focus-visible:ring-2 focus-visible:ring-[#0F8A3D]/30 focus-visible:ring-offset-2"
       >
-        <Switch.Thumb className="block h-[18px] w-[18px] translate-x-[3px] rounded-full bg-white shadow-sm transition-transform duration-200 data-[state=checked]:translate-x-[21px]" />
+        <Switch.Thumb className="block h-[18px] w-[18px] translate-x-[3px] rounded-full bg-[#0F8A3D] shadow-sm transition-transform duration-200 data-[state=checked]:translate-x-[21px] data-[state=checked]:bg-white" />
       </Switch.Root>
     </label>
   );
@@ -137,8 +137,8 @@ function RatingRow({ ratingValue, count, checked, disabled, onChange }: {
   );
 }
 
-function FlightTimePill({ label, timeRange, checked, disabled, onToggle, testId }: {
-  label: string; timeRange: string; checked: boolean; disabled?: boolean; onToggle: () => void; testId: string;
+function FlightTimePill({ icon: Icon, label, amPm, checked, disabled, onToggle, testId }: {
+  icon: LucideIcon; label: string; amPm: string; checked: boolean; disabled?: boolean; onToggle: () => void; testId: string;
 }) {
   return (
     <button
@@ -147,8 +147,8 @@ function FlightTimePill({ label, timeRange, checked, disabled, onToggle, testId 
       onClick={() => { if (!disabled) onToggle(); }}
       disabled={disabled}
       aria-pressed={checked}
-      aria-label={`${label}, ${timeRange}`}
-      className={`flex min-h-11 min-w-0 flex-col items-start justify-center gap-0.5 rounded-[8px] border px-3 py-2 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#CB2187]/30 focus-visible:ring-offset-2 ${
+      aria-label={`${label}, ${amPm}`}
+      className={`flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 overflow-hidden rounded-[8px] border-2 px-1 py-1.5 outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#CB2187]/30 focus-visible:ring-offset-2 ${
         disabled
           ? 'cursor-not-allowed border-[#EDEDED] bg-white text-[#4C4C4C] opacity-50'
           : checked
@@ -156,10 +156,8 @@ function FlightTimePill({ label, timeRange, checked, disabled, onToggle, testId 
           : 'cursor-pointer border-[#EDEDED] bg-white text-[#4C4C4C] hover:border-[#CB2187]/30 hover:bg-[#FFF7FC]'
       }`}
     >
-      <span className="w-full truncate text-[12px] font-semibold leading-tight">{label}</span>
-      <span className={`text-[10px] font-medium leading-tight ${checked && !disabled ? 'text-[#CB2187]' : 'text-[#7C7C7C]'}`}>
-        {timeRange}
-      </span>
+      <Icon className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+      <span className="whitespace-nowrap text-[10px] font-semibold leading-tight">{amPm}</span>
     </button>
   );
 }
@@ -177,12 +175,12 @@ function PriceSlider({ priceMin, priceMax, filterMin, filterMax, onChange }: { p
   return (
     <div>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 mb-3">
-        <div className="inline-flex flex-col justify-self-start rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] px-3 py-2">
+        <div className="inline-flex flex-row items-baseline gap-1.5 justify-self-start rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] px-3 py-1">
           <div className="text-[10px] font-semibold text-[#7C7C7C]">Min</div>
           <div className="text-[15px] font-semibold text-[#4C4C4C]">&pound;{fmtPrice(sliderValue[0])}</div>
         </div>
         <span className="h-px w-4 bg-[#EDEDED]" />
-        <div className="inline-flex flex-col justify-self-end rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] px-3 py-2 text-right">
+        <div className="inline-flex flex-row items-baseline gap-1.5 justify-self-end rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] px-3 py-1 text-right">
           <div className="text-[10px] font-semibold text-[#7C7C7C]">Max</div>
           <div className="text-[15px] font-semibold text-[#4C4C4C]">&pound;{fmtPrice(sliderValue[1])}</div>
         </div>
@@ -261,10 +259,10 @@ const toItems = (arr?: (string | OptionItem)[]): OptionItem[] =>
 const HOTEL_BOARD_BASIS_CODES = ["RO", "BB", "HB", "FB", "AI", "SC"] as const;
 
 const FLIGHT_BANDS = [
-  { value: "early_morning", label: "Night", timeRange: "00–06" },
-  { value: "morning", label: "Morning", timeRange: "06–12" },
-  { value: "afternoon", label: "Afternoon", timeRange: "12–18" },
-  { value: "evening", label: "Evening", timeRange: "18–24" },
+  { value: "early_morning", label: "Night", amPm: "12am–6am", icon: Moon },
+  { value: "morning", label: "Morning", amPm: "6am–12pm", icon: Sunrise },
+  { value: "afternoon", label: "Afternoon", amPm: "12pm–6pm", icon: Sun },
+  { value: "evening", label: "Evening", amPm: "6pm–12am", icon: Sunset },
 ] as const;
 
 export default function FilterSidebar({
@@ -473,70 +471,6 @@ export default function FilterSidebar({
           </div>
         )}
 
-        {(visibleOutboundOptions.length > 0 || visibleInboundOptions.length > 0) && (
-          <div className={sectionClass}>
-            {/* <SectionHeading
-              title="Flight times"
-              icon={Clock3}
-              right={<span className="rounded-full bg-[#FFF7FC] px-2 py-1 text-[10px] font-semibold text-[#7C7C7C]">Local time</span>}
-            /> */}
-            <div className="space-y-4">
-              {visibleOutboundOptions.length > 0 && (
-                <div>
-                  <h4 className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-[#4C4C4C]">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] text-[#CB2187]">
-                      <PlaneTakeoff className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                    Outbound Flight
-                  </h4>
-                  <div className={`grid gap-2 ${visibleOutboundOptions.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                    {visibleOutboundOptions.map(opt => {
-                      const checked = filters.outbound_flight_time?.includes(opt.value) || false;
-                      return (
-                        <FlightTimePill
-                          key={opt.value}
-                          label={opt.label}
-                          timeRange={opt.timeRange}
-                          checked={checked}
-                          disabled={opt.disabled}
-                          onToggle={() => toggleArray("outbound_flight_time", opt.value)}
-                          testId={`filter-flight-out-${opt.value}`}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              {visibleInboundOptions.length > 0 && (
-                <div>
-                  <h4 className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-[#4C4C4C]">
-                    <span className="flex h-6 w-6 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] text-[#CB2187]">
-                      <PlaneLanding className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                    Return Flight
-                  </h4>
-                  <div className={`grid gap-2 ${visibleInboundOptions.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                    {visibleInboundOptions.map(opt => {
-                      const checked = filters.inbound_flight_time?.includes(opt.value) || false;
-                      return (
-                        <FlightTimePill
-                          key={opt.value}
-                          label={opt.label}
-                          timeRange={opt.timeRange}
-                          checked={checked}
-                          disabled={opt.disabled}
-                          onToggle={() => toggleArray("inbound_flight_time", opt.value)}
-                          testId={`filter-flight-in-${opt.value}`}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {boardBasisOptions.length > 0 && (
           <div className={sectionClass}>
             <SectionHeading title="Board basis" icon={UtensilsCrossed} />
@@ -553,7 +487,7 @@ export default function FilterSidebar({
         
         {htItems.length > 0 && (
           <div className={sectionClass} data-testid="filter-section-holiday-type">
-            <SectionHeading title="Holiday type" icon={Palmtree} />
+            <SectionHeading title="Holiday Types" icon={Palmtree} />
             <CheckboxGroup
               items={htItems}
               selectedValues={filters.holiday_types}
@@ -561,6 +495,68 @@ export default function FilterSidebar({
               testIdPrefix="filter-ht"
               maxVisible={5}
             />
+          </div>
+        )}
+
+        {(visibleOutboundOptions.length > 0 || visibleInboundOptions.length > 0) && (
+          <div className={sectionClass}>
+            
+            <div className="space-y-4">
+              {visibleOutboundOptions.length > 0 && (
+                <div>
+                  <h4 className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-black">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] text-[#CB2187]">
+                      <PlaneTakeoff className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                    Outbound Flight
+                  </h4>
+                  <div className={`grid gap-1.5 ${visibleOutboundOptions.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>
+                    {visibleOutboundOptions.map(opt => {
+                      const checked = filters.outbound_flight_time?.includes(opt.value) || false;
+                      return (
+                        <FlightTimePill
+                          key={opt.value}
+                          icon={opt.icon}
+                          label={opt.label}
+                          amPm={opt.amPm}
+                          checked={checked}
+                          disabled={opt.disabled}
+                          onToggle={() => toggleArray("outbound_flight_time", opt.value)}
+                          testId={`filter-flight-out-${opt.value}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {visibleInboundOptions.length > 0 && (
+                <div>
+                  <h4 className="mb-2 flex items-center gap-2 text-[12px] font-semibold text-black">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-[8px] border border-[#FBE3F1] bg-[#FFF7FC] text-[#CB2187]">
+                      <PlaneLanding className="h-3.5 w-3.5" aria-hidden="true" />
+                    </span>
+                    Return Flight
+                  </h4>
+                  <div className={`grid gap-1.5 ${visibleInboundOptions.length === 1 ? 'grid-cols-1' : 'grid-cols-4'}`}>
+                    {visibleInboundOptions.map(opt => {
+                      const checked = filters.inbound_flight_time?.includes(opt.value) || false;
+                      return (
+                        <FlightTimePill
+                          key={opt.value}
+                          icon={opt.icon}
+                          label={opt.label}
+                          amPm={opt.amPm}
+                          checked={checked}
+                          disabled={opt.disabled}
+                          onToggle={() => toggleArray("inbound_flight_time", opt.value)}
+                          testId={`filter-flight-in-${opt.value}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

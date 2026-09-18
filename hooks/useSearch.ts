@@ -29,9 +29,7 @@ export type HotelResult = {
   starting_price: number;
   price_pp: number;
   card_image: string;
-  thumbnail_1: string;
-  thumbnail_2?: string;
-  thumbnail_3?: string;
+  top_facilities?: string;
   hotel_holidaystyles?: string;
   departureAirportCode?: string;
   checkInDate?: string;

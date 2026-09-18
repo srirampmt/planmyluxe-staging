@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Calendar, Edit, MapPin, Plane } from "lucide-react";
 import { SEARCH_PREFILL_KEY } from "@/hooks/useSearchFilters";
 import SearchBar from "@/components/search/searchbar";
+import { resolveAirportIdToIata } from "@/lib/mappings/airports";
 import {
   encodeDestinationParam,
   decodeDestinationParam,
@@ -46,21 +47,19 @@ const formatDateForDisplay = (dateStr: string): string => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
         const date = new Date(trimmed + "T00:00:00");
         if (!isNaN(date.getTime())) {
-            const options: Intl.DateTimeFormatOptions = {
-                day: "numeric",
-                month: "short",
-                year: "numeric",
-            };
-            return date.toLocaleDateString("en-GB", options).replace(/,/g, "");
+            const dayMonth = date.toLocaleDateString("en-GB", { day: "numeric", month: "short" }).replace(/,/g, "");
+            const year = String(date.getFullYear()).slice(-2);
+            return `${dayMonth} '${year}`;
         }
     }
     return dateStr;
 };
 
 const getAirportsLabel = (airports: string[]): string => {
-    if (!airports || airports.length === 0) return "Any departure";
-    if (airports.length <= 2) return airports.join(", ");
-    return `${airports.slice(0, 2).join(", ")} +${airports.length - 2}`;
+    if (!airports || airports.length === 0) return "Any airport";
+    const codes = airports.map(resolveAirportIdToIata);
+    if (codes.length === 1) return codes[0];
+    return `${codes[0]} +${codes.length - 1}`;
 };
 
 export default function MobileSearchSection({
@@ -155,23 +154,50 @@ export default function MobileSearchSection({
                     <ArrowLeft size={16} />
                 </button>
 
-                {/* Summary */}
-                <div className="flex-1 mx-2 flex flex-col items-center justify-center bg-white rounded-full shadow-sm border border-pink-100/60 h-12 px-3 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate leading-5">
-                        {selectedDestLabel || "Where to?"}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate leading-4 w-full text-center">
-                        {formatDateForDisplay(travelDate)}
-                        {nights && ` · ${nights} nights`}
-                        {` · ${getAirportsLabel(departureAirports)}`}
-                        {selectedDealLabel && ` · ${selectedDealLabel}`}
-                    </p>
-                </div>
+                {/* Summary — tappable so the search criteria are the main control */}
+                <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    aria-label="Edit search"
+                    className="mx-2 flex h-[52px] min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-[14px] border border-[#CB2187]/30 bg-[#FFF5FA] px-3 shadow-[0_2px_10px_rgba(203,33,135,0.12)] transition-all active:scale-[0.99]"
+                >
+                    <span className="flex max-w-full items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-pml-primary" aria-hidden="true" />
+                        <span className="truncate text-[14px] font-bold leading-none text-slate-900">
+                            {selectedDestLabel || "Where to?"}
+                        </span>
+                    </span>
+                    <span className="flex max-w-full min-w-0 items-center justify-center gap-1 text-[11px] font-semibold leading-none text-slate-600">
+                        {travelDate && (
+                            <>
+                                <Calendar className="h-3 w-3 shrink-0 text-pml-primary" aria-hidden="true" />
+                                <span className="shrink-0">{formatDateForDisplay(travelDate)}</span>
+                            </>
+                        )}
+                        {nights && (
+                            <>
+                                <span className="shrink-0 text-slate-300">·</span>
+                                <span className="shrink-0">{nights} nights</span>
+                            </>
+                        )}
+                        <span className="shrink-0 text-slate-300">·</span>
+                        <Plane className="h-3 w-3 shrink-0 text-pml-primary" aria-hidden="true" />
+                        <span className="min-w-0 truncate">{getAirportsLabel(departureAirports)}</span>
+                        {selectedDealLabel && (
+                            <>
+                                <span className="shrink-0 text-slate-300">·</span>
+                                <span className="min-w-0 truncate">{selectedDealLabel}</span>
+                            </>
+                        )}
+                    </span>
+                </button>
 
                 {/* Edit button */}
                 <button
+                    type="button"
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center justify-center h-11 w-11 rounded-full border border-[#CB2187]/30 bg-white text-[#CB2187] shadow-sm hover:bg-pink-50 active:scale-95 transition-all shrink-0"
+                    aria-label="Edit search"
+                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-pml-primary text-white shadow-[0_4px_12px_rgba(203,33,135,0.35)] transition-all hover:bg-[#b01b74] active:scale-95"
                 >
                     <Edit size={16} />
                 </button>

@@ -134,7 +134,7 @@ export default function HotelResultsList({ hotels, total, loading, loadingMore, 
   }
 
   return (
-    <div className="space-y-4" data-testid="results-list">
+    <div className="space-y-5" data-testid="results-list">
       {rateLimitRetryAfter ? <RateLimitNotice retryAfter={rateLimitRetryAfter} /> : null}
       {processedHotels.map((hotel, idx) => {
         const hotelId = String(hotel.hotelId || hotel.id || "");

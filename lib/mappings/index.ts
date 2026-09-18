@@ -34,6 +34,10 @@ export {
   parseAvailableBoardBasis,
 } from "./board-basis";
 
+// Top facilities mappings
+export { TOP_FACILITIES, parseTopFacilities } from "./top-facilities";
+export type { TopFacility } from "./top-facilities";
+
 // Duration helpers
 export {
   formatDuration,

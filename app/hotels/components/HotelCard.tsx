@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Info, MapPin, Moon, MoveRight, PhoneCall, Plane, Tag, UtensilsCrossed } from "lucide-react";
+import { ArrowRight, BedDouble, Calendar, ChevronDown, Info, MapPin, PhoneCall, Tag, Ticket } from "lucide-react";
 import { extractDurationMinFromUrl, normalizeApiUrl } from "@/components/cardprice";
 import { BOARD_BASIS_ID_TO_CODE, BOARD_BASIS_NAMES, getBoardBasisCode, getBoardBasisIdFromCode } from "@/lib/mappings/board-basis";
 import { trackEvent } from "@/lib/storage";
 import { attachCurrentPageToWhatsAppHref, getWhatsAppUrl } from "@/lib/utils";
+import { parseTopFacilities } from "@/lib/mappings/top-facilities";
 
 const STAR_PATH = "M14.0001 5.4091L8.91313 5.07466L6.99734 0.261719L5.08156 5.07466L0.0001297 5.4091L3.89754 8.7184L2.61862 13.7384L6.99734 10.9707L11.3761 13.7384L10.0972 8.7184L14.0001 5.4091Z";
 
@@ -29,7 +30,7 @@ function formatDate(dateStr?: string | null): string {
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString("en-GB", {
       day: "numeric",
-      month: "short",
+      month: "numeric",
       year: "numeric",
     });
   } catch {
@@ -54,16 +55,17 @@ function formatBoardBasisLabel(label: string): string {
 function PmlStars({ rating }: { rating?: string | number }) {
   const num = parseInt(String(rating ?? "")) || 0;
   return (
-    <span className="inline-flex items-center flex-shrink-0">
+    <span className="inline-flex h-3.5 flex-shrink-0 items-center gap-px overflow-visible">
       {[0, 1, 2, 3, 4].map((i) => (
         <svg
           key={i}
-          width="16"
-          height="16"
-          viewBox="0 0 14 14"
+          width="14"
+          height="14"
+          viewBox="-0.5 -0.5 15 15"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="inline-block mr-[1px]"
+          className="block overflow-visible"
+          aria-hidden="true"
         >
           <path d={STAR_PATH} fill={num >= i + 1 ? "#FBBC05" : "#D3D3D3"} />
         </svg>
@@ -72,69 +74,22 @@ function PmlStars({ rating }: { rating?: string | number }) {
   );
 }
 
-function FlightRoutePill({ departureCode, arrivalCode }: { departureCode?: string; arrivalCode?: string }) {
-  if (!departureCode || !arrivalCode) return null;
-  return (
-    <span className="absolute top-3.5 left-3.5 bg-white/95 backdrop-blur-md text-[#1E293B] flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-full shadow-md border border-white/40 pointer-events-none">
-      <Plane className="w-3.5 h-3.5 text-[#CB2187]" />
-      {departureCode} → {arrivalCode}
-    </span>
-  );
-}
-
-function AllInclusivePill({ show }: { show: boolean }) {
-  if (!show) return null;
-  return (
-    <span className="absolute bottom-3.5 left-3.5 bg-slate-900/80 backdrop-blur-md text-white flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-xl shadow-lg border border-white/10 pointer-events-none">
-      <UtensilsCrossed className="w-3.5 h-3.5" />
-      All Inclusive (AI)
-    </span>
-  );
-}
-
 function DiscountRibbon({ pct }: { pct: number | null }) {
   if (!pct) return null;
   return (
-    <span className="absolute top-4 -right-9 rotate-45 bg-[#CB2187] text-white text-[11px] font-extrabold uppercase tracking-wider py-1 px-10 shadow-lg border-b border-white/20 pointer-events-none">
+    <span className="pointer-events-none absolute top-[18px] -right-[40px] z-10 w-[140px] rotate-45 bg-pml-primary py-1 text-center text-[12px] font-bold tracking-wide text-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
       {pct}% OFF
     </span>
   );
 }
 
-function ImageCarouselControls({ count, activeIndex, onPrev, onNext }: { count: number; activeIndex: number; onPrev: (e: React.MouseEvent) => void; onNext: (e: React.MouseEvent) => void }) {
-  if (count <= 1) return null;
-  return (
-    <>
-      <button
-        type="button"
-        onClick={onPrev}
-        aria-label="Previous photo"
-        className="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors border-none cursor-pointer"
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
-        onClick={onNext}
-        aria-label="Next photo"
-        className="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-colors border-none cursor-pointer"
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-      <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full pointer-events-none">
-        {activeIndex + 1}/{count}
-      </span>
-    </>
-  );
-}
-
 function GoogleIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" className={className}>
-      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+    <svg viewBox="0 0 24 24" className={className} xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
     </svg>
   );
 }
@@ -148,17 +103,15 @@ function GoogleRatingCard({ rating, reviewCount }: { rating?: string; reviewCoun
   const parsed = rating ? parseFloat(rating) : NaN;
   if (!rating || Number.isNaN(parsed)) return null;
   return (
-    <div className="bg-white border border-slate-200/80 rounded-[8px] px-2.5 py-1 flex items-center gap-3 shadow-xs self-start">
-      <GoogleIcon className="w-6 h-6 flex-shrink-0" />
-      <div className="flex items-center gap-2">
-        <span className="text-base font-extrabold text-slate-900 leading-none">{parsed.toFixed(1)}</span>
-        {typeof reviewCount === "number" && reviewCount > 0 && (
-          <span className="text-[10px] font-medium text-slate-400 leading-none">
-            <span className="hidden sm:inline">{reviewCount.toLocaleString("en-GB")} reviews</span>
-            <span className="sm:hidden">{formatCompactCount(reviewCount)} reviews</span>
-          </span>
-        )}
-      </div>
+    <div className="inline-flex w-fit max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200/80 bg-white px-2.5 py-1 shadow-sm">
+      <GoogleIcon className="h-3.5 w-3.5 flex-shrink-0" />
+      <span className="text-[13px] font-bold leading-none text-slate-800">{parsed.toFixed(1)}</span>
+      {typeof reviewCount === "number" && reviewCount > 0 && (
+        <span className="text-[11px] font-medium leading-none text-slate-400">
+          <span className="hidden sm:inline">{reviewCount.toLocaleString("en-GB")} reviews</span>
+          <span className="sm:hidden">{formatCompactCount(reviewCount)} reviews</span>
+        </span>
+      )}
     </div>
   );
 }
@@ -172,52 +125,86 @@ function flightChipLabel(departureAirportCode?: string, arrivalAirportCode?: str
 
 function FeatureChips({ nights, boardBasis, checkinDate, departureAirportCode, arrivalAirportCode }: { nights: number | null; boardBasis?: string | null; checkinDate?: string; departureAirportCode?: string; arrivalAirportCode?: string }) {
   const formattedDate = formatDate(checkinDate);
-  const cells: { key: string; icon: typeof Calendar; value: string }[] = [];
-  if (formattedDate) cells.push({ key: "date", icon: Calendar, value: formattedDate });
-  if (nights && nights > 0) cells.push({ key: "nights", icon: Moon, value: `${nights} ${nights === 1 ? "Night" : "Nights"}` });
-  if (boardBasis) cells.push({ key: "board", icon: UtensilsCrossed, value: formatBoardBasisLabel(boardBasis) });
-  if (departureAirportCode) cells.push({ key: "flight", icon: Plane, value: flightChipLabel(departureAirportCode, arrivalAirportCode) });
-  if (cells.length === 0) return null;
+  const nightsLabel = nights && nights > 0 ? `${nights} ${nights === 1 ? "Night" : "Nights"}` : "";
+  const dateAndNights = [formattedDate, nightsLabel].filter(Boolean).join(" - ");
+
+  const items: { key: string; icon: typeof Calendar; value: string; hint?: string }[] = [];
+  if (dateAndNights) items.push({ key: "date", icon: Calendar, value: dateAndNights });
+  if (boardBasis) items.push({ key: "board", icon: BedDouble, value: formatBoardBasisLabel(boardBasis) });
+  if (departureAirportCode) items.push({ key: "flight", icon: Ticket, value: flightChipLabel(departureAirportCode, arrivalAirportCode), hint: "Other routes in View Deal" });
+  if (items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-2">
-      {cells.map(({ key, icon: Icon, value }) => (
-        <div key={key} className="bg-slate-50 border border-slate-200/80 rounded-[8px] px-2.5 py-1.5 flex items-center gap-2 min-w-0">
-          <Icon className="w-4 h-4 text-[#CB2187] flex-shrink-0" />
-          <span className="text-xs font-semibold text-slate-700 truncate">{value}</span>
+    <div className="flex flex-col items-start gap-1.5">
+      {items.map(({ key, icon: Icon, value, hint }) => (
+        <div key={key} className="flex items-center gap-2 min-w-0 text-slate-500">
+          <Icon className="w-4 h-4 flex-shrink-0 text-pml-primary" />
+          <span className="text-[11px] sm:text-[13px] font-medium truncate">{value}</span>
+          {hint && (
+            <span className="group/hint relative flex-shrink-0">
+              <Info className="w-3.5 h-3.5 cursor-help" />
+              <div className="absolute z-10 bottom-full left-0 mb-1.5 hidden w-max whitespace-nowrap rounded-[8px] border border-slate-200/80 bg-white p-2.5 text-[11px] font-medium leading-relaxed text-slate-700 shadow-lg group-hover/hint:block pointer-events-none">
+                {hint}
+              </div>
+            </span>
+          )}
         </div>
       ))}
     </div>
   );
 }
 
-function OfferBanner({ label, saveAmount, compact }: { label: string; saveAmount: number | null; compact?: boolean }) {
-  if (compact) {
-    return (
-      <div className="h-full bg-[#EAFAF0] border border-[#bbf7d0] rounded-[8px] px-3 py-2 flex md:flex-col justify-between md:justify-center gap-0.5 min-w-0">
-        <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#0F8A3D] min-w-0">
-          <Tag className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className="truncate">{label}</span>
-        </span>
-        {saveAmount ? (
-          <span className="text-[11px] font-semibold text-slate-600 truncate">Save &pound;{saveAmount.toFixed(2)}</span>
-        ) : null}
-      </div>
-    );
-  }
+function TopFacilityChips({ topFacilities }: { topFacilities?: string }) {
+  const facilities = useMemo(() => parseTopFacilities(topFacilities).slice(0, 3), [topFacilities]);
+  if (facilities.length === 0) return null;
+
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 bg-[#EAFAF0] border border-[#bbf7d0] rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold">
-      <span className="flex items-center gap-2 min-w-0">
-        <Tag className="w-4 h-4 text-[#0F8A3D] flex-shrink-0" />
-        <span className="text-[#0F8A3D] truncate">Special Offer: {label}</span>
-        <span className="text-slate-500 font-medium hidden sm:inline">Limited Time Only!</span>
-      </span>
-      {saveAmount && (
-        <span className="flex-shrink-0 self-end sm:self-auto">
-          <span className="text-slate-600 font-normal">You Save </span>&pound;{saveAmount.toFixed(2)}
-        </span>
-      )}
+    <div className="flex flex-col items-start gap-1.5 flex-shrink-0">
+      {facilities.map(({ id, icon: Icon, name }) => (
+        <div key={id} className="flex items-center gap-2 min-w-0 text-slate-500">
+          <Icon className="w-4 h-4 flex-shrink-0 text-pml-primary" />
+          <span className="text-[11px] sm:text-[13px] font-medium truncate">{name}</span>
+        </div>
+      ))}
     </div>
+  );
+}
+
+function OfferBanner({ label, saveAmount }: { label: string; saveAmount: number | null }) {
+  return (
+    <div className="flex h-8 w-full min-w-0 items-center gap-2 rounded-[10px] border border-[#63e6be] bg-[#e6fcf5] px-2.5">
+      <Tag className="h-3.5 w-3.5 flex-shrink-0 text-[#0ca678]" />
+      <span className="min-w-0 flex items-center text-left leading-0.5">
+        <span className="block text-[12px] font-medium text-[#0ca678]">Special Offer - {label}</span>
+      </span>
+    </div>
+  );
+}
+
+function ContactButtons({ source }: { source?: string }) {
+  return (
+    <>
+      <a
+        href={getWhatsAppUrl({ source })}
+        onClick={(e) => { e.stopPropagation(); attachCurrentPageToWhatsAppHref(e, { source }); }}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat on WhatsApp"
+        title="Chat on WhatsApp"
+        className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-all hover:-translate-y-px hover:border-[#25D366]/40 hover:bg-[#25D366]/10 hover:text-[#25D366] focus:outline-none"
+      >
+        <svg viewBox="0 0 24 24" className="fill-current h-5 w-5 flex-shrink-0 text-[#25D366]" aria-hidden="true"><path d="M20.52 3.449C12.831-3.984.106 1.407.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c7.905 4.27 17.661-1.4 17.665-10.449 0-3.176-1.24-6.165-3.495-8.402ZM22.002 11.866c-.006 7.633-8.385 12.4-15.012 8.504l-.36-.214-3.75.975 1.005-3.645-.239-.375C-.478 10.546 4.26 1.966 12.072 1.966c2.654 0 5.145 1.035 7.021 2.91 1.875 1.859 2.909 4.35 2.909 6.99Z"></path><path d="M17.507 14.307c-2.199-1.096-2.429-1.242-2.713-.816-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.293-.506.32-.578.878-1.634.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.576-.05-.997-.042-1.368.344-1.614 1.774-1.207 3.604.174 5.55 2.714 3.552 4.16 4.206 6.804 5.114.714.227 1.365.195 1.88.121.574-.091 1.767-.721 2.016-1.426.255-.705.255-1.29.18-1.425-.074-.135-.27-.21-.57-.345Z"></path></svg>
+      </a>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); window.location.href = "tel:02037400744"; }}
+        aria-label="Call 020 3740 0744"
+        title="020 3740 0744"
+        className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-all hover:-translate-y-px hover:border-pink-300 hover:bg-pink-50/40 hover:text-pink-600 focus:outline-none"
+      >
+        <PhoneCall className="w-4 h-4 text-pink-600" />
+      </button>
+    </>
   );
 }
 
@@ -233,20 +220,22 @@ function computeDiscount(rawPrice: number, saveUpToText?: string): { pct: number
 function PriceSection({ price, oldPrice, tax }: { price: number; oldPrice: number | null; tax?: number }) {
   const [showTaxNote, setShowTaxNote] = useState(false);
   return (
-    <div>
-      <div className="flex items-baseline gap-1 leading-none flex-wrap">
+    <div className="sm:flex sm:w-full sm:flex-col sm:items-end">
+      <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-end gap-0.5 sm:gap-1.5">
         {oldPrice && (
-          <span className="text-slate-400 line-through text-xs font-semibold mr-0.5">
+          <span className="text-slate-400 line-through text-xs font-medium leading-none">
             &pound;{oldPrice}
           </span>
         )}
-        <span className="text-[28px] md:text-[34px] font-black text-pml-primary tracking-tight">
-          &pound;{price}
-        </span>
-        <span className="text-slate-500 font-medium text-[13px] md:text-sm">/pp</span>
+        <div className="flex items-baseline gap-1">
+          <span className="text-[28px] sm:text-[30px] font-bold text-[#4C4C4C] leading-none tracking-normal gap-[1px]">
+            &pound;<span className="ml-0.5">{price}</span>
+          </span>
+          <span className="text-slate-500 font-medium text-[13px] sm:text-sm">/pp</span>
+        </div>
       </div>
       {typeof tax === "number" && tax > 0 && (
-        <div className="group relative inline-block mt-0.5">
+        <div className="group/tax relative inline-block mt-0.5">
           <button
             type="button"
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowTaxNote((v) => !v); }}
@@ -257,7 +246,7 @@ function PriceSection({ price, oldPrice, tax }: { price: number; oldPrice: numbe
             <Info className="w-3 h-3 flex-shrink-0" />
           </button>
           <div
-            className={`absolute z-10 top-full left-0 mt-1 w-56 rounded-lg bg-slate-900 text-white text-[10px] font-medium leading-snug p-2 shadow-lg ${showTaxNote ? "block" : "hidden group-hover:block"}`}
+            className={`absolute z-10 bottom-full left-0 sm:left-auto sm:right-0 mb-1.5 w-64 rounded-[8px] border border-slate-200/80 bg-white p-2.5 text-[11px] font-medium leading-relaxed text-slate-700 shadow-lg ${showTaxNote ? "block" : "hidden group-hover/tax:block"}`}
           >
             Payable directly at the hotel at check-in or check-out — it is not paid to us. Calculated using live exchange rates, so the final figure can shift slightly.
           </div>
@@ -278,10 +267,9 @@ export type HotelCardData = {
   location?: string;
   offer_header?: string;
   card_image?: string;
-  thumbnail_1?: string;
-  thumbnail_2?: string;
-  thumbnail_3?: string;
+  top_facilities?: string;
   starting_price?: number;
+  rating?: string | number;
   property_rating?: string | number;
   offer_on_card?: string;
   saveuptotext?: string;
@@ -313,27 +301,7 @@ type HotelCardProps = {
 import { resolveAirportIataToId } from "@/lib/mappings/airports";
 
 export default function HotelCard({ hotel, innerRef, index, isHighlighted }: HotelCardProps) {
-  const images = useMemo(() => {
-    const seen = new Set<string>();
-    return [hotel.card_image, hotel.thumbnail_1, hotel.thumbnail_2, hotel.thumbnail_3].filter((u): u is string => {
-      if (!u || seen.has(u)) return false;
-      seen.add(u);
-      return true;
-    });
-  }, [hotel.card_image, hotel.thumbnail_1, hotel.thumbnail_2, hotel.thumbnail_3]);
-  const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const img = images[activeImageIndex] ;
-
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveImageIndex((i) => (i - 1 + images.length) % images.length);
-  };
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveImageIndex((i) => (i + 1) % images.length);
-  };
+  const img = hotel.card_image || undefined;
 
   const { nights, boardBasis, date: parsedDate } = useMemo(
     () => parseStayInfo(hotel.api_url as string | undefined),
@@ -401,7 +369,6 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
   );
   const offerLabel = hotel.offer_on_card?.toString().trim() || (pct ? `${pct}% OFF` : "");
 
-  const resolvedArrivalAirportCode = hotel.arrivalAirportCode ? String(hotel.arrivalAirportCode).trim() || undefined : undefined;
   const resolvedDepartureAirportCode = String(
     hotel.departureAirportCode ||
     hotel.airportCode ||
@@ -411,8 +378,7 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
     hotel.flight?.departureAirportCode ||
     ""
   ).trim() || undefined;
-  const isAllInclusive = getBoardBasisCode((resolvedBoardBasis as any) ?? "") === "AI";
-
+  const resolvedArrivalAirportCode = hotel.arrivalAirportCode ? String(hotel.arrivalAirportCode).trim() || undefined : undefined;
   const handleClick = () => {
 
     if (hotel.hotelId) {
@@ -444,50 +410,55 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
       ref={innerRef}
       onClick={handleClick}
       data-testid={`hotel-card-${hotel.slug}`}
-      className={`group flex flex-col sm:flex-row gap-4 sm:gap-5 rounded-[12px] border-2 p-4 sm:p-2 no-underline font-['Montserrat'] ${isHighlighted
+      className={`group flex flex-col sm:flex-row overflow-hidden rounded-[12px] border shadow-[0_4px_15px_-3px_rgba(0,0,0,0.05),0_2px_6px_-2px_rgba(0,0,0,0.025)] min-h-[200px] no-underline font-['Montserrat'] ${isHighlighted
         ? "border-2 border-gray-200 bg-[#B80662]/5"
-        : "border-slate-100 bg-white"
+        : "border-slate-200 bg-white"
         }`}>
       {/* Image */}
-      <div className="relative w-full sm:w-[260px] lg:w-[320px] h-[220px] sm:h-auto flex-shrink-0 overflow-hidden rounded-[12px] bg-pml-bg-base">
+      <div className="relative h-[180px] w-full flex-shrink-0 overflow-hidden sm:h-auto sm:w-[260px] lg:w-[280px]">
         <img src={img} alt={hotel.hotel_name ?? ""} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
-        <ImageCarouselControls count={images.length} activeIndex={activeImageIndex} onPrev={handlePrevImage} onNext={handleNextImage} />
-        <FlightRoutePill departureCode={hotel.departureAirportCode as string | undefined} arrivalCode={resolvedArrivalAirportCode} />
-        <AllInclusivePill show={isAllInclusive} />
         {isOffer && <DiscountRibbon pct={pct} />}
         {isHighlighted && (
-          <span className="absolute bottom-3 right-3 z-2 bg-[#B80662] text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-[6px] shadow-[0_2px_8px_rgba(184,6,98,0.4)] animate-pulse">
+          <span className="absolute bottom-3 right-3 z-10 bg-[#641E46]/85 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-[4px]">
             Last Viewed
           </span>
         )}
       </div>
 
       {/* Content */}
-      <div className="flex flex-col justify-between w-full min-w-0 gap-3">
-        <div>
-          {/* Location + stars together, Google rating at the far end, name below (same on mobile and desktop) */}
-          <div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 text-slate-500 min-w-0">
-                  <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <span className="text-sm font-medium text-slate-600 line-clamp-1">{hotel.location}</span>
-                </div>
-                <PmlStars rating={hotel.property_rating} />
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3 sm:flex-row sm:justify-between sm:gap-4 sm:px-5 sm:py-4 lg:px-6">
+        {/* Main info */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="mb-1.5 flex min-w-0 items-center justify-between gap-2 overflow-visible">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-pml-primary" />
+                <span className="line-clamp-1 text-[13px] font-medium leading-0.5 text-slate-500">{hotel.location}</span>
               </div>
-              <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
+              <PmlStars rating={hotel.property_rating ?? hotel.rating} />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-[1.15] line-clamp-1 mt-1" title={hotel.hotel_name || hotel.offer_header}>
-              {hotel.hotelName || hotel.hotel_name}
-            </h3>
+            {hotel.google_rating && (
+              <div className="flex-shrink-0 sm:hidden">
+                <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
+              </div>
+            )}
           </div>
+
+          <h3
+            className="mb-2 line-clamp-1 text-xl font-bold leading-[1.2] tracking-tight text-slate-800 sm:mb-2 sm:text-2xl sm:font-extrabold"
+            title={hotel.hotel_name || hotel.offer_header}
+          >
+            {hotel.hotelName || hotel.hotel_name}
+          </h3>
+
           {hotel.quoteReference && (
-            <div className="text-[12px] text-gray-500 font-semibold mt-1.5">
+            <div className="mb-2 text-[12px] font-semibold text-gray-500">
               Quote Ref: {hotel.quoteReference}
             </div>
           )}
-          <div className="mt-3">
+
+          <div className="grid grid-cols-2 gap-2 sm:gap-x-6 sm:gap-y-2.5">
             <FeatureChips
               nights={resolvedNights}
               boardBasis={resolvedBoardBasis}
@@ -495,56 +466,38 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
               departureAirportCode={resolvedDepartureAirportCode}
               arrivalAirportCode={resolvedArrivalAirportCode}
             />
+            <TopFacilityChips topFacilities={hotel.top_facilities as string | undefined} />
           </div>
           {isOffer && offerLabel && (
-            <div className="flex sm:hidden items-stretch gap-2 mt-1">
-              <div className="flex-1 min-w-0">
-                <OfferBanner
-                  label={offerLabel}
-                  saveAmount={saveAmount}
-                  compact
-                />
-              </div>
-            </div>
-          )}
-          {isOffer && offerLabel && (
-            <div className="hidden sm:block mt-1">
-              <OfferBanner
-                label={offerLabel}
-                saveAmount={saveAmount}
-              />
+            <div className="mt-3 w-full">
+              <OfferBanner label={offerLabel} saveAmount={saveAmount} />
             </div>
           )}
         </div>
 
-        {!isOffer && <div className="border-t border-slate-100" />}
+        {/* Action panel */}
+        <div className="flex w-full flex-col justify-between gap-3 border-t border-dashed border-slate-200 pt-3 sm:w-[248px] sm:flex-shrink-0 sm:items-end sm:gap-4 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
+          <div className="hidden w-full flex-col items-stretch gap-2 sm:flex sm:items-end">
+            {hotel.google_rating && (
+              <GoogleRatingCard rating={hotel.google_rating} reviewCount={hotel.google_review_count} />
+            )}
+          </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="flex items-center justify-between sm:w-full gap-4">
-            {price > 0 && <PriceSection price={price} oldPrice={oldPrice} tax={hotel.tax} />}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <a
-                href={getWhatsAppUrl({ source: hotel.hotelName || hotel.hotel_name })}
-                onClick={(e) => { e.stopPropagation(); attachCurrentPageToWhatsAppHref(e, { source: hotel.hotelName || hotel.hotel_name }); }}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Chat on WhatsApp"
-                title="Chat on WhatsApp"
-                className="flex-shrink-0 p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:text-[#25D366] hover:border-[#25D366]/40 hover:bg-[#25D366]/10 transition-colors focus:outline-none flex items-center justify-center cursor-pointer"
-              >
-                <svg viewBox="0 0 24 24" className="fill-current h-5 w-5 flex-shrink-0 text-[#25D366]" aria-hidden="true"><path d="M20.52 3.449C12.831-3.984.106 1.407.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c7.905 4.27 17.661-1.4 17.665-10.449 0-3.176-1.24-6.165-3.495-8.402ZM22.002 11.866c-.006 7.633-8.385 12.4-15.012 8.504l-.36-.214-3.75.975 1.005-3.645-.239-.375C-.478 10.546 4.26 1.966 12.072 1.966c2.654 0 5.145 1.035 7.021 2.91 1.875 1.859 2.909 4.35 2.909 6.99Z"></path><path d="M17.507 14.307c-2.199-1.096-2.429-1.242-2.713-.816-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.293-.506.32-.578.878-1.634.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.576-.05-.997-.042-1.368.344-1.614 1.774-1.207 3.604.174 5.55 2.714 3.552 4.16 4.206 6.804 5.114.714.227 1.365.195 1.88.121.574-.091 1.767-.721 2.016-1.426.255-.705.255-1.29.18-1.425-.074-.135-.27-.21-.57-.345Z"></path></svg>
-              </a>
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); window.location.href = "tel:02037400744"; }}
-                aria-label="Call 020 3740 0744"
-                title="020 3740 0744"
-                className="flex-shrink-0 p-2.5 rounded-xl border border-slate-200 text-slate-700 hover:text-pink-600 hover:border-pink-300 hover:bg-pink-50/40 transition-colors focus:outline-none flex items-center justify-center cursor-pointer"
-              >
-                <PhoneCall className="w-4 h-4 text-pink-600" />
-              </button>
+          <div className="flex w-full flex-col items-stretch gap-3 sm:items-end">
+            <div className="flex w-full items-center justify-between gap-3 sm:block sm:text-right">
+              {price > 0 && (
+                <PriceSection price={price} oldPrice={oldPrice} tax={hotel.tax} />
+              )}
+              <div className="flex flex-shrink-0 items-center gap-2 sm:hidden">
+                <ContactButtons source={hotel.hotelName || hotel.hotel_name} />
+              </div>
+            </div>
+            <div className="flex w-full min-w-0 items-center gap-2">
+              <div className="hidden flex-shrink-0 items-center gap-2 sm:flex">
+                <ContactButtons source={hotel.hotelName || hotel.hotel_name} />
+              </div>
               <a href={href}
-                className={`px-5 sm:px-6 bg-pml-primary py-2.5 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-white text-[13px] sm:text-[14px] font-semibold whitespace-nowrap shadow-lg ${isOffer ? "shadow-pink-500/25" : "shadow-slate-900/20"} group-hover:opacity-90 transition-opacity cursor-pointer`}
+                className={`inline-flex min-w-0 w-full sm:w-auto sm:flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-pml-primary px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg sm:text-[14px] ${isOffer ? "shadow-pink-500/25" : "shadow-slate-900/20"} hover:bg-[#b01b74] hover:-translate-y-px hover:shadow-[0_4px_10px_rgba(203,33,135,0.2)] transition-all cursor-pointer`}
               >
                 View Deal
                 <ArrowRight className="w-4 h-4" />

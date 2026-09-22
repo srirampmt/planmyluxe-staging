@@ -3,19 +3,11 @@
 import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import {Sun, Plane,Bed,Calendar,Camera,MapPin,Heart,ChevronLeft,ChevronRight,Gem, Home,
-  Gift,
-  Headphones,
-  ShieldCheck,
-  Search,
-} from "lucide-react";
+import {Sun, Plane,Bed,Calendar,Camera,MapPin,Heart,ChevronLeft,ChevronRight,Gem, Home, Gift, Headphones, ShieldCheck, Search } from "lucide-react";
 import MultiCenterSearchBar from "@/components/search/MultiCenterSearchBar";
 import MultiCentreMobileSearch from "@/components/search/MultiCentreMobileSearch";
 import MultiCentreBannerArt from "@/components/search/MultiCentreBannerArt";
-import {
-  ListingPackageCard,
-  ListingPackageCardSkeleton,
-} from "@/components/multi-centre/ListingPackageCard";
+import { ListingPackageCard, ListingPackageCardSkeleton } from "@/components/multi-centre/ListingPackageCard";
 import { ListingSortControl } from "@/components/multi-centre/ListingSortControl";
 import type { McPackageCard } from "@/types/multi-centre";
 
@@ -178,10 +170,7 @@ function MultiCentreListing() {
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-['Montserrat']">
-      <section
-        className="sticky z-40 border-b border-gray-100 bg-white lg:hidden"
-        style={{ top: "var(--main-nav-height)" }}
-      >
+      <section className="sticky z-40 border-b border-gray-100 bg-white lg:hidden" style={{ top: "var(--main-nav-height)" }} >
         <div className="mx-auto w-full max-w-[1440px] px-4">
           <MultiCentreMobileSearch d={destinationParam} air={airportParam} mon={monthParam} />
           <div className="flex items-center gap-3 pb-2.5">
@@ -327,10 +316,10 @@ function MultiCentreListing() {
               type="button"
               disabled={currentPage <= 1}
               onClick={() => handlePageChange(currentPage - 1)}
-              className={`flex h-10 w-10 items-center justify-center border transition-colors ${
+              className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
                 currentPage <= 1
                   ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#d8d2cc] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
               }`}
               aria-label="Previous page"
             >
@@ -356,10 +345,10 @@ function MultiCentreListing() {
                   key={`page-${pageNum}`}
                   type="button"
                   onClick={() => handlePageChange(pageNum)}
-                  className={`flex h-10 w-10 cursor-pointer items-center justify-center text-sm font-semibold transition-colors ${
+                  className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition-colors ${
                     isActive
-                      ? "bg-[#1a1b4b] text-white"
-                      : "border border-[#d8d2cc] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                      ? "bg-[#CB2187] text-white"
+                      : "border border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
                   }`}
                 >
                   {pageNum}
@@ -371,10 +360,10 @@ function MultiCentreListing() {
               type="button"
               disabled={currentPage >= totalPages}
               onClick={() => handlePageChange(currentPage + 1)}
-              className={`flex h-10 w-10 items-center justify-center border transition-colors ${
+              className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
                 currentPage >= totalPages
                   ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#d8d2cc] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
               }`}
               aria-label="Next page"
             >

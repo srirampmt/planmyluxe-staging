@@ -27,6 +27,7 @@ function buildChips(filters: SearchFilters, options: FilterOptions | null): Chip
   (filters.outbound_flight_time || []).forEach(v => chips.push({ key: 'outbound_flight_time', value: v, label: `${titleCase(v)} (out)` }));
   (filters.inbound_flight_time || []).forEach(v => chips.push({ key: 'inbound_flight_time', value: v, label: `${titleCase(v)} (in)` }));
   (filters.board_basis || []).forEach(v => chips.push({ key: 'board_basis', value: v, label: BOARD_BASIS_NAMES[v] || v }));
+  (filters.regions || []).forEach(v => chips.push({ key: 'regions', value: v, label: v }));
   (filters.resorts || []).forEach(v => chips.push({ key: 'resorts', value: v, label: v }));
 
   if (filters.price_min != null || filters.price_max != null) {

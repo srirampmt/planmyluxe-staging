@@ -4,6 +4,61 @@ import { getAirlineName, getAirlineNameWithCode } from "@/lib/mappings/airlines"
 import { getBoardBasisName, getBoardBasisWithDescription } from "@/lib/mappings/board-basis";
 import { formatDuration, formatDurationWithDays } from "@/lib/mappings/duration";
 
+/** Calendar / URL check-in keys are always YYYY-MM-DD. */
+export function toIsoDateKey(value: unknown): string {
+  if (value == null) return "";
+  const raw = String(value).trim();
+  if (!raw) return "";
+
+  const isoPrefix = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoPrefix) return isoPrefix[1];
+
+  const dmy = raw.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/);
+  if (dmy) {
+    const day = dmy[1].padStart(2, "0");
+    const month = dmy[2].padStart(2, "0");
+    return `${dmy[3]}-${month}-${day}`;
+  }
+
+  const parsed = new Date(raw.includes("T") ? raw : `${raw}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function pickDealForDate(
+  dealsByDate: DealsByDate,
+  requestedDate?: unknown,
+  fallbackDate?: unknown
+): { date: string; deal: HotelDeal | null } {
+  const wanted = toIsoDateKey(requestedDate);
+  if (wanted && dealsByDate[wanted]) {
+    return { date: wanted, deal: dealsByDate[wanted].deal };
+  }
+  if (wanted) {
+    const match = Object.keys(dealsByDate).find((key) => toIsoDateKey(key) === wanted);
+    if (match) return { date: toIsoDateKey(match) || match, deal: dealsByDate[match].deal };
+  }
+
+  const fallback = toIsoDateKey(fallbackDate);
+  if (fallback && dealsByDate[fallback]) {
+    return { date: fallback, deal: dealsByDate[fallback].deal };
+  }
+  if (fallback) {
+    const match = Object.keys(dealsByDate).find((key) => toIsoDateKey(key) === fallback);
+    if (match) return { date: toIsoDateKey(match) || match, deal: dealsByDate[match].deal };
+  }
+
+  const firstKey = Object.keys(dealsByDate)[0];
+  if (firstKey) {
+    return { date: toIsoDateKey(firstKey) || firstKey, deal: dealsByDate[firstKey].deal };
+  }
+
+  return { date: wanted || fallback || "", deal: null };
+}
+
 const toNumber = (value: unknown): number => {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : 0;
@@ -39,8 +94,11 @@ export function processDealsByDate(
     return result;
   }
 
-  // Add default deal
-  const defaultDate = defaultDeal.hotel.checkInDate;
+  const defaultDate = toIsoDateKey(defaultDeal.hotel.checkInDate);
+  if (!defaultDate) {
+    return result;
+  }
+
   const defaultPrice = Math.round(getEffectivePrice(defaultDeal));
   const defaultTax = Math.round(calculateTotalTax(defaultDeal, taxPerNight, location));
   const defaultTotalPrice = defaultPrice + defaultTax;
@@ -52,13 +110,12 @@ export function processDealsByDate(
     hasCustomPrice: Boolean(defaultDeal.customPricing?.hasCustomPrice),
   };
 
-  // Process all API deals - keep only cheapest per date
   const deals = Array.isArray(apiDeals) ? apiDeals : [];
 
   deals.forEach((deal) => {
-    if (!deal?.hotel?.checkInDate) return;
+    const date = toIsoDateKey(deal?.hotel?.checkInDate);
+    if (!date) return;
 
-    const date = deal.hotel.checkInDate;
     const effectivePrice = Math.round(getEffectivePrice(deal));
     const totalTax = Math.round(calculateTotalTax(deal, taxPerNight, location));
     const totalPrice = effectivePrice + totalTax;
@@ -67,7 +124,7 @@ export function processDealsByDate(
       result[date] = {
         price: totalPrice,
         deal: deal,
-        isDefault: false,
+        isDefault: result[date]?.isDefault ?? false,
         hasCustomPrice: Boolean(deal.customPricing?.hasCustomPrice),
       };
     }
@@ -394,7 +451,7 @@ export function serializeDealData(deal: HotelDeal, hotelNameFallback?: string): 
     checkInDate: deal.hotel.checkInDate,
     duration: deal.hotel.duration ?? deal.hotel.nights,
     boardBasis: deal.hotel.boardBasis,
-    totalPrice: deal.totalPrice,
+    totalPrice: getEffectivePrice(deal),
     departureAirport: deal.flight?.departureAirportCode ?? deal.hotel?.fromAirport,
     outboundFlight: deal.flight?.outboundFlightNumber,
     inboundFlight: deal.flight?.inboundFlightNumber,

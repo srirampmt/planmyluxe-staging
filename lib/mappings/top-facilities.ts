@@ -17,7 +17,7 @@ export const TOP_FACILITIES: Record<string, TopFacility> = {
   "146": { name: "Swimming Pool", icon: Waves },
   "154": { name: "Sauna", icon: Flame },
   "173": { name: "Gym", icon: Dumbbell },
-  "115": { name: "Internet Access", icon: Wifi },
+  "115": { name: "WiFi", icon: Wifi },
 };
 
 /**

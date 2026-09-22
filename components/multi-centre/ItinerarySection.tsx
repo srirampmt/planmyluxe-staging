@@ -1,9 +1,25 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
-import { Plus, Minus, Plane, Train, Bus, Ship, Car } from "lucide-react";
+import React, { useState } from "react";
+import {
+  Star,
+  Plane,
+  Train,
+  Bus,
+  Ship,
+  Car,
+  Plus,
+  Minus,
+  Hotel,
+  Utensils,
+  Award,
+  Clock,
+  PlusCircle,
+} from "lucide-react";
 
-type ItineraryItem = {
+import { formatMultiCentreDuration } from "@/lib/mappings/duration";
+
+export type ItineraryItem = {
   day: number;
   title: string;
   transport: string | null;
@@ -16,234 +32,268 @@ type ItineraryItem = {
   extras: string;
 };
 
-
-function StarIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      width="16"
-      height="15"
-      viewBox="0 0 16 15"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M8 0.75l2.06 4.17 4.6.67-3.33 3.24.79 4.58L8 11.18 3.88 13.4l.79-4.58L1.34 5.59l4.6-.67L8 .75Z"
-        fill="#CB2187"
-      />
-    </svg>
-  );
-}
-
-function getTransportIcon(transport: string | null) {
-  switch (transport?.toLowerCase()) {
-    case "flight":
-      return <Plane size={20} className="shrink-0 text-[#4C4C4C]" />;
-    case "train":
-      return <Train size={20} className="shrink-0 text-[#4C4C4C]" />;
-    case "bus":
-      return <Bus size={20} className="shrink-0 text-[#4C4C4C]" />;
-    case "ship":
-      return <Ship size={20} className="shrink-0 text-[#4C4C4C]" />;
-    case "car":
-      return <Car size={20} className="shrink-0 text-[#4C4C4C]" />;
-    case "cruise":
-      return <Ship size={20} className="shrink-0 text-[#4C4C4C]" />;
-    default:
-      return null;
-  }
-}
-
-export default function ItinerarySection({
-  itinerary,
-}: {
+interface Props {
   itinerary: ItineraryItem[];
-}) {
-  const baseId = useId();
-  const [openValue, setOpenValue] = useState<string | null>(null);
+  title?: string;
+  subtitle?: string;
+}
+
+const transportIcons = {
+  flight: Plane,
+  train: Train,
+  bus: Bus,
+  ship: Ship,
+  cruise: Ship,
+  car: Car,
+};
+
+const TransportIcon = ({ type, className }: { type: string | null; className?: string }) => {
+  const Icon = type
+    ? transportIcons[type.toLowerCase() as keyof typeof transportIcons]
+    : null;
+  return Icon ? <Icon className={className || "h-3.5 w-3.5 shrink-0 text-pink-600"} /> : null;
+};
+
+const Stars = ({ rating }: { rating: number }) => {
+  const count = Math.max(0, Math.min(5, Math.floor(rating)));
   return (
-    <div className="flex w-full flex-col items-start gap-4 font-montserrat">
-      <div className="w-full space-y-4">
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={`h-3 w-3 ${
+            i < count
+              ? "fill-pink-600 text-pink-600"
+              : "fill-gray-200 text-gray-200"
+          }`}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* Unified Badge Pill Component */
+const BadgePill = ({
+  icon,
+  value,
+  children,
+  variant = "default",
+}: {
+  icon: React.ReactNode;
+  value?: string;
+  children?: React.ReactNode;
+  variant?: "default" | "included";
+}) => {
+  if (!value && !children) return null;
+
+  const isIncluded = variant === "included";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm shrink-0 ${
+        isIncluded
+          ? "border-emerald-200 bg-[#e6f8f1] text-emerald-900"
+          : "border-slate-200/80 bg-white text-[#1a1b4b]"
+      }`}
+    >
+      {/* Icon Node wrapper */}
+      <span
+        className={`flex items-center justify-center shrink-0 ${
+          isIncluded ? "text-emerald-600" : "text-pink-600"
+        }`}
+      >
+        {icon}
+      </span>
+
+      {/* Fallback to value string if children are not passed */}
+      {children || (
+        <span className="font-semibold text-[#1a1b4b]">{value}</span>
+      )}
+    </span>
+  );
+};
+
+export default function ItineraryTimeline({
+  itinerary,
+  title = "Day-by-Day Itinerary",
+  subtitle = "",
+}: Props) {
+  const totalDays = itinerary.length;
+  const totalNights = Math.max(0, totalDays - 1);
+
+  // Set of expanded days (mobile view only)
+  const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set());
+
+  const toggleDescription = (day: number) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) {
+        next.delete(day);
+      } else {
+        next.add(day);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-4xl space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col justify-between gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-end">
+        <div>
+          <h2 className="pl-3 text-[18px] font-extrabold tracking-tight text-[#1a1b4b] sm:text-xl">
+            {title}
+          </h2>
+          {subtitle && (
+            <p className="mt-1 max-w-xl text-xs leading-relaxed text-[#1a1b4b]/70 sm:text-sm">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {totalDays > 0 && (
+          <div className="inline-flex shrink-0 items-center self-start rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-xs font-bold text-pink-700 sm:self-auto sm:px-4 sm:py-1.5">
+            {totalDays} {totalDays === 1 ? "Day" : "Days"} / {totalNights}{" "}
+            {totalNights === 1 ? "Night" : "Nights"}
+          </div>
+        )}
+      </div>
+
+      {/* Timeline List */}
+      <div className="space-y-0">
         {itinerary.map((item, idx) => {
-          const isLast = idx === itinerary.length - 1;
           const isFirst = idx === 0;
-          const value = `day-${item.day}`;
-          const isOpen = openValue === value;
-          const triggerId = `${baseId}-trigger-${value}`;
-          const contentId = `${baseId}-content-${value}`;
-          const hasSubtitle = Boolean(item.subtitle && item.subtitle.trim().length > 0);
-          const hasHotel = Boolean(item.hotel && item.hotel.trim().length > 0);
-          const hasBoard = Boolean(item.board && item.board.trim().length > 0);
-          const hasDuration = Boolean(item.duration && item.duration.trim().length > 0);
-          const ratingCount = Math.max(0, Math.floor(Number(item.rating) || 0));
-          const hasRating = ratingCount > 0;
-          const hasExtras = Boolean(item.extras && item.extras.trim().length > 0);
-          const hasSummary = hasHotel || hasBoard || hasDuration || hasRating || hasExtras;
+          const isLast = idx === itinerary.length - 1;
+          const ratingCount = Math.max(0, Math.floor(item.rating || 0));
+          const isExpanded = expandedDays.has(item.day);
+
+          const meta = {
+            hotel: item.hotel?.trim(),
+            board: item.board?.trim(),
+            duration: item.duration?.trim(),
+            rating: ratingCount > 0 ? ratingCount : null,
+            extras: item.extras?.trim(),
+          };
+
+          const linePositionClass =
+            isFirst && isLast
+              ? "hidden"
+              : isFirst
+                ? "top-1/2 bottom-0"
+                : isLast
+                  ? "top-0 h-1/2"
+                  : "top-0 bottom-0";
 
           return (
-            <div
-              key={idx}
-              data-state={isOpen ? "open" : "closed"}
-              className="group grid w-full max-w-full grid-cols-[56px_minmax(0,1fr)] items-start border-0"
-            >
-              {/* Timeline column (always visible) */}
-              <div
-                className={
-                  "flex h-full w-[56px] flex-col items-center self-stretch " +
-                  (isFirst ? "pt-4 " : "pt-0 ") +
-                  (isLast ? "pb-4" : "pb-0 -mb-8")
-                }
-              >
+            <div key={idx} className="relative flex gap-4 sm:gap-5">
+              <div className="relative flex w-10 shrink-0 flex-col items-center sm:w-12">
                 <div
-                  className={
-                    "flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-full bg-[#CB2187] " +
-                    (isFirst ? "" : "mt-4")
-                  }
-                >
-                  <span className="font-sans text-[18px] font-bold leading-none text-white">
-                    {item.day}
-                  </span>
+                  className={`absolute left-1/2 w-px -translate-x-1/2 bg-[repeating-linear-gradient(to_bottom,#D1D5DB_0_6px,transparent_4px_12px)] bg-[length:1px_12px] bg-repeat-y ${linePositionClass}`}
+                />
+                <div className="my-auto z-10 flex h-10 w-10 items-center justify-center rounded-full bg-pink-600 text-sm font-black text-white shadow-md ring-4 ring-pink-100 sm:h-12 sm:w-12 sm:text-base">
+                  {item.day}
                 </div>
-
-                {!isLast ? (
-                  <div
-                    className={
-                      "relative w-px flex-1 bg-[repeating-linear-gradient(to_bottom,#CFCBCB_0_6px,transparent_4px_12px)] " +
-                      "bg-[length:1px_12px] bg-repeat-y transition-opacity duration-300 ease-out " +
-                      "opacity-70 group-data-[state=open]:opacity-100 " +
-                      "after:absolute after:left-0 after:top-full after:h-8 after:w-px after:bg-[repeating-linear-gradient(to_bottom,#CFCBCB_0_6px,transparent_4px_12px)] " +
-                      "after:bg-[length:1px_12px] after:bg-repeat-y after:opacity-70 group-data-[state=open]:after:opacity-100 after:content-['']"
-                    }
-                  />
-                ) : null}
               </div>
 
-              {/* Card (border should NOT include timeline column) */}
-              <div
-                className={
-                  "box-border w-full min-w-0 max-w-full overflow-hidden rounded-[10px] border border-[#EDEDED] bg-white px-4 md:px-6 transition-colors duration-200 group-data-[state=open]:bg-[#CB2187]/5 " +
-                  (hasSummary ? "min-h-[120px]" : "")
-                }
-              >
-                <button id={triggerId} type="button" aria-controls={contentId} aria-expanded={isOpen} onClick={() => setOpenValue((prev) => (prev === value ? null : value))} className="box-border flex w-full min-w-0 items-start justify-between gap-4 py-4 text-left text-[#4C4C4C]">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex min-w-0 flex-col gap-3 pr-2">
-                      <div className="flex w-full min-w-0 flex-col items-start gap-2 min-[1000px]:flex-row min-[1000px]:flex-nowrap min-[1000px]:items-center min-[1000px]:gap-3">
-                        <div className="w-full min-w-0 break-words text-[16px] font-semibold text-pml-primary leading-[140%] min-[1000px]:w-auto min-[1000px]:max-w-[50%] min-[1000px]:shrink-0 min-[1000px]:truncate md:text-[20px]">
-                          <div className="flex w-full min-w-0 items-start justify-between gap-3">
-                            <span className="min-w-0">{item.title}</span>
+              <div className="min-w-0 flex-1 pt-0.5 py-3 sm:pb-4">
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-shadow hover:shadow-md">
+                  <div className="absolute top-0 bottom-0 left-0 w-1 bg-pink-600" />
 
-                            {/* <1000px: icon sits with title (row); >=1000px: icon on far right */}
-                            <span className="shrink-0 min-[1000px]:hidden">
-                              <span className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-current">
-                                <Plus className={ "absolute h-4 w-4 transition-all duration-300 " + (isOpen ? "rotate-180 opacity-0 scale-50" : "opacity-100") } strokeWidth={2.5} />
-                                <Minus className={ "absolute h-4 w-4 transition-all duration-300 " + (isOpen ? "opacity-100" : "rotate-180 opacity-0 scale-50") } strokeWidth={2.5} />
-                              </span>
+                  <div className="p-4 sm:p-5 space-y-3.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+                        <h3 className="text-base font-bold text-[#1a1b4b] sm:text-lg">
+                          {item.title}
+                        </h3>
+
+                        {item.subtitle?.trim() && (
+                          <div className="inline-flex items-center gap-1.5 rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-xs font-semibold  text-pink-600">
+                            {item.transport && (
+                              <TransportIcon
+                                type={item.transport}
+                                className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                              />
+                            )}
+                            <span className="truncate max-w-[140px] sm:max-w-[200px]">
+                              {item.subtitle}
                             </span>
                           </div>
-                        </div>
+                        )}
 
-                          {hasSubtitle ? (
-                            <>
-                              <div className="hidden h-6 w-px shrink-0 bg-[#CFCBCB] min-[1000px]:block" />
-
-                              <div className="flex w-full min-w-0 flex-1 items-center gap-2 text-[14px] font-semibold leading-[140%] min-[1000px]:w-auto">
-                                {getTransportIcon(item.transport)}
-                                <span className="min-w-0 break-words min-[1000px]:truncate">
-                                  {item.subtitle}
-                                </span>
-                              </div>
-                            </>
-                          ) : null}
+                        {meta.hotel && (
+                          <BadgePill
+                            icon={
+                              <Hotel className="h-3.5 w-3.5 text-slate-500" />
+                            }
+                            value={meta.hotel}
+                          />
+                        )}
+                        {meta.board && (
+                          <BadgePill
+                            icon={
+                              <Utensils className="h-3.5 w-3.5 text-slate-500" />
+                            }
+                            value={meta.board}
+                          />
+                        )}
+                        {meta.rating && (
+                          <BadgePill
+                            icon={
+                              <Award className="h-3.5 w-3.5 text-slate-500" />
+                            }
+                          >
+                            <Stars rating={meta.rating} />
+                          </BadgePill>
+                        )}
+                        {meta.duration && (
+                          <BadgePill
+                            icon={
+                              <Clock className="h-3.5 w-3.5 text-slate-500" />
+                            }
+                            value={formatMultiCentreDuration(meta.duration)}
+                          />
+                        )}
+                        {meta.extras && (
+                          <BadgePill
+                            icon={
+                              <PlusCircle className="h-3.5 w-3.5 text-pink-600" />
+                            }
+                            value={meta.extras}
+                            variant="included"
+                          />
+                        )}
                       </div>
 
-                    {/* Summary row (always visible in trigger) */}
-                    <div className="flex w-full flex-col gap-y-2 text-[14px] leading-[140%] text-[#4C4C4C]">
-                      <div className="flex w-full flex-wrap items-center gap-x-6 gap-y-2 max-[1000px]:flex-col max-[1000px]:items-start">
-                        {hasHotel ? (
-                          <div className="flex min-w-0 items-start gap-2 md:items-center">
-                            <span className="font-normal">Hotel:</span>
-                            <span className="min-w-0 break-words font-semibold underline min-[1000px]:truncate">
-                              {item.hotel}
-                            </span>
-                          </div>
-                        ) : null}
+                      {item.description && (
+                        <button
+                          type="button"
+                          onClick={() => toggleDescription(item.day)}
+                          aria-label={
+                            isExpanded
+                              ? "Collapse description"
+                              : "Expand description"
+                          }
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-[#1a1b4b] transition-colors hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600 active:scale-95 sm:hidden"
+                        >
+                          {isExpanded ? (
+                            <Minus className="h-4 w-4 text-pink-600" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
+                    </div>
 
-                        {hasBoard ? (
-                          <div className="flex min-w-0 items-start gap-2 md:items-center">
-                            <span className="font-normal">Board:</span>
-                            <span className="font-semibold">{item.board}</span>
-                          </div>
-                        ) : null}
-
-                        {hasDuration ? (
-                          <div className="flex min-w-0 items-start gap-2 md:items-center">
-                            <span className="font-normal">Duration:</span>
-                            <span className="font-semibold">{item.duration}</span>
-                          </div>
-                        ) : null}
+                    {item.description && (
+                      <div
+                        className={`pt-1 transition-all duration-200 ${
+                          !isExpanded ? "hidden sm:block" : "block"
+                        }`}
+                      >
+                        <p className="text-xs sm:text-sm leading-relaxed text-[#1a1b4b]">
+                          {item.description}
+                        </p>
                       </div>
-
-                      <div className="flex w-full min-w-0 flex-nowrap items-center gap-x-6 overflow-hidden max-[1000px]:flex-col max-[1000px]:items-start max-[1000px]:gap-y-2 max-[1000px]:overflow-visible">
-                        {hasRating ? (
-                          <div className="flex shrink-0 items-start gap-2 md:items-center">
-                            <span className="font-normal">Rating:</span>
-                            <div className="flex items-center gap-[2px]">
-                              {Array.from({ length: ratingCount }).map((_, starIdx) => (
-                                <StarIcon key={starIdx} />
-                              ))}
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {hasExtras ? (
-                          <div className="flex min-w-0 items-start gap-2 md:items-center">
-                            <span className="font-normal">Extras:</span>
-                            <span className="min-w-0 break-words font-semibold min-[1000px]:truncate">
-                              {item.extras}
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                    </div>
-                  </div>
-
-                  <div className="hidden shrink-0 min-[1000px]:block">
-                    <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 border-current">
-                      <Plus
-                        className={
-                          "absolute h-4 w-4 transition-all duration-300 " +
-                          (isOpen ? "rotate-180 opacity-0 scale-50" : "opacity-100")
-                        }
-                        strokeWidth={2.5}
-                      />
-                      <Minus
-                        className={
-                          "absolute h-4 w-4 transition-all duration-300 " +
-                          (isOpen ? "opacity-100" : "rotate-180 opacity-0 scale-50")
-                        }
-                        strokeWidth={2.5}
-                      />
-                    </div>
-                  </div>
-                </button>
-
-                <div
-                  id={contentId}
-                  role="region"
-                  aria-labelledby={triggerId}
-                  hidden={!isOpen}
-                  className="pt-2 pb-4"
-                >
-                  <div className="flex w-full flex-col gap-4 min-[1000px]:flex-row min-[1000px]:items-start min-[1000px]:gap-6">
-                    <div className="order-2 flex w-full flex-col gap-4 min-[1000px]:order-1 min-[1000px]:min-w-0 min-[1000px]:flex-1">
-                      <div className="text-[16px] font-normal leading-[150%] text-[#4C4C4C]">
-                        {item.description}
-                      </div>
-                    </div>
-                    
+                    )}
                   </div>
                 </div>
               </div>
@@ -255,4 +305,4 @@ export default function ItinerarySection({
   );
 }
 
-export type { ItineraryItem };
+export type { Props as ItineraryTimelineProps };

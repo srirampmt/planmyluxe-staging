@@ -1,77 +1,130 @@
 "use client";
+
 import React, { useRef } from "react";
-import { ChevronLeft, ChevronRight, MapPinIcon } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import type { MultiCentreSnapshot } from "@/types/homepage";
 
-function DealCard({ deal }: { deal: MultiCentreSnapshot }) {
-  const href = deal.slug ? `/multi-centre/${deal.slug}` : "#";
-  const displayPrice = Number(deal.starting_price ?? 0) || 0;
-  const rating = Number(deal.property_rating || 0);
-  const formattedLocation = (deal.location ?? "")
-    .split(/,\s*| & /)
-    .filter((p) => p.trim())
-    .map((p) => p.trim().toUpperCase())
+const STAR_PATH =
+  "M14.0001 5.4091L8.91313 5.07466L6.99734 0.261719L5.08156 5.07466L0.0001297 5.4091L3.89754 8.7184L2.61862 13.7384L6.99734 10.9707L11.3761 13.7384L10.0972 8.7184L14.0001 5.4091Z";
+
+function toTitleCase(value: string): string {
+  return value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function formatRoute(location: string): string {
+  return location
+    .split(/\s*[·•|,]\s*|\s+&\s+/)
+    .map((part) => toTitleCase(part.trim()))
+    .filter(Boolean)
     .join(" · ");
+}
+
+function nightsCount(nights: string | number | undefined): number {
+  const value = Number(nights);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function StarRow({ rating }: { rating: number }) {
+  const filled = Math.min(5, Math.round(rating));
+  if (filled <= 0) return null;
+  return (
+    <span className="inline-flex items-center gap-px" aria-label={`${filled} star`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <svg key={index} width="12" height="12" viewBox="-0.5 -0.5 15 15" aria-hidden="true">
+          <path d={STAR_PATH} fill={index < filled ? "#D4A017" : "#E4DFD8"} />
+        </svg>
+      ))}
+    </span>
+  );
+}
+
+function DealCard({ deal }: { deal: MultiCentreSnapshot }) {
+  const href = deal.slug ? `/multi-centre/${deal.slug}` : "/multi-centre";
+  const route = formatRoute(deal.location || "");
+  const title = (deal.title || "").trim();
+  const heading = route || title || "Multi-centre";
+  const subtitle = route && title && title.toLowerCase() !== route.toLowerCase() ? title : "";
+  const nights = nightsCount(deal.nights);
+  const price = Math.round(Number(deal.starting_price) || 0);
+  const rating = Number(deal.property_rating) || 0;
+  const board = (deal.board_basis || "").trim();
+  const tag = (deal.tag_for_card || "").trim();
+  const tax = Number(deal.local_tax) || 0;
+
+  const meta = [
+    board,
+    nights > 0 ? `${nights} night${nights === 1 ? "" : "s"}` : "",
+  ].filter(Boolean);
 
   return (
-    <div className="shrink-0 w-[260px] sm:w-[280px] snap-start font-['Montserrat']">
-      <a
+    <article className="w-[280px] shrink-0 snap-start sm:w-[320px]">
+      <Link
         href={href}
-        className="bg-white rounded-[8px] overflow-hidden flex flex-col h-[360px] border border-[#e0e0e0] group no-underline shadow-sm hover:shadow-md transition-shadow duration-300"
+        className="flex h-full flex-col overflow-hidden rounded-[16px] border border-[#ece8e4] bg-white no-underline shadow-[0_8px_28px_rgba(26,27,75,0.06)]"
       >
-        {/* Image */}
-        <div className="relative w-full overflow-hidden bg-[#f5f5f5] h-[180px] shrink-0">
-          <img
-            src={deal.image || ""}
-            alt={deal.title || "Hotel"}
-            className="absolute top-0 left-0 w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105 will-change-transform"
-          />
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#ece8e4]">
+          {deal.image ? (
+            <img
+              src={deal.image}
+              alt={heading}
+              className="h-full w-full object-cover"
+              loading="lazy"
+            />
+          ) : null}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/40 to-transparent" />
+          {tag ? (
+            <span className="absolute left-3 top-3 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b]">
+              {tag}
+            </span>
+          ) : null}
+          {nights > 0 ? (
+            <span className="absolute right-3 top-3 rounded-full bg-[#1a1b4b]/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+              {nights} night{nights === 1 ? "" : "s"}
+            </span>
+          ) : null}
         </div>
 
-        {/* Content */}
-        <div className="flex flex-col flex-grow p-4 ">
-          {/* Stars */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              {rating > 0 && (
-                <span className="flex gap-[2px]">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <svg key={i} width="12" height="12" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14.0001 5.4091L8.91313 5.07466L6.99734 0.261719L5.08156 5.07466L0.0001297 5.4091L3.89754 8.7184L2.61862 13.7384L6.99734 10.9707L11.3761 13.7384L10.0972 8.7184L14.0001 5.4091Z" fill={rating >= i + 1 ? "#CB2187" : "#E0E0E0"} />
-                    </svg>
-                  ))}
-                </span>
-              )}
+        <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
+          <h3 className="line-clamp-2 text-[16px] font-semibold leading-snug tracking-[-0.02em] text-[#1a1b4b]">
+            {heading}
+          </h3>
+          {subtitle ? (
+            <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-5 text-[#6b6570]">{subtitle}</p>
+          ) : null}
+
+          {rating > 0 || meta.length > 0 ? (
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#6b6570]">
+              {rating > 0 ? <StarRow rating={rating} /> : null}
+              {meta.length > 0 ? <span>{meta.join(" · ")}</span> : null}
             </div>
-          </div>
+          ) : null}
 
-          {/* Location with pin */}
-          <div className="flex items-center gap-1 mb-2">
-            <MapPinIcon className="w-4 h-4 text-pml-primary" />
-            <span className="text-[11px] font-semibold text-[#6b7280] tracking-wide uppercase truncate">
-              {formattedLocation}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h5 className="text-[14px] font-semibold text-[#CB2187] leading-[1.4] line-clamp-2 overflow-hidden">
-            {deal.title || ""}
-          </h5>
-
-          {/* CTA Button */}
-          <div className="mt-3 w-full bg-[#CB2187] group-hover:bg-[#a81870] text-white font-semibold text-[13px] py-3 px-4 rounded-xl flex items-center justify-between transition-colors duration-200">
-            <span className="truncate pr-2">
-              {String(deal.nights ?? "00").padStart(2, "0")} Nights from £{displayPrice.toLocaleString("en-GB", { maximumFractionDigits: 0 })} p...
-            </span>
-            <span className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 18l6-6-6-6" stroke="#CB2187" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </span>
+          <div className="mt-auto border-t border-[#ece8e4] pt-3.5">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a8490]">From</p>
+                <div className="mt-1 flex items-baseline gap-1">
+                  <span className="text-[20px] font-semibold leading-none tracking-tight text-[#1a1b4b]">
+                    £{price.toLocaleString("en-GB")}
+                  </span>
+                  <span className="text-[12px] font-medium text-[#8a8490]">pp</span>
+                </div>
+              </div>
+              <span className="mb-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-[#CB2187] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
+                View details
+                <ArrowRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+            {tax > 0 ? (
+              <p className="mt-1.5 text-[11px] font-medium text-[#1B7A4E]">
+                Tax £{tax.toFixed(2)} excluded
+              </p>
+            ) : null}
           </div>
         </div>
-      </a>
-    </div>
+      </Link>
+    </article>
   );
 }
 
@@ -91,53 +144,63 @@ export default function MultiCentreSection({
   }
 
   function scroll(dir: "left" | "right") {
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+    scrollRef.current?.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
   }
 
   return (
-    <section id="multi-centre-section" className="py-8 sm:py-12 md:py-16 ">
-      <div className="w-full max-w-[1440px] mx-auto px-3 sm:px-6 md:px-8 lg:px-10 ">
-        <div
-          className="w-full max-w-[1280px] mx-auto rounded-[12px] overflow-hidden p-4 sm:p-6 md:p-8 lg:p-10 border border-ray-200 bg-gray-50"
-          style={{ boxShadow: "none" }}
-        >
-          {/* Header */}
-          <div className="text-left mb-4 sm:mb-6">
-            {/* <p className="text-[12px] font-bold tracking-[0.1em] leading-[14px] text-[#CB2187] uppercase mb-2 font-['Montserrat']">
-              Exclusive Deals
-            </p> */}
-            <h2 className="text-[24px] md:text-[40px] font-semibold text-[#CB2187] leading-[30px] md:leading-[60px] tracking-[-0.005em] max-w-[626px]">
-              {multicentre_collection_title}
-            </h2>
-          </div>
-
-          {/* Carousel */}
-          <div className="relative">
-            <button
-              onClick={() => scroll("left")}
-              className="hidden sm:flex absolute -left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-md items-center justify-center text-gray-600 hover:text-[#CB2187] hover:border-[#CB2187]/40 transition-all"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            <div
-              ref={scrollRef}
-              className="flex gap-3 sm:gap-5 overflow-x-auto scroll-smooth pb-4 sm:pb-6 px-1 sm:px-2 scrollbar-hide snap-x snap-mandatory"
-            >
-              {multicentre_collection_snapshots.map((deal) => (
-                <DealCard key={deal.id} deal={deal} />
-              ))}
+    <section id="multi-centre-section" className="bg-white py-10 font-['Montserrat'] sm:py-14">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-10">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
+            <div className="min-w-0">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187]">
+                Multi-centre collection
+              </p>
+              <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1b4b] sm:text-[36px]">
+                {multicentre_collection_title || "Multi-centre holiday deals"}
+              </h2>
             </div>
-
-            <button
-              onClick={() => scroll("right")}
-              className="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white border border-gray-200 rounded-full shadow-md items-center justify-center text-gray-600 hover:text-[#CB2187] hover:border-[#CB2187]/40 transition-all"
-              aria-label="Scroll right"
-            >
-              <ChevronRight size={20} />
-            </button>
+            <div className="flex shrink-0 items-center gap-2">
+              <Link
+                href="/multi-centre"
+                className="mr-1 hidden text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] no-underline hover:text-[#CB2187] sm:inline"
+              >
+                View all
+              </Link>
+              <button
+                type="button"
+                onClick={() => scroll("left")}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ece8e4] bg-white text-[#1a1b4b] shadow-sm hover:border-[#CB2187] hover:text-[#CB2187]"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll("right")}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ece8e4] bg-white text-[#1a1b4b] shadow-sm hover:border-[#CB2187] hover:text-[#CB2187]"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
           </div>
+
+          <div
+            ref={scrollRef}
+            className="flex gap-4 overflow-x-auto scroll-smooth pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-5"
+          >
+            {multicentre_collection_snapshots.map((deal) => (
+              <DealCard key={deal.id} deal={deal} />
+            ))}
+          </div>
+
+          <Link
+            href="/multi-centre"
+            className="mt-5 inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] no-underline hover:text-[#CB2187] sm:hidden"
+          >
+            View all holidays
+          </Link>
         </div>
       </div>
     </section>

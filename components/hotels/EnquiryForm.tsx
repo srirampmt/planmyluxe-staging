@@ -1,6 +1,7 @@
 "use client";
 
 import { HotelDeal } from "@/types/hotel";
+import { getEffectivePrice } from "@/lib/hotel-utils";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useUtmPhone } from "@/components/utm/UtmPhoneProvider";
 import { createIdempotencyKey } from "@/lib/clientIdempotency";
@@ -276,9 +277,10 @@ export default function EnquiryForm({
         if (initialValues?.selectedDate) {
           dealData.hotel.checkInDate = initialValues.selectedDate;
         }
-        if (initialValues?.selectedPrice !== null && initialValues?.selectedPrice !== undefined) {
-          dealData.totalPrice = initialValues.selectedPrice;
-        }
+        // Explicit override (multi-centre) wins; otherwise use the same
+        // effective-price path the page displays, so the enquiry matches
+        // what the customer saw (custom price + hidden add-on markup).
+        dealData.totalPrice = initialValues?.selectedPrice ?? getEffectivePrice(dealData);
         form.set("deal_data_json", JSON.stringify(dealData));
       } catch {
         // ignore serialization issues

@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { type RefCallback, useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import HotelCard, { HotelCardSkeleton, isHotelOnOffer, type HotelCardData } from './HotelCard';
 
 function SkeletonList() {
@@ -78,7 +78,7 @@ type HotelResultsListProps = {
   loading: boolean;
   loadingMore: boolean;
   hasMore: boolean;
-  sentinelRef: RefCallback<Element>;
+  onLoadMore: () => void;
   onClearAll: () => void;
   destinationUnavailable?: boolean;
   rateLimitRetryAfter?: number | null;
@@ -87,7 +87,7 @@ type HotelResultsListProps = {
   specialOffersOnly?: boolean;
 };
 
-export default function HotelResultsList({ hotels, total, loading, loadingMore, hasMore, sentinelRef, onClearAll, destinationUnavailable, rateLimitRetryAfter, searchExpired, onRefreshExpired, specialOffersOnly }: HotelResultsListProps) {
+export default function HotelResultsList({ hotels, total, loading, loadingMore, hasMore, onLoadMore, onClearAll, destinationUnavailable, rateLimitRetryAfter, searchExpired, onRefreshExpired, specialOffersOnly }: HotelResultsListProps) {
   const [lastViewedId, setLastViewedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,10 +140,23 @@ export default function HotelResultsList({ hotels, total, loading, loadingMore, 
         const hotelId = String(hotel.hotelId || hotel.id || "");
         const isHighlighted = hotelId === lastViewedId;
         return (
-          <HotelCard key={`${hotel.slug}-${idx}`} hotel={hotel} index={idx} isHighlighted={isHighlighted} innerRef={idx === processedHotels.length - 1 ? sentinelRef : undefined} />
+          <HotelCard key={`${hotel.slug}-${idx}`} hotel={hotel} index={idx} isHighlighted={isHighlighted} />
         );
       })}
       {loadingMore && <LoadMoreSkeletons />}
+      {hasMore && (
+        <div className="flex justify-center py-2">
+          <button
+            type="button"
+            data-testid="view-more-deals"
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="px-6 py-2.5 rounded-[8px] border border-[#CB2187] text-[#CB2187] font-semibold text-[14px] hover:bg-[#CB2187] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#CB2187] cursor-pointer bg-transparent"
+          >
+            View more deals
+          </button>
+        </div>
+      )}
       {!hasMore && processedHotels.length > 0 && <AllSeen total={total} />}
     </div>
   );

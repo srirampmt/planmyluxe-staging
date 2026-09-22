@@ -11,41 +11,65 @@ type Props = {
   onEnquire?: () => void;
   selectedDate?: string;
   slug?: string;
-  selectedPriceItem?: { date?: string; price?: number; localTax?: number; totalPrice?: number; referenceId?: string } | null;
+  selectedPriceItem?: {
+    date?: string;
+    price?: number;
+    localTax?: number;
+    totalPrice?: number;
+    referenceId?: string;
+  } | null;
   forceEnquireCta?: boolean;
   message?: string;
 };
 
-export default function McMobileStickyFooter({ selectedPrice, onViewOptions, onEnquire, selectedDate, slug, selectedPriceItem, forceEnquireCta, message }: Props) {
-  const formatPrice = (price?: number | null) => (price == null ? "-" : `£${Math.round(price)}`);
+export default function McMobileStickyFooter({
+  selectedPrice,
+  onViewOptions,
+  onEnquire,
+  selectedDate,
+  slug,
+  selectedPriceItem,
+  forceEnquireCta,
+  message,
+}: Props) {
+  const formatPrice = (price?: number | null) =>
+    price == null ? "-" : `£${Math.round(price)}`;
   const [isCalendarReached, setIsCalendarReached] = useState(false);
   const [isMobileDealSheetOpen, setIsMobileDealSheetOpen] = useState(false);
 
   useEffect(() => {
     const handler = () => {
       if (typeof window === "undefined") return;
-      // Only open on mobile viewport sizes (Tailwind `md` breakpoint is 768px).
       if (!window.matchMedia("(max-width: 767px)").matches) return;
-      // Defer so parent state (selectedDate, selectedPriceItem) can update before the sheet reads it.
       window.setTimeout(() => setIsMobileDealSheetOpen(true), 0);
     };
 
-    window.addEventListener("mc:open-mobile-deal-sheet", handler as EventListener);
-    return () => window.removeEventListener("mc:open-mobile-deal-sheet", handler as EventListener);
+    window.addEventListener(
+      "mc:open-mobile-deal-sheet",
+      handler as EventListener,
+    );
+    return () =>
+      window.removeEventListener(
+        "mc:open-mobile-deal-sheet",
+        handler as EventListener,
+      );
   }, []);
 
-  const pickVisible = useCallback((elements: Array<HTMLElement | null | undefined>) => {
-    for (const el of elements) {
-      if (!el) continue;
-      if (el.getClientRects().length > 0) return el;
-    }
-    return null;
-  }, []);
-  // Mobile sticky CTA behavior
+  const pickVisible = useCallback(
+    (elements: Array<HTMLElement | null | undefined>) => {
+      for (const el of elements) {
+        if (!el) continue;
+        if (el.getClientRects().length > 0) return el;
+      }
+      return null;
+    },
+    [],
+  );
+
   useEffect(() => {
     const handleScroll = () => {
       const holidayCalendarEls = Array.from(
-        document.querySelectorAll<HTMLElement>("#holiday-calendar")
+        document.querySelectorAll<HTMLElement>("#holiday-calendar"),
       );
       const calendarEl = pickVisible([
         document.getElementById("holiday-calendar") as HTMLElement | null,
@@ -77,7 +101,7 @@ export default function McMobileStickyFooter({ selectedPrice, onViewOptions, onE
     onViewOptions?.();
 
     const holidayCalendarEls = Array.from(
-      document.querySelectorAll<HTMLElement>("#holiday-calendar")
+      document.querySelectorAll<HTMLElement>("#holiday-calendar"),
     );
 
     const targetEl = pickVisible([
@@ -113,78 +137,90 @@ export default function McMobileStickyFooter({ selectedPrice, onViewOptions, onE
           selectedDate,
           selectedPrice,
           quoteRef: (selectedPriceItem as any)?.referenceId,
-          source: buildEnquirySource({ section: "multi-centre", entityName: slug }),
+          source: buildEnquirySource({
+            section: "multi-centre",
+            entityName: slug,
+          }),
           resort: slug ?? "",
           localTax: (selectedPriceItem as any)?.localTax ?? null,
-          totalPrice: (selectedPriceItem as any)?.totalPrice ?? selectedPrice ?? null,
-          basePrice: (selectedPriceItem as any)?.price ?? ((selectedPriceItem as any)?.totalPrice != null && (selectedPriceItem as any)?.localTax != null ? (selectedPriceItem as any).totalPrice - (selectedPriceItem as any).localTax : null),
+          totalPrice:
+            (selectedPriceItem as any)?.totalPrice ?? selectedPrice ?? null,
+          basePrice:
+            (selectedPriceItem as any)?.price ??
+            ((selectedPriceItem as any)?.totalPrice != null &&
+            (selectedPriceItem as any)?.localTax != null
+              ? (selectedPriceItem as any).totalPrice -
+                (selectedPriceItem as any).localTax
+              : null),
           message,
         }}
         deal={null}
-        // boardBasis={""}
-        // duration={""}
-        // destinations={[]}
       />
-      <div 
-        className="fixed inset-x-0 bottom-0 z-50 w-full bg-[#FBE8F4] py-2 md:hidden"
+
+      {/* Slim Modern Footer Wrapper */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/80 bg-white/95 px-4 pt-1.5 pb-3.5 backdrop-blur-xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] md:hidden"
         data-testid="mc-mobile-footer"
       >
-        <McMobileConnectMenu
-          slug={slug}
-        />
+        <McMobileConnectMenu slug={slug} />
 
-        {/* Price and CTA */}
-        <div className="relative z-[70] w-full">
-          <div className="flex w-full items-center justify-between text-[#4c4c4c] px-5">
-            <div className="min-w-0">
-              {selectedPrice !== null ? (
-                <div className="min-w-0">
-                  <div className="flex items-baseline gap-1 justify-start">
-                    <span className="text-[11px] text-[#4c4c4c]">From</span>
-                    <div className="text-pml-primary text-[22px] font-bold leading-none">
-                      <span className="text-[#4c4c4c] text-[12px]">£</span>{" "}
-                      {Math.round(selectedPrice)}{" "}
-                      <span className="text-[#4c4c4c] text-[11px] font-medium">pp</span>
-                    </div>
-                  </div>
-                  {selectedPriceItem && Number((selectedPriceItem as any).localTax) > 0 ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="text-[14px]">
-                        {formatPrice((selectedPriceItem as any).price)}
-                      </div>
-
-                      <div className="text-[14px]">+</div>
-
-                      <div className="text-[13px] font-semibold">
-                        £{Math.round(Number((selectedPriceItem as any).localTax))}
-                      </div>
-
-                      <div className="text-[10px] text-[#595858] font-semibold">
-                        (Local tax)
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-[13px] mt-1">
-                      Per Person Price Starting from
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="min-w-0">
-                  <div className="text-[14px] font-semibold text-[#4c4c4c]">
-                    Select a date
-                  </div>
-                  <div className="text-[11px] text-[#6B6B6B]">
-                    to see the price
+        {/* Compact Single Row Content */}
+        <div className="mt-1 flex items-center justify-between gap-3">
+          {/* Price Container */}
+          <div className="min-w-0 flex-1">
+            {selectedPrice !== null ? (
+              <div className="flex flex-col justify-center">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    From
+                  </span>
+                  <div className="flex items-baseline text-xl font-extrabold text-[#1a1b4b] leading-none">
+                    <span className="text-xs font-bold text-[#1a1b4b] mr-0.5">
+                      £
+                    </span>
+                    {Math.round(selectedPrice)}
+                    <span className="ml-1 text-[10px] font-semibold text-slate-400">
+                      pp
+                    </span>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <button type="button" onClick={showEnquireCta ? handleOpenMobileSheet : handleCtaClick} className="shrink-0 whitespace-nowrap rounded-[10px] bg-[#CB2187] px-4 py-2 text-[10px] font-semibold text-white" >
-              {showEnquireCta ? "Enquire Now" : "View Options"}
-            </button>
+                {selectedPriceItem &&
+                Number((selectedPriceItem as any).localTax) > 0 ? (
+                  <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500">
+                    <span>{formatPrice((selectedPriceItem as any).price)}</span>
+                    <span>+</span>
+                    <span className="font-semibold text-[#1a1b4b]">
+                      £{Math.round(Number((selectedPriceItem as any).localTax))}{" "}
+                      tax
+                    </span>
+                  </div>
+                ) : (
+                  <span className="mt-0.5 block truncate text-[10px] font-medium text-slate-400">
+                    Per person starting price
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col justify-center">
+                <span className="text-xs font-bold text-[#1a1b4b] leading-tight">
+                  Select a date
+                </span>
+                <span className="text-[10px] font-medium text-slate-400">
+                  View pricing & options
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Action CTA Button */}
+          <button
+            type="button"
+            onClick={showEnquireCta ? handleOpenMobileSheet : handleCtaClick}
+            className="shrink-0 h-10 px-5 inline-flex items-center justify-center rounded-full bg-[#CB2187] text-xs font-bold text-white shadow-sm shadow-[#CB2187]/30 transition-transform active:scale-95 focus:outline-none"
+          >
+            {showEnquireCta ? "Enquire Now" : "View Options"}
+          </button>
         </div>
       </div>
     </>

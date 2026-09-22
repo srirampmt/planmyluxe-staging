@@ -65,7 +65,7 @@ export default async function Home() {
                 title={page?.banner_title}
                 description={page?.banner_subtitle}
                 image={page?.banner_image}
-                // priority={true}
+                priority
               />
 
               {/* <Features /> */}

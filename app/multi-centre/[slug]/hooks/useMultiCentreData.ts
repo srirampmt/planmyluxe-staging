@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { McDefaultPricingResponse, McPageResponse, McPricingData, PriceData, StaticPricingData } from "@/types/multi-centre";
-import { parseDayPriceEntry, resolveSelectedDeal } from "@/lib/multi-centre-selected-price";
+import { parseDayPriceEntry, parseLandingMonthParam, resolveSelectedDeal } from "@/lib/multi-centre-selected-price";
+import { resolveAirportIataToId } from "@/lib/mappings/airports";
 
 async function fetchContent(slug: string): Promise<Omit<McPageResponse, 'pricing'>> {
   const res = await fetch(`/api/multi-centre/${encodeURIComponent(slug)}/content`, {
@@ -47,6 +48,8 @@ async function fetchPricing(slug: string, airportId: string): Promise<{ priceDat
 export type MultiCentreDataSeed = {
   initialContent: Omit<McPageResponse, "pricing"> | null;
   initialPricing: McDefaultPricingResponse | null;
+  urlMonth?: string;
+  urlAirport?: string;
 };
 
 type DerivedMcState = {
@@ -59,12 +62,25 @@ type DerivedMcState = {
   landingMonthByAirport: Record<string, string>;
 };
 
+function resolveUrlAirportId(urlAirport: string | undefined, listOfAirports: number[]): string {
+  if (!urlAirport) return "";
+  const available = new Set(listOfAirports.map(String));
+  const tokens = urlAirport.split(",").map((token) => token.trim()).filter(Boolean);
+  for (const token of tokens) {
+    const mappedId = resolveAirportIataToId(token);
+    if (available.has(mappedId)) return mappedId;
+    if (available.has(token)) return token;
+  }
+  return "";
+}
+
 // Pure: derives all post-fetch state from a (content, defaultPricing) pair without
 // touching any setters. Shared by the seeded (server-provided) path and the
 // unseeded (client-fetch) path so the branching logic exists in exactly one place.
 function deriveMcState(
   contentData: Omit<McPageResponse, "pricing">,
-  pricingResponse: McDefaultPricingResponse
+  pricingResponse: McDefaultPricingResponse,
+  urlAirport?: string,
 ): DerivedMcState {
   if (pricingResponse.static) {
     return {
@@ -80,6 +96,8 @@ function deriveMcState(
 
   const availableAirports = Object.keys(pricingResponse.priceDataByAirport);
   const defaultAirport = availableAirports.length > 0 ? availableAirports[0] : "";
+  const urlAirportId = resolveUrlAirportId(urlAirport, pricingResponse.listOfAirports || []);
+  const selectedAirportId = urlAirportId || defaultAirport;
 
   const priceDataByAirport: Record<string, McPricingData> = {};
   const localTaxByAirport: Record<string, number> = {};
@@ -97,7 +115,7 @@ function deriveMcState(
     mcData: { ...contentData, pricing: pricingResponse },
     isStatic: false,
     staticPricingData: null,
-    selectedAirportId: defaultAirport,
+    selectedAirportId,
     priceDataByAirport,
     localTaxByAirport,
     landingMonthByAirport,
@@ -105,11 +123,14 @@ function deriveMcState(
 }
 
 export function useMultiCentreData(slug: string | undefined, seed?: MultiCentreDataSeed) {
+  const urlLandingMonth = parseLandingMonthParam(seed?.urlMonth);
+  const urlAirport = seed?.urlAirport ?? "";
+
   // Computed once (first render only) — the server-provided seed, if any, is authoritative
   // and never re-derived on re-render.
   const seededState = useMemo(() => {
     if (!seed?.initialContent || !seed?.initialPricing) return null;
-    return deriveMcState(seed.initialContent, seed.initialPricing);
+    return deriveMcState(seed.initialContent, seed.initialPricing, urlAirport);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally computed once for the initial seed only
   }, []);
 
@@ -148,7 +169,7 @@ export function useMultiCentreData(slug: string | undefined, seed?: MultiCentreD
 
     Promise.all([fetchContent(slug), fetchDefaultPricing(slug)])
       .then(([contentData, pricingResponse]) => {
-        const derived = deriveMcState(contentData, pricingResponse);
+        const derived = deriveMcState(contentData, pricingResponse, urlAirport);
         setIsStatic(derived.isStatic);
         setStaticPricingData(derived.staticPricingData);
         setMcData(derived.mcData);
@@ -180,6 +201,11 @@ export function useMultiCentreData(slug: string | undefined, seed?: MultiCentreD
     }
   }, [slug, isStatic, priceDataByAirport]);
 
+  useEffect(() => {
+    if (!selectedAirportId) return;
+    fetchPricingForAirport(selectedAirportId);
+  }, [selectedAirportId, fetchPricingForAirport]);
+
   // Derive priceData for calendar
   const priceData: PriceData = useMemo(() => {
     if (!mcData || !selectedAirportId) return [];
@@ -207,8 +233,7 @@ export function useMultiCentreData(slug: string | undefined, seed?: MultiCentreD
 
   const handleAirportChange = useCallback((airportId: string) => {
     setSelectedAirportId(airportId);
-    fetchPricingForAirport(airportId);
-  }, [fetchPricingForAirport]);
+  }, []);
 
   const currentLandingDealDate = (() => {
     const airportData =
@@ -217,9 +242,10 @@ export function useMultiCentreData(slug: string | undefined, seed?: MultiCentreD
       {};
     const taxForAirport =
       localTaxByAirport[selectedAirportId] ?? mcData?.pricing?.localTax ?? 0;
-    const resolvedLandingMonth =
+    const backendLandingMonth =
       landingMonthByAirport[selectedAirportId] ||
       mcData?.pricing?.landingMonth;
+    const resolvedLandingMonth = urlLandingMonth || backendLandingMonth;
 
     const selected = resolveSelectedDeal({
       landingMonth: resolvedLandingMonth,

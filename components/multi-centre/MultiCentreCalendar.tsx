@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { PriceData } from "@/types/multi-centre";
 import { getAirportNameWithCode } from "@/lib/mappings/airports";
@@ -41,6 +41,87 @@ const formatPrice = (price: number) => `£${Math.round(price)}`;
 const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
 
 const getStartDay = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+function CalendarMenu({
+  value,
+  options,
+  onChange,
+  ariaLabel,
+  triggerClassName,
+  leading,
+}: {
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+  ariaLabel: string;
+  triggerClassName: string;
+  leading?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={ariaLabel}
+        onClick={() => setOpen((current) => !current)}
+        className={triggerClassName}
+      >
+        {leading}
+        <span className="min-w-0 flex-1 truncate text-left">{selected?.label ?? "Select"}</span>
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-[#8A8A8A] transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && options.length > 0 && (
+        <ul
+          role="listbox"
+          aria-label={ariaLabel}
+          className="absolute left-0 z-40 mt-1.5 max-h-60 min-w-full overflow-y-auto rounded-2xl border border-[#EDEDED] bg-white py-1.5 shadow-[0_16px_40px_rgba(30,12,26,0.16)]"
+        >
+          {options.map((option) => {
+            const isActive = option.value === value;
+            return (
+              <li key={option.value} role="option" aria-selected={isActive}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setOpen(false);
+                  }}
+                  className={`flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-[14px] font-semibold ${
+                    isActive ? "bg-[#FFF0F7] text-pml-primary" : "text-[#1a1b4b] hover:bg-[#FAFAFA]"
+                  }`}
+                >
+                  <span className="truncate">{option.label}</span>
+                  {isActive && <Check className="h-4 w-4 shrink-0" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function resolveVisibleMonth(landingDealDate: string, priceData: PriceData): { year: number; month: number } {
   const landingParts = landingDealDate.split("-").map(Number);
@@ -143,8 +224,8 @@ export default function MultiCentreCalendar({
     }
   }, [availableMonths, currentYear, currentMonth]);
 
-  const handleMonthYearSelect = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    const [yearStr, monthStr] = e.target.value.split("-");
+  const handleMonthYearSelect = useCallback((value: string) => {
+    const [yearStr, monthStr] = value.split("-");
     const year = parseInt(yearStr, 10);
     const month = parseInt(monthStr, 10);
     setCurrentYear(year);
@@ -218,8 +299,8 @@ export default function MultiCentreCalendar({
   };
 
   return (
-    <div id="multi-centre-calendar" className="w-full overflow-hidden rounded-[16px] border border-[#EDEDED] bg-white shadow-[0_25px_50px_-12px_rgba(15,23,42,0.08),0_0_20px_0_rgba(192,24,120,0.03)]">
-      <div className="flex items-center justify-between border-b border-[#1a1a1a]/60 bg-gradient-to-r from-pml-dark via-[#1a1a1a] to-pml-dark px-6 py-4 text-white">
+    <div id="multi-centre-calendar" className="w-full overflow-visible rounded-[16px] border border-[#EDEDED] bg-white shadow-[0_25px_50px_-12px_rgba(15,23,42,0.08),0_0_20px_0_rgba(192,24,120,0.03)]">
+      <div className="flex items-center justify-between overflow-hidden rounded-t-[16px] border-b border-[#1a1a1a]/60 bg-gradient-to-r from-pml-dark via-[#1a1a1a] to-pml-dark px-6 py-4 text-white">
         <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-300">
           <Crown className="h-[11px] w-[11px] text-amber-400" /> Luxury Escape
         </span>
@@ -231,30 +312,26 @@ export default function MultiCentreCalendar({
       <div className="p-4">
       <div className="mb-3">
         <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A8A8A]">Departing from</div>
-        <div className="relative">
-          <select
-            value={selectedAirportId}
-            onChange={(e) => onAirportChange(e.target.value)}
-            className="w-full appearance-none rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 pr-9 text-[14px] font-semibold text-[#595858] transition-colors hover:bg-[#F5F5F5]"
-          >
-            {availableAirports.map((a) => (
-              <option key={a.id} value={a.id}>{a.label}</option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8A8A8A]" />
-        </div>
+        <CalendarMenu
+          ariaLabel="Departing airport"
+          value={selectedAirportId}
+          options={availableAirports.map((airport) => ({ value: airport.id, label: airport.label }))}
+          onChange={onAirportChange}
+          leading={<Plane className="h-4 w-4 shrink-0 text-pml-primary" />}
+          triggerClassName="flex w-full items-center gap-2 rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b] transition-colors hover:bg-[#F5F5F5]"
+        />
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3" id="holiday-calendar-grid">
         <div>
           <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A8A8A]">Board basis</div>
-          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#595858]">
+          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b]">
             {boardBasis}
           </div>
         </div>
         <div>
           <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A8A8A]">Duration</div>
-          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#595858]">
+          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b]">
             {duration}
           </div>
         </div>
@@ -269,18 +346,14 @@ export default function MultiCentreCalendar({
           <ChevronLeft className="h-3.5 w-3.5" />
         </button>
 
-        <div className="relative flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5 text-pml-primary" />
-          <select
-            value={`${currentYear}-${currentMonth}`}
-            onChange={handleMonthYearSelect}
-            className="appearance-none bg-transparent text-[14px] font-bold tracking-wide text-[#242F40] focus:outline-none"
-          >
-            {monthOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
+        <CalendarMenu
+          ariaLabel="Travel month"
+          value={`${currentYear}-${currentMonth}`}
+          options={monthOptions}
+          onChange={handleMonthYearSelect}
+          leading={<Calendar className="h-3.5 w-3.5 shrink-0 text-pml-primary" />}
+          triggerClassName="flex items-center gap-1.5 bg-transparent text-[14px] font-bold tracking-wide text-[#1a1b4b]"
+        />
 
         <button
           onClick={() => handleMonthChange("next")}
@@ -293,7 +366,7 @@ export default function MultiCentreCalendar({
 
       <div className="grid grid-cols-7 gap-1.5 mb-2">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-[12px] font-semibold text-[#595858]">
+          <div key={d} className="text-center text-[12px] font-semibold text-[#1a1b4b]">
             {d}
           </div>
         ))}
@@ -337,14 +410,14 @@ export default function MultiCentreCalendar({
                 <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full border-2 border-white bg-amber-300" />
               )}
               {isCheapestInMonth && !isSelected && (
-                <span className="absolute -top-1.5 -right-1 rounded-full bg-amber-300 px-1 text-[8px] font-bold uppercase text-[#242F40] shadow-sm">
+                <span className="absolute -top-1.5 -right-1 rounded-full bg-amber-300 px-1 text-[8px] font-bold uppercase text-[#1a1b4b] shadow-sm">
                   Save
                 </span>
               )}
-              <div className={`text-[13px] font-semibold ${isSelected || isCheapestInMonth ? "text-white" : "text-[#595858]"}`}>
+              <div className={`text-[13px] font-semibold ${isSelected || isCheapestInMonth ? "text-white" : "text-[#1a1b4b]"}`}>
                 {cell.day}
               </div>
-              <div className={`text-[11px] font-medium ${isSelected || isCheapestInMonth ? "text-white" : hasPrice ? "text-[#595858]" : "text-[#8A8A8A]"}`}>
+              <div className={`text-[11px] font-medium ${isSelected || isCheapestInMonth ? "text-white" : hasPrice ? "text-[#1a1b4b]" : "text-[#8A8A8A]"}`}>
                 {isDisabledDate ? "" : showPhoneIcon ? <Phone className="h-3 w-3" /> : hasPrice ? formatPrice(cell.price!) : "-"}
               </div>
             </button>
@@ -365,7 +438,7 @@ export default function MultiCentreCalendar({
             {pricingSourceMode === "builder" && (selectedPriceItem as any)?.referenceId && (
               <div className="flex items-center gap-1.5 rounded-xl border border-[#EDEDED] bg-white/90 px-2.5 py-1">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-[#8A8A8A]">Ref:</span>
-                <span className="font-mono text-[11px] font-bold text-[#595858]">{(selectedPriceItem as any).referenceId}</span>
+                <span className="font-mono text-[11px] font-bold text-[#1a1b4b]">{(selectedPriceItem as any).referenceId}</span>
                 <button
                   type="button"
                   onClick={handleCopyReferenceId}
@@ -388,7 +461,7 @@ export default function MultiCentreCalendar({
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="block text-sm font-bold leading-tight text-[#242F40] sm:text-base">
+                  <span className="block text-sm font-bold leading-tight text-[#1a1b4b] sm:text-base">
                     {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                   <span className="block text-xs font-medium text-[#8A8A8A]">
@@ -419,7 +492,7 @@ export default function MultiCentreCalendar({
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                 <Info className="h-3.5 w-3.5" />
               </div>
-              <h4 className="text-xs font-bold text-[#3A3A3A]">Local Hotel Tax Note</h4>
+              <h4 className="text-xs font-bold text-[#1a1b4b]">Local Hotel Tax Note</h4>
             </div>
             <button
               type="button"
@@ -429,10 +502,10 @@ export default function MultiCentreCalendar({
               {showTaxDetails ? "Hide" : "Details"}
             </button>
           </div>
-          <div className="mt-2.5 space-y-2 pl-8 text-[11px] leading-relaxed text-[#595858]">
+          <div className="mt-2.5 space-y-2 pl-8 text-[11px] leading-relaxed text-[#1a1b4b]">
             <p>
               <span className="capitalize">{location}</span> local tax of{" "}
-              <strong className="font-bold text-[#3A3A3A]">{formatPrice((selectedPriceItem as any).localTax)}</strong> per guest applies.
+              <strong className="font-bold text-[#1a1b4b]">{formatPrice((selectedPriceItem as any).localTax)}</strong> per guest applies.
             </p>
             {showTaxDetails && (
               <p className="text-[10.5px] text-[#8A8A8A]">
@@ -440,9 +513,9 @@ export default function MultiCentreCalendar({
                 using live exchange rates, so the final figure can shift slightly.
               </p>
             )}
-            <div className="mt-2 flex items-center justify-between rounded-xl border border-amber-200/50 bg-white/90 px-2.5 py-2 text-xs font-semibold text-[#595858]">
+            <div className="mt-2 flex items-center justify-between rounded-xl border border-amber-200/50 bg-white/90 px-2.5 py-2 text-xs font-semibold text-[#1a1b4b]">
               <span className="font-medium text-[#8A8A8A]">Package + Tax estimate:</span>
-              <span className="font-bold text-[#242F40]">
+              <span className="font-bold text-[#1a1b4b]">
                 {formatPrice((selectedPriceItem as any).price)} + <span className="text-pml-primary">{formatPrice((selectedPriceItem as any).localTax)}</span> ={" "}
                 <span className="font-extrabold text-pml-primary">{formatPrice((selectedPriceItem as any).totalPrice)}</span>
               </span>
@@ -451,7 +524,7 @@ export default function MultiCentreCalendar({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4 text-[#595858]">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4 text-[#1a1b4b]">
         <a
           href={`tel:${phoneTel}`}
           data-testid="mc-cta-call"
@@ -522,7 +595,7 @@ export default function MultiCentreCalendar({
       </div>
       </div>
 
-      <div className="flex items-center justify-center gap-1.5 border-t border-[#EDEDED] bg-[#FAFAFA] px-6 py-3">
+      <div className="flex items-center justify-center gap-1.5 overflow-hidden rounded-b-[16px] border-t border-[#EDEDED] bg-[#FAFAFA] px-6 py-3">
         <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
         <p className="text-[10px] font-medium tracking-wide text-[#8A8A8A]">
           ATOL Protected &bull; 100% Financial Guarantee

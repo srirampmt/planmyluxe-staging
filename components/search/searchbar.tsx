@@ -336,8 +336,8 @@ function TravelDatePicker({
             key={`${year}-${month}`}
             type="button"
             onClick={() => onSelectMonth(year, month)}
-            className={`px-3 py-3 rounded-[12px] text-xs font-semibold text-center transition-all border border-solid cursor-pointer ${isSelected
-              ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10 scale-[1.02]'
+            className={`px-3 py-2.5 rounded-[12px] text-xs font-semibold text-center transition-all border border-solid cursor-pointer ${isSelected
+              ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10'
               : 'bg-white border-gray-200 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30'
               }`}
           >
@@ -415,19 +415,35 @@ function TravelDatePicker({
 
   return (
     <div ref={ref} className={`relative min-w-0 w-full ${className}`} data-testid={testId}>
-      <button type="button" onClick={onToggle} className="w-full flex items-center px-3 py-1.5 hover:bg-gray-50/80 rounded-full transition-all duration-200 cursor-pointer group text-left border-none bg-transparent">
-        <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${open ? 'bg-[#CB2187] text-white ring-2 ring-[#CB2187]/30' : 'bg-gray-100/80 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'}`}>
-          <Calendar size={compact ? 15 : 18} />
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`w-full flex items-center min-h-[52px] px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer group text-left border bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-sm ${
+          open
+            ? 'border-[#CB2187] ring-2 ring-[#CB2187]/20'
+            : 'border-gray-200/90 hover:border-gray-300'
+        }`}
+      >
+        <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${
+          open
+            ? 'bg-[#CB2187] text-white'
+            : 'bg-gray-50 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'
+        }`}>
+          <Calendar size={compact ? 15 : 16} />
         </div>
         <div className="flex-1 min-w-0">
-          <label className="text-[10px] md:text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate">
+          <label className="text-[10px] md:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate">
             {label}
           </label>
-          <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[14px] truncate ${value ? 'text-gray-800 font-medium' : 'text-gray-400 font-normal'}`}>
+          <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[13.5px] truncate font-semibold ${
+            value ? 'text-gray-800' : 'text-gray-400 font-normal'
+          }`}>
             {value || placeholder}
           </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-300 flex-shrink-0 transition-transform duration-200 ml-1 group-hover:text-gray-400 ${open ? 'rotate-180 text-[#CB2187]' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-gray-300 flex-shrink-0 transition-transform duration-200 ml-1 group-hover:text-gray-400 ${
+          open ? 'rotate-180 text-[#CB2187]' : ''
+        }`} />
       </button>
 
       {open && (
@@ -468,7 +484,7 @@ function TravelDatePicker({
             document.body
           )
         ) : (
-          <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 bg-white rounded-[24px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 p-5 z-50 w-[320px] select-none">
+          <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 p-4 z-50 w-[320px] select-none">
             {dateTabBody(false)}
           </div>
         )
@@ -499,8 +515,8 @@ function AirportButton({ airport, isSelected, onClick }: { airport: { code: stri
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 text-left px-3 py-2.5 rounded-[12px] text-xs font-semibold transition-all border border-solid group ${isSelected
-        ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10 scale-[1.02]'
+      className={`flex items-center gap-2 text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all border border-solid group ${isSelected
+        ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10'
         : 'bg-white border-gray-200 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30'
         } cursor-pointer`}
     >
@@ -1295,7 +1311,7 @@ export default function SearchBar({
       }
       if (searchResults.length > 0) {
         return (
-          <div className="space-y-2 px-1">
+          <div className="space-y-1 px-3">
             {searchResults.map(d => {
               const isSelected = selectedDestinationObj?.destination_id === d.destination_id;
               const level = getDestinationLevel(d);
@@ -1305,13 +1321,16 @@ export default function SearchBar({
                 <button
                   key={d.destination_id}
                   type="button"
-                  className={`flex items-center w-full text-left hover:bg-[#CB2187]/10 py-1.5 px-4 rounded-[12px] transition-all group outline-none gap-3 border border-solid ${isSelected ? 'bg-[#CB2187]/5 border-[#CB2187]/30' : 'bg-transparent border-transparent'
-                    } cursor-pointer`}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-3 cursor-pointer group outline-none ${
+                    isSelected
+                      ? 'bg-pink-50/90 font-semibold text-[#CB2187] border border-pink-200/60'
+                      : 'hover:bg-gray-50 text-gray-700 border border-transparent'
+                  }`}
                   onClick={() => selectDestination(d)}
                 >
-                  <div className="flex flex-col">
-                    <div className="flex items-center justify-around  gap-2">
-                      <span className="text-sm font-semibold text-gray-700 block truncate group-hover:text-[#CB2187] transition-colors">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-semibold block truncate">
                         {label}
                       </span>
                       {level && (
@@ -1332,16 +1351,16 @@ export default function SearchBar({
           </div>
         );
       }
-      return <p className="text-sm text-gray-500 px-5 py-3">No destinations found matching &quot;{destinationSearch}&quot;.</p>;
+      return <p className="text-sm text-gray-500 px-3 py-3">No destinations found matching &quot;{destinationSearch}&quot;.</p>;
     }
 
     return (
-      <div className="space-y-2 px-5">
+      <div className="space-y-2 px-3">
         {favouriteSections.length > 0 && (
-          <div className="mb-1 pb-1 border-b border-solid border-slate-100/80">
-            <div className="flex items-center gap-2 mb-3.5">
-              <span className="w-1.5 h-3.5 bg-gradient-to-b from-[#CB2187] to-[#ffa600] rounded-full"></span>
-              <span className="text-[11px] font-extrabold text-[#CB2187] uppercase tracking-widest font-montserrat">
+          <div className="mb-1 pb-1">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-3.5 bg-[#CB2187] rounded-full"></span>
+              <span className="text-[11px] font-extrabold text-[#CB2187] uppercase tracking-wider font-montserrat">
                 Popular Destinations
               </span>
             </div>
@@ -1360,8 +1379,8 @@ export default function SearchBar({
                           key={row.destination_id}
                           type="button"
                           className={`flex items-center gap-2.5 text-left px-3 py-2.5 rounded-[12px] text-xs font-semibold transition-all border border-solid group ${isSelected
-                            ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10 scale-[1.02]'
-                            : 'bg-white border-gray-150 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30 hover:shadow-sm'
+                            ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10'
+                            : 'bg-white border-gray-200 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30'
                             } cursor-pointer`}
                           onClick={() => selectDestination(row, { openAirportNext: true })}
                         >
@@ -1390,11 +1409,11 @@ export default function SearchBar({
 
     if (searchLower) {
       if (matchedAvailable.length === 0 && matchedOther.length === 0) {
-        return <p className="text-sm text-gray-500 py-3 px-5">No airports found matching &quot;{airportSearch}&quot;.</p>;
+        return <p className="text-sm text-gray-500 py-3 px-1">No airports found matching &quot;{airportSearch}&quot;.</p>;
       }
 
       return (
-        <div className="space-y-5 px-5">
+        <div className="space-y-4 px-1">
           {matchedAvailable.length > 0 && (
             <div>
               <p className="text-[10px] font-extrabold text-[#CB2187] uppercase tracking-wider mb-2.5">
@@ -1456,13 +1475,13 @@ export default function SearchBar({
       : REGIONS;
 
     return (
-      <div className="px-5 space-y-5">
+      <div className="px-1 space-y-4">
         <div>
-          <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-3">Quick Region Select</p>
+          <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-2.5">Quick Region Select</p>
           {visibleRegions.length === 0 ? (
             <p className="text-xs text-gray-400 py-2">No regions available for this destination.</p>
           ) : (
-            <div className="grid grid-cols-1 gap-2.5">
+            <div className="grid grid-cols-1 gap-2">
               {visibleRegions.map(region => {
                 // Strictly reflects actual selection state — no implicit
                 // default highlight (e.g. "Any London" used to show
@@ -1476,8 +1495,8 @@ export default function SearchBar({
                     key={region}
                     type="button"
                     onClick={() => toggleRegion(region)}
-                    className={`flex items-center gap-2 text-left px-3 py-2.5 rounded-[12px] text-xs font-semibold transition-all border border-solid group ${isSelected
-                      ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10 scale-[1.02]'
+                    className={`flex items-center gap-2 text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all border border-solid group ${isSelected
+                      ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30'
                       } cursor-pointer`}
                   >
@@ -1746,18 +1765,18 @@ export default function SearchBar({
 
   return (
     <form onSubmit={handleSubmit} data-testid={`search-bar-${compact ? 'compact' : 'hero'}`} className="w-full max-w-full">
-      <div className="flex flex-col lg:flex-row items-center justify-between relative z-10 w-full gap-2 md:gap-3 p-1 sm:p-2">
-        <div className="flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-row items-center w-full gap-2 lg:gap-1 flex-1 min-w-0">
+      <div className="relative z-10 flex w-full flex-col items-stretch justify-between gap-2 p-1 md:gap-2 sm:p-2 lg:flex-row lg:items-center">
+        <div className="flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-row items-stretch w-full gap-2 lg:gap-2 flex-1 min-w-0">
 
           {/* Destination Dropdown */}
           <div ref={destRef} className="min-w-0 w-full lg:flex-[1.1] flex-1 relative" data-testid="search-dest">
             {!isMobile && openDropdown === 'dest' ? (
-              <div className="w-full flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200">
-                <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center mr-2.5 bg-[#CB2187] text-white ring-2 ring-[#CB2187]/30">
-                  <Search size={compact ? 15 : 18} />
+              <div className="w-full flex items-center min-h-[52px] px-3 py-1.5 rounded-xl border border-[#CB2187] ring-2 ring-[#CB2187]/20 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+                <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center mr-2.5 bg-[#CB2187] text-white">
+                  <Search size={compact ? 15 : 16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-widest block mb-0.5 font-montserrat whitespace-nowrap truncate text-gray-400">
+                  <label className="text-[10px] md:text-[11px] font-semibold uppercase tracking-wider block mb-0.5 font-montserrat whitespace-nowrap truncate text-gray-400">
                     Destination
                   </label>
                   <input
@@ -1765,7 +1784,7 @@ export default function SearchBar({
                     value={destinationSearch}
                     onChange={(e) => { setDestinationSearch(e.target.value); setDestSearchTouched(true); }}
                     placeholder="Search destinations by name, region or country..."
-                    className="w-full bg-transparent border-none p-0 text-xs md:text-[14px] outline-none text-gray-800 font-medium placeholder:text-gray-400 placeholder:font-normal"
+                    className="w-full bg-transparent border-none p-0 text-xs md:text-[13.5px] outline-none text-gray-800 font-semibold placeholder:text-gray-400 placeholder:font-normal"
                   />
                 </div>
                 <button
@@ -1792,21 +1811,24 @@ export default function SearchBar({
                     setDestSearchTouched(false);
                   }
                 }}
-                className={`w-full flex items-center px-3 py-1.5 hover:bg-gray-50/80 rounded-full transition-all duration-200 cursor-pointer group text-left border-none bg-transparent ${validationErrors.dest ? 'ring-2 ring-red-400/60 rounded-full' : ''
-                  }`}
+                className={`w-full flex items-center min-h-[52px] px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer group text-left border bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-sm ${
+                  validationErrors.dest
+                    ? 'border-red-300 ring-2 ring-red-400/60'
+                    : 'border-gray-200/90 hover:border-gray-300'
+                }`}
               >
                 <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${validationErrors.dest
-                  ? 'bg-red-50 text-red-500 ring-2 ring-red-300/50'
-                  : 'bg-gray-100/80 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'
+                  ? 'bg-red-50 text-red-500'
+                  : 'bg-gray-50 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'
                   }`}>
-                  <MapPin size={compact ? 15 : 18} />
+                  <MapPin size={compact ? 15 : 16} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <label className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-widest block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate ${validationErrors.dest ? 'text-red-500' : 'text-gray-400'
+                  <label className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-wider block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate ${validationErrors.dest ? 'text-red-500' : 'text-gray-400'
                     }`}>
                     Destination {validationErrors.dest && <span className="normal-case tracking-normal font-normal">— {validationErrors.dest}</span>}
                   </label>
-                  <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[14px] truncate ${destinationSearchDisplay ? 'text-gray-800 font-medium' : validationErrors.dest ? 'text-red-400 font-normal' : 'text-gray-400 font-normal'}`}>
+                  <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[13.5px] truncate ${destinationSearchDisplay ? 'text-gray-800 font-semibold' : validationErrors.dest ? 'text-red-400 font-normal' : 'text-gray-400 font-normal'}`}>
                     {destinationSearchDisplay || (validationErrors.dest ? 'Required — select a destination' : 'Select Destination')}
                   </div>
                 </div>
@@ -1846,37 +1868,40 @@ export default function SearchBar({
                   document.body
                 )
               ) : (
-                <div className="absolute top-[calc(100%+1px)] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 lg:w-[270px] bg-white rounded-[8px] shadow-[0_25px_60px_rgba(30,12,26,0.18)] border border-gray-300 py-5 z-50 max-h-[480px] w-[90vw] overflow-y-auto scroll-autohide">
+                <div className="absolute top-[calc(100%+12px)] left-0 w-full lg:w-[280px] bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 py-3 z-50 max-h-[380px] overflow-y-auto scroll-autohide">
                   {renderDestinationsDropdownContent()}
                 </div>
               )
             )}
           </div>
 
-          <div className="hidden lg:block w-px h-8 bg-gray-200/60 flex-shrink-0 self-center mx-0.5" />
-
           {/* Departure Airports Dropdown */}
           <div ref={airportRef} className="min-w-0 w-full lg:flex-[1.5] flex-1 relative" data-testid="search-dealtype">
             <button
               type="button"
               onClick={() => setOpenDropdown(openDropdown === 'airport' ? null : 'airport')}
-              className={`w-full flex items-center px-3 py-1.5 hover:bg-gray-50/80 rounded-full transition-all duration-200 cursor-pointer group text-left border-none bg-transparent ${validationErrors.airports ? 'ring-2 ring-red-400/60 rounded-full' : ''
-                }`}
+              className={`w-full flex items-center min-h-[52px] px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer group text-left border bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-sm ${
+                validationErrors.airports
+                  ? 'border-red-300 ring-2 ring-red-400/60'
+                  : openDropdown === 'airport'
+                    ? 'border-[#CB2187] ring-2 ring-[#CB2187]/20'
+                    : 'border-gray-200/90 hover:border-gray-300'
+              }`}
             >
               <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${validationErrors.airports
-                ? 'bg-red-50 text-red-500 ring-2 ring-red-300/50'
+                ? 'bg-red-50 text-red-500'
                 : openDropdown === 'airport'
-                  ? 'bg-[#CB2187] text-white ring-2 ring-[#CB2187]/30'
-                  : 'bg-gray-100/80 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'
+                  ? 'bg-[#CB2187] text-white'
+                  : 'bg-gray-50 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'
                 }`}>
-                <Plane size={compact ? 15 : 18} />
+                <Plane size={compact ? 15 : 16} />
               </div>
               <div className="flex-1 min-w-0">
-                <label className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-widest block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate ${validationErrors.airports ? 'text-red-500' : 'text-gray-400'
+                <label className={`text-[10px] md:text-[11px] font-semibold uppercase tracking-wider block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate ${validationErrors.airports ? 'text-red-500' : 'text-gray-400'
                   }`}>
                   Departure Airports {validationErrors.airports && <span className="normal-case tracking-normal font-normal">— {validationErrors.airports}</span>}
                 </label>
-                <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[14px] truncate ${selectedAirports.length > 0 ? 'text-gray-800 font-medium' : validationErrors.airports ? 'text-red-400 font-normal' : 'text-gray-400 font-normal'
+                <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[13.5px] truncate ${selectedAirports.length > 0 ? 'text-gray-800 font-semibold' : validationErrors.airports ? 'text-red-400 font-normal' : 'text-gray-400 font-normal'
                   }`}>
                   {selectedAirports.length > 0
                     ? selectedAirports.map(getAirportName).join(', ')
@@ -1936,25 +1961,21 @@ export default function SearchBar({
                   document.body
                 )
               ) : (
-                <div className="absolute top-[calc(100%+12px)] left-1/2 -translate-x-1/2 lg:left-0 lg:right-0 lg:translate-x-0 lg:w-full bg-white rounded-[12px] shadow-[0_25px_60px_rgba(30,12,26,0.18)] border border-gray-300 py-5 z-50 max-h-[480px] w-[90vw] overflow-y-auto scroll-autohide">
-                  <div className="px-5 pb-4 pt-1">
-                    <div className="relative">
-                      <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        value={airportSearch}
-                        onChange={(e) => setAirportSearch(e.target.value)}
-                        placeholder="Search departure airports by name or code..."
-                        className="w-full pl-11 pr-4 py-2.5 text-sm border border-solid border-gray-200/80 rounded-[14px] outline-none bg-[#f8f9fa] focus:bg-white focus:border-[#CB2187] focus:ring-2 focus:ring-[#CB2187]/20 transition-all font-medium text-gray-700"
-                      />
-                    </div>
+                <div className="absolute top-[calc(100%+12px)] left-0 w-full lg:min-w-[320px] bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 p-3 z-50 max-h-[380px] overflow-y-auto scroll-autohide flex flex-col">
+                  <div className="relative mb-2.5 flex-shrink-0">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      value={airportSearch}
+                      onChange={(e) => setAirportSearch(e.target.value)}
+                      placeholder="Search airport or code..."
+                      className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl outline-none focus:bg-white focus:border-[#CB2187] focus:ring-2 focus:ring-[#CB2187]/20 text-gray-800"
+                    />
                   </div>
                   {renderAirportsDropdownContent()}
                 </div>
               )
             )}
           </div>
-
-          <div className="hidden lg:block w-px h-8 bg-gray-200/60 flex-shrink-0 self-center mx-0.5" />
 
           {/* Travel Date Picker */}
           <TravelDatePicker
@@ -1981,19 +2002,25 @@ export default function SearchBar({
             onSelectMonth={handleSelectMonth}
           />
 
-          <div className="hidden lg:block w-px h-8 bg-gray-200/60 flex-shrink-0 self-center mx-0.5" />
-
           {/* Nights Dropdown */}
-          <div ref={nightsRef} className="relative min-w-0 w-full lg:flex-[0.65] flex-1" data-testid="search-nights">
-            <button type="button" onClick={() => setOpenDropdown(openDropdown === 'nights' ? null : 'nights')} className="w-full flex items-center px-3 py-1.5 hover:bg-gray-50/80 rounded-full transition-all duration-200 cursor-pointer group text-left border-none bg-transparent" >
-              <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${openDropdown === 'nights' ? 'bg-[#CB2187] text-white ring-2 ring-[#CB2187]/30' : 'bg-gray-100/80 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'}`}>
-                <Moon size={compact ? 15 : 18} />
+          <div ref={nightsRef} className="relative min-w-0 w-full flex-1 lg:flex-[0.85]" data-testid="search-nights">
+            <button
+              type="button"
+              onClick={() => setOpenDropdown(openDropdown === 'nights' ? null : 'nights')}
+              className={`w-full flex items-center min-h-[52px] px-3 py-1.5 rounded-xl transition-all duration-200 cursor-pointer group text-left border bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-sm ${
+                openDropdown === 'nights'
+                  ? 'border-[#CB2187] ring-2 ring-[#CB2187]/20'
+                  : 'border-gray-200/90 hover:border-gray-300'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-full transition-all flex-shrink-0 flex items-center justify-center mr-2.5 ${openDropdown === 'nights' ? 'bg-[#CB2187] text-white' : 'bg-gray-50 text-slate-500 group-hover:bg-[#CB2187]/10 group-hover:text-[#CB2187]'}`}>
+                <Moon size={compact ? 15 : 16} />
               </div>
               <div className="flex-1 min-w-0">
-                <label className="text-[10px] md:text-[11px] font-semibold text-gray-400 uppercase tracking-widest block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate">
+                <label className="text-[10px] md:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block mb-0.5 cursor-pointer font-montserrat whitespace-nowrap truncate">
                   Nights
                 </label>
-                <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[14px] truncate ${nights ? 'text-gray-800 font-medium' : 'text-gray-400 font-normal'}`}>
+                <div className={`w-full bg-transparent border-none p-0 text-xs md:text-[13.5px] truncate ${nights ? 'text-gray-800 font-semibold' : 'text-gray-400 font-normal'}`}>
                   {nights ? `${nights} Night${nights === '1' ? '' : 's'}` : 'Any Duration'}
                 </div>
               </div>
@@ -2030,9 +2057,18 @@ export default function SearchBar({
                   document.body
                 )
               ) : (
-                <div className="absolute top-[calc(100%+12px)] right-0 z-50 w-[180px] max-h-[280px] overflow-y-scroll rounded-[16px] border border-gray-100 bg-white py-1.5 shadow-[0_20px_50px_rgba(30,12,26,0.18)] [scrollbar-width:thin] [scrollbar-color:#c4c4c4_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300">
+                <div className="absolute top-[calc(100%+12px)] right-0 z-50 w-[200px] max-h-[280px] overflow-y-auto rounded-[16px] border border-gray-100 bg-white p-2 shadow-[0_20px_50px_rgba(30,12,26,0.18)] [scrollbar-width:thin] [scrollbar-color:#c4c4c4_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300">
                   {nightOptions.map(opt => (
-                    <button key={opt.value} type="button" onClick={() => { handleNightsChange(opt.value); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[14px] border-none cursor-pointer transition-colors ${opt.value === nights ? 'bg-[#CB2187]/20 text-[#CB2187] font-bold' : 'bg-transparent text-gray-700 hover:bg-gray-50 hover:text-[#CB2187]'}`} >
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => { handleNightsChange(opt.value); setOpenDropdown(null); }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-[13px] border-none cursor-pointer transition-all ${
+                        opt.value === nights
+                          ? 'bg-pink-50/90 font-semibold text-[#CB2187]'
+                          : 'bg-transparent text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
                       {opt.label}
                     </button>
                   ))}
@@ -2042,20 +2078,19 @@ export default function SearchBar({
           </div>
 
         </div>
-        <div className="p-1 w-full lg:w-auto flex-shrink-0">
+        <div className="flex w-full flex-shrink-0 self-stretch p-1 lg:w-auto">
           <button
             data-testid="search-submit"
             type="submit"
             disabled={isSubmitting || isSearchLoading}
-            className="w-full lg:w-auto relative overflow-hidden bg-[#CB2187] text-white rounded-full px-7 lg:px-9 py-3 font-semibold tracking-wide transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] transform hover:-translate-y-0.5 active:scale-95 group border-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:active:scale-100"
+            className="relative flex min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full bg-[#CB2187] px-7 py-3 font-semibold tracking-wide text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-[#a81870] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] active:scale-95 cursor-pointer border-none group lg:min-w-[140px] lg:px-9 disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out"></div>
             {isSubmitting || isSearchLoading ? (
               <span className="relative z-10 inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent align-middle" aria-label="Loading" />
             ) : (
               <Search size={18} className="relative z-10" />
             )}
-            <span className="relative z-10 text-[15px] font-semibold">Search</span>
+            <span className="relative z-10 text-[14px] md:text-[15px] font-bold">Search</span>
           </button>
         </div>
       </div>

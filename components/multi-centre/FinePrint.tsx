@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { parseHtmlItems } from "@/lib/html-list";
+import { ChevronDown, ChevronUp, Info } from "lucide-react";
 
 const FINE_PRINT_ITEMS = [
   "Our prices are per person, based on two people sharing, and are subject to availability.",
@@ -28,87 +29,74 @@ export default function FinePrint(content: any) {
     typeof content === "string"
       ? content
       : content && typeof content.content === "string"
-      ? content.content
-      : "";
+        ? content.content
+        : "";
 
-  const getFinePrintItems = (rawHtml: string) => {
-    const trimmed = (rawHtml || "").trim();
-    if (!trimmed) return [] as string[];
-    try {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(trimmed, "text/html");
-
-      const liNodes = Array.from(doc.querySelectorAll("li"));
-      if (liNodes.length > 0) {
-        return liNodes.map((li) => (li.textContent || "").trim()).filter(Boolean);
-      }
-
-      const pNodes = Array.from(doc.querySelectorAll("p"));
-      if (pNodes.length > 0) {
-        return pNodes.map((p) => (p.textContent || "").trim()).filter(Boolean);
-      }
-
-      // fallback: split by <br> or newlines from body text
-      const bodyText = doc.body.textContent || "";
-      const parts = bodyText.split(/<br\s*\/?>|\r?\n/).map((s) => s.trim()).filter(Boolean);
-      if (parts.length > 0) return parts;
-
-      return [bodyText.trim()].filter(Boolean);
-    } catch {
-      return [] as string[];
-    }
-  };
+  const getFinePrintItems = (rawHtml: string) => parseHtmlItems(rawHtml);
 
   const renderRichText = (rawHtml: string) => {
-    const safe = DOMPurify.sanitize(rawHtml || "", { USE_PROFILES: { html: true } });
+    const safe = DOMPurify.sanitize(rawHtml || "", {
+      USE_PROFILES: { html: true },
+    });
     return (
       <div
-        className="text-xs text-gray-500 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-2"
+        className="text-xs text-gray-500 leading-relaxed [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:marker:text-amber-600 [&_li]:mb-2"
         dangerouslySetInnerHTML={{ __html: safe }}
       />
     );
   };
 
   const contentItems = getFinePrintItems(html);
-  const sourceItems = contentItems.length ? contentItems : FINE_PRINT_ITEMS;
-  const displayedItems = isExpanded ? sourceItems : sourceItems.slice(0, COLLAPSED_ITEMS);
+  const sourceItems = contentItems.length
+    ? contentItems
+    : html.trim()
+      ? []
+      : FINE_PRINT_ITEMS;
+  const displayedItems = isExpanded
+    ? sourceItems
+    : sourceItems.slice(0, COLLAPSED_ITEMS);
 
   return (
-    <section 
-      className="w-full rounded-[8px] bg-[#FBE8F4] p-6 md:p-8"
+    <section
+      className="w-full mb-2 rounded-2xl border border-amber-200/60 bg-amber-50/50 p-3.5 md:p-5"
       data-testid="fine-print"
     >
-      <h2 className="text-[18px] md:text-[20px] font-bold text-pml-primary mb-4">
-        Fine Print
-      </h2>
-      
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <Info className="h-3.5 w-3.5" />
+          </div>
+          <h2 className="text-lg font-bold text-[#1a1b4b]">
+            Fine Print & Important Information
+          </h2>
+        </div>
+      </div>
+
       {contentItems.length ? (
-        <ul className="space-y-2 text-[#595858] text-[13px] md:text-[16px] leading-[140%] font-[montserrat] list-disc pl-5">
+        <ul className="space-y-2 text-[#1a1b4b] text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
           {displayedItems.map((item, idx) => (
-            <li key={idx} className="text-[#595858]">
+            <li key={idx} className="pl-1">
               {item}
             </li>
           ))}
         </ul>
+      ) : html.trim() ? (
+        <div className="mb-0">{renderRichText(html)}</div>
       ) : (
-        html.trim() ? (
-          <div className="mb-0">{renderRichText(html)}</div>
-        ) : (
-          <ul className="space-y-2 text-[#595858] text-[13px] md:text-[16px] leading-[140%] font-[montserrat] list-disc pl-5">
-            {displayedItems.map((item, idx) => (
-              <li key={idx} className="text-[#595858]">
-                {item}
-              </li>
-            ))}
-          </ul>
-        )
+        <ul className="space-y-2 text-[#1a1b4b] text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
+          {displayedItems.map((item, idx) => (
+            <li key={idx} className="pl-1">
+              {item}
+            </li>
+          ))}
+        </ul>
       )}
 
       {sourceItems.length > COLLAPSED_ITEMS && (
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="mt-4 inline-flex items-center gap-1 text-pml-primary text-[14px] font-semibold hover:underline transition-colors"
+          className="inline-flex ml-2 mt-3 items-center gap-1 text-pml-primary hover:text-pml-primary/80 text-[14px] font-semibold transition-colors"
           data-testid="fine-print-toggle"
         >
           {isExpanded ? (

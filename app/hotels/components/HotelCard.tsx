@@ -5,6 +5,7 @@ import { BOARD_BASIS_ID_TO_CODE, BOARD_BASIS_NAMES, getBoardBasisCode, getBoardB
 import { trackEvent } from "@/lib/storage";
 import { attachCurrentPageToWhatsAppHref, getWhatsAppUrl } from "@/lib/utils";
 import { parseTopFacilities } from "@/lib/mappings/top-facilities";
+import { toIsoDateKey } from "@/lib/hotel-utils";
 
 const STAR_PATH = "M14.0001 5.4091L8.91313 5.07466L6.99734 0.261719L5.08156 5.07466L0.0001297 5.4091L3.89754 8.7184L2.61862 13.7384L6.99734 10.9707L11.3761 13.7384L10.0972 8.7184L14.0001 5.4091Z";
 
@@ -25,8 +26,10 @@ function parseStayInfo(apiUrl?: string): { nights: number | null; boardBasis: st
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return "";
+  const key = toIsoDateKey(dateStr);
+  if (!key) return dateStr;
   try {
-    const d = new Date(dateStr);
+    const d = new Date(`${key}T00:00:00`);
     if (isNaN(d.getTime())) return dateStr;
     return d.toLocaleDateString("en-GB", {
       day: "numeric",
@@ -292,7 +295,6 @@ export type HotelCardData = {
 
 type HotelCardProps = {
   hotel: HotelCardData;
-  innerRef?: React.Ref<HTMLDivElement>;
   index?: number;
   isHighlighted?: boolean;
 };
@@ -300,7 +302,7 @@ type HotelCardProps = {
 
 import { resolveAirportIataToId } from "@/lib/mappings/airports";
 
-export default function HotelCard({ hotel, innerRef, index, isHighlighted }: HotelCardProps) {
+export default function HotelCard({ hotel, index, isHighlighted }: HotelCardProps) {
   const img = hotel.card_image || undefined;
 
   const { nights, boardBasis, date: parsedDate } = useMemo(
@@ -308,7 +310,13 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
     [hotel.api_url]
   );
 
-  const resolvedDate = (hotel.checkInDate as string | undefined) || (hotel.checkinDate as string | undefined) || (hotel.flight as any)?.outboundDepartureDate || parsedDate || undefined;
+  const resolvedDate =
+    toIsoDateKey(
+      (hotel.checkInDate as string | undefined) ||
+      (hotel.checkinDate as string | undefined) ||
+      parsedDate ||
+      (hotel.flight as any)?.outboundDepartureDate
+    ) || undefined;
   const resolvedBoardBasis = (hotel.boardBasis as string | undefined) || (hotel.board_basis as string | undefined) || boardBasis || undefined;
   const resolvedNights = nights || (hotel.duration as number | null) || (hotel.nights as number | null) || null;
 
@@ -407,7 +415,6 @@ export default function HotelCard({ hotel, innerRef, index, isHighlighted }: Hot
 
   return (
     <div
-      ref={innerRef}
       onClick={handleClick}
       data-testid={`hotel-card-${hotel.slug}`}
       className={`group flex flex-col sm:flex-row overflow-hidden rounded-[12px] border shadow-[0_4px_15px_-3px_rgba(0,0,0,0.05),0_2px_6px_-2px_rgba(0,0,0,0.025)] min-h-[200px] no-underline font-['Montserrat'] ${isHighlighted

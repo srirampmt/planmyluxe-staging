@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { HotelDeal } from "@/types/hotel";
 import FlightSummary from "./FlightSummary";
-import { formatNights } from "@/lib/hotel-utils";
+import { formatNights, toIsoDateKey } from "@/lib/hotel-utils";
 import { getBoardBasisName } from "@/lib/mappings/board-basis";
 
 /* ===================== CUSTOM DROPDOWN ===================== */
@@ -157,7 +157,8 @@ interface DayData {
 const getPriceMap = (prices: PriceData[]) => {
   return prices.reduce(
     (map, item) => {
-      map[item.date] = item.price;
+      const key = toIsoDateKey(item.date);
+      if (key) map[key] = item.price;
       return map;
     },
     {} as Record<string, number>,
@@ -167,9 +168,8 @@ const getPriceMap = (prices: PriceData[]) => {
 const getCustomPriceMap = (prices: PriceData[]) => {
   return prices.reduce(
     (map, item) => {
-      if (item?.date) {
-        map[item.date] = Boolean(item.hasCustomPrice);
-      }
+      const key = toIsoDateKey(item?.date);
+      if (key) map[key] = Boolean(item.hasCustomPrice);
       return map;
     },
     {} as Record<string, boolean>,
@@ -323,21 +323,23 @@ export default function HolidayCalendar({
   }, []);
 
   const initialDate = useMemo(() => {
-    if (!initialDepartureDate) return today;
-    const d = new Date(initialDepartureDate);
+    const key = toIsoDateKey(initialDepartureDate);
+    if (!key) return today;
+    const d = new Date(`${key}T00:00:00`);
     return Number.isNaN(d.getTime()) ? today : d;
   }, [initialDepartureDate, today]);
 
   const [currentMonth, setCurrentMonth] = useState(initialDate.getMonth());
   const [currentYear, setCurrentYear] = useState(initialDate.getFullYear());
-  const [selectedDateKey, setSelectedDateKey] = useState(initialDepartureDate);
+  const [selectedDateKey, setSelectedDateKey] = useState(() => toIsoDateKey(initialDepartureDate));
 
   // Keep internal selected date/month in sync when parent changes selected date
   useEffect(() => {
-    if (!initialDepartureDate) return;
-    const d = new Date(initialDepartureDate);
+    const key = toIsoDateKey(initialDepartureDate);
+    if (!key) return;
+    const d = new Date(`${key}T00:00:00`);
     if (Number.isNaN(d.getTime())) return;
-    setSelectedDateKey(initialDepartureDate);
+    setSelectedDateKey(key);
     setCurrentMonth(d.getMonth());
     setCurrentYear(d.getFullYear());
   }, [initialDepartureDate]);
@@ -559,7 +561,7 @@ export default function HolidayCalendar({
   }, [currentYear, currentMonth, isBeforeMinAllowed]);
 
   const monthName = new Date(currentYear, currentMonth).toLocaleString( "en-US", { month: "long" }, );
-  const selectedDate = new Date(selectedDateKey);
+  const selectedDate = new Date(`${toIsoDateKey(selectedDateKey) || selectedDateKey}T00:00:00`);
   const returnDate = new Date(selectedDate);
   returnDate.setDate(selectedDate.getDate() + nights);
   const formatDate = (d: Date) => `${d.getDate()} ${d.toLocaleString("en-US", { month: "short", })} ${d.getFullYear()}`;
@@ -771,7 +773,7 @@ export default function HolidayCalendar({
           <div className="grid grid-cols-7 gap-2">
             {days.map((day, i) => {
               const isSelected = day.dateKey === selectedDateKey;
-              const isDefault = defaultDate && day.dateKey === defaultDate;
+              const isDefault = Boolean(defaultDate) && day.dateKey === toIsoDateKey(defaultDate);
               const isCheapest = (day as any).isCheapest;
               const disabled = !day.isSelectable;
               const hasContent = day.dayOfMonth !== null;

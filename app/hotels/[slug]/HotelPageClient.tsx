@@ -15,6 +15,7 @@ import {
   formatAirline,
   getDealTraceLine,
   getWhatsAppDealTraceLine,
+  toIsoDateKey,
 } from "@/lib/hotel-utils";
 import { useUtmPhone } from "@/components/utm/UtmPhoneProvider";
 import { getBoardBasisName } from "@/lib/mappings";
@@ -270,7 +271,7 @@ export default function HotelPageClient({ slug, initialHotelData, initialLive }:
   const priceData = useMemo(
     () =>
       Object.keys(dealsByDate).map((date) => ({
-        date,
+        date: toIsoDateKey(date) || date,
         price: Math.round(getEffectivePrice(dealsByDate[date].deal)),
         hasCustomPrice: dealsByDate[date].hasCustomPrice,
       })),
@@ -372,7 +373,10 @@ export default function HotelPageClient({ slug, initialHotelData, initialLive }:
   const safeDefaultDeal = hotelData?.api_data?.default_deal;
   const safeDefaultDealHotel = safeDefaultDeal && safeDefaultDeal.hotel ? safeDefaultDeal.hotel : null;
   const calendarDepartureDate =
-    selectedDate || (noDealsMessage ? todayIso : safeDefaultDealHotel?.checkInDate) || todayIso;
+    toIsoDateKey(selectedDate) ||
+    toIsoDateKey(searchParams.get("checkinDate")) ||
+    (noDealsMessage ? todayIso : toIsoDateKey(safeDefaultDealHotel?.checkInDate)) ||
+    todayIso;
 
   const reviewsData = {
     rating: page.trip_advisor_rating || page.trip_advisor_reviews_rating,

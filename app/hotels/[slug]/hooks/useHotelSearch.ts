@@ -1,12 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { HotelPageResponse, HotelDeal, DealsByDate, StaticPricingData } from "@/types/hotel";
-import { processDealsByDate } from "@/lib/hotel-utils";
+import { processDealsByDate, pickDealForDate, toIsoDateKey } from "@/lib/hotel-utils";
 
-type SearchFilters = {
+type FilterIds = {
   departure: string;
   boardBasis: string;
   duration: string;
+};
+
+type SearchFilters = FilterIds & {
+  checkinDate: string;
 };
 
 type PageSnapshot = {
@@ -20,7 +24,7 @@ type PageSnapshot = {
 };
 
 const buildFilterKey = (filters: SearchFilters) =>
-  `dep=${filters.departure || ""}|bb=${filters.boardBasis || ""}|dur=${filters.duration || ""}`;
+  `dep=${filters.departure || ""}|bb=${filters.boardBasis || ""}|dur=${filters.duration || ""}|in=${toIsoDateKey(filters.checkinDate) || ""}`;
 
 export function useHotelSearch(
   hotelData: HotelPageResponse | null,
@@ -31,8 +35,8 @@ export function useHotelSearch(
   setNoDealsMessage: React.Dispatch<React.SetStateAction<string>>,
   initialSnapshotRef: React.MutableRefObject<PageSnapshot | null>,
   filterOptionsWithIds: any,
-  currentFiltersRef: React.MutableRefObject<SearchFilters>,
-  currentFiltersDisplayRef: React.MutableRefObject<SearchFilters>,
+  currentFiltersRef: React.MutableRefObject<FilterIds>,
+  currentFiltersDisplayRef: React.MutableRefObject<FilterIds>,
   isAutoDeal: boolean,
   setIsAutoDeal: React.Dispatch<React.SetStateAction<boolean>>,
   setStaticPricing: React.Dispatch<React.SetStateAction<StaticPricingData | null>>
@@ -93,6 +97,7 @@ export function useHotelSearch(
             departure: filters.departure,
             boardBasis: filters.boardBasis,
             duration: filters.duration,
+            checkinDate: toIsoDateKey(filters.checkinDate) || undefined,
             adults: 2,
             children: 0,
             auto: isAutoDealRef.current,
@@ -225,12 +230,17 @@ export function useHotelSearch(
           hotelData?.page.Tax_per_night,
           hotelData?.page.location
         );
+        const picked = pickDealForDate(
+          processed,
+          filters.checkinDate,
+          firstDeal.hotel.checkInDate
+        );
 
         const newSnapshot: PageSnapshot = {
           hotelData: { ...hotelData!, api_data: apiData } as any,
           dealsByDate: processed,
-          selectedDate: firstDeal.hotel.checkInDate,
-          selectedDeal: firstDeal,
+          selectedDate: picked.date,
+          selectedDeal: picked.deal || firstDeal,
           noDealsMessage: "",
           auto: result?.data?.auto !== false,
           staticPricing: null,
@@ -306,6 +316,7 @@ export function useHotelSearch(
       departure: searchParams.get("departure") || "",
       boardBasis: searchParams.get("boardBasis") || "",
       duration: searchParams.get("duration") || "",
+      checkinDate: searchParams.get("checkinDate") || "",
     };
 
     const hasAnyFilter =
@@ -325,6 +336,13 @@ export function useHotelSearch(
 
     const filterKey = buildFilterKey(filtersFromUrl);
     if (filterKey === lastAppliedFilterKeyRef.current) return;
+
+    // SSR ls-search already used checkinDate. Don't overwrite it with a
+    // live search that used to drop the date on first paint.
+    if (lastAppliedFilterKeyRef.current === "" && initialSnapshotRef.current) {
+      lastAppliedFilterKeyRef.current = filterKey;
+      return;
+    }
 
     // Check cache first
     const cached = searchCacheRef.current.get(filterKey);

@@ -176,6 +176,10 @@ export async function POST(request: NextRequest) {
       .map((s: unknown) => String(s).trim())
       .filter(Boolean);
 
+    const regions: string[] = (Array.isArray(body.regions) ? body.regions : [])
+      .map((s: unknown) => String(s).trim())
+      .filter(Boolean);
+
     const resorts: string[] = (Array.isArray(body.resorts) ? body.resorts : [])
       .map((s: unknown) => String(s).trim())
       .filter(Boolean);
@@ -221,6 +225,7 @@ export async function POST(request: NextRequest) {
       departure_airports: airportsList,
       board_basis,
       ratings,
+      regions,
       resorts,
       facilities,
       sort,

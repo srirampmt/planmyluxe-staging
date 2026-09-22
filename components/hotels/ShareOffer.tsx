@@ -10,7 +10,7 @@ import { usePathname } from "next/navigation";
 
 interface ShareOfferProps {
   className?: string;
-  variant?: "button" | "headerRow";
+  variant?: "button" | "headerRow" | "icon";
 }
 
 export default function ShareOffer({
@@ -85,7 +85,15 @@ export default function ShareOffer({
   return (
     <>
       {/* ===== SHARE BUTTON ===== */}
-      {variant === "headerRow" ? (
+      {variant === "icon" ? (
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Share this offer"
+          className={`${className} inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#FCE7F3] bg-white text-pml-primary shadow-sm transition-all duration-200 hover:bg-[#FFF0F7] active:scale-95`}
+        >
+          <Share2 className="h-4 w-4" />
+        </button>
+      ) : variant === "headerRow" ? (
         <div className="flex items-start justify-center md:justify-end">
           <button
             onClick={() => setOpen(true)}

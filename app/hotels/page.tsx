@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, use } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
 import { useSearch } from '@/hooks/useSearch';
-import { useDebounce, useInfiniteScroll } from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchFilters } from '@/hooks/useSearchFilters';
 import FilterSidebar from './components/FilterSidebar';
 import ActiveFilters from './components/ActiveFilters';
@@ -95,6 +95,7 @@ export default function SearchPage({
     (filters.outbound_flight_time?.length || 0) +
     (filters.inbound_flight_time?.length || 0) +
     (filters.board_basis?.length || 0) +
+    (filters.regions?.length || 0) +
     (filters.resorts?.length || 0) +
     ((filters.price_min != null || filters.price_max != null) ? 1 : 0) +
     (filters.special_offers_only ? 1 : 0)
@@ -158,6 +159,7 @@ export default function SearchPage({
         departure_airports: filters.departure_airports,
         board_basis: filters.board_basis && filters.board_basis.length > 0 ? filters.board_basis : "ANY",
         ratings: filters.rating,
+        regions: filters.regions,
         resorts: filters.resorts,
         price_min: filters.price_min,
         price_max: filters.price_max,
@@ -304,6 +306,7 @@ export default function SearchPage({
               departure_airports: filters.departure_airports,
               board_basis: filters.board_basis,
               rating: filters.rating,
+              regions: filters.regions,
               resorts: filters.resorts,
               price_min: filters.price_min,
               price_max: filters.price_max,
@@ -353,8 +356,6 @@ export default function SearchPage({
       setFirstMounted(true);
     }
   }, [initialData, firstMounted, allHotels]);
-
-  const sentinelRef = useInfiniteScroll(loadMore, hasMore && !loadingMore);
 
   const displayOptions = options
     ? { ...options, price_min: priceBounds?.min ?? options.price_min, price_max: priceBounds?.max ?? options.price_max }
@@ -508,6 +509,9 @@ export default function SearchPage({
       if (filters.board_basis && filters.board_basis.length) {
         params.set('board_basis', filters.board_basis.join(','));
       }
+      if (filters.regions && filters.regions.length) {
+        params.set('regions', filters.regions.join(','));
+      }
       if (filters.resorts && filters.resorts.length) {
         params.set('resorts', filters.resorts.join(','));
       }
@@ -521,7 +525,7 @@ export default function SearchPage({
     } catch (e) {
       // ignore
     }
-  }, [filters.q, filters.destinations, filters.holiday_types, filters.sort, filters.date, filters.date_max, filters.nights, filters.departure_airports, filters.outbound_flight_time, filters.inbound_flight_time, filters.board_basis, filters.resorts, filters.rating]);
+  }, [filters.q, filters.destinations, filters.holiday_types, filters.sort, filters.date, filters.date_max, filters.nights, filters.departure_airports, filters.outbound_flight_time, filters.inbound_flight_time, filters.board_basis, filters.regions, filters.resorts, filters.rating]);
 
   // Sync searchPrefill to sessionStorage. `airports` stores IATA codes
   // directly (filters.departure_airports already is that shape) — no local
@@ -661,7 +665,7 @@ export default function SearchPage({
                   loading={isCurrentlyLoading}
                   loadingMore={loadingMore}
                   hasMore={hasMore}
-                  sentinelRef={sentinelRef}
+                  onLoadMore={loadMore}
                   onClearAll={clearAll}
                   destinationUnavailable={destinationUnavailable}
                   rateLimitRetryAfter={rateLimitRetryAfter}

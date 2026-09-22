@@ -53,6 +53,12 @@ function parseMonthKeyParts(monthKey: string): { year: number; month: number } |
   return { year, month };
 }
 
+/** Search `mon` / `month` query → YYYYMM, or "" if not a valid landing month. */
+export function parseLandingMonthParam(raw: string | null | undefined): string {
+  const clean = String(raw ?? "").replace(/[^0-9]/g, "").slice(0, 6);
+  return parseMonthKeyParts(clean) ? clean : "";
+}
+
 function toMonthKey(year: number, month: number): string {
   return `${String(year).padStart(4, "0")}${String(month).padStart(2, "0")}`;
 }

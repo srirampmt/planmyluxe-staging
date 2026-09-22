@@ -91,3 +91,34 @@ export function isValidDuration(
   const nights = parseDuration(duration);
   return nights >= min && nights <= max;
 }
+
+const DURATION_WORDS: Record<string, string> = {
+  one: "1",
+  two: "2",
+  three: "3",
+  four: "4",
+  five: "5",
+  six: "6",
+  seven: "7",
+  eight: "8",
+  nine: "9",
+  ten: "10",
+};
+
+/** Display label for a multi-centre stop duration, e.g. "three nights" → "3 nights". */
+export function formatMultiCentreDuration(duration?: string): string {
+  if (!duration || !duration.trim()) return "Included";
+  const lowered = duration.toLowerCase().trim();
+  if (lowered === "origin" || lowered === "orgin" || lowered === "return") {
+    return duration;
+  }
+
+  let normalized = lowered;
+  for (const [word, number] of Object.entries(DURATION_WORDS)) {
+    normalized = normalized.replace(new RegExp(`\\b${word}\\b`, "g"), number);
+  }
+
+  const allNumbers = normalized.match(/\d+/g);
+  if (!allNumbers) return "Included";
+  return `${allNumbers[allNumbers.length - 1]} nights`;
+}

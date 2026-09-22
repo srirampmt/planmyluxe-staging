@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import HotelBanner from "@/components/multi-centre/HotelBanner";
-import ShareOffer from "@/components/hotels/ShareOffer";
 import StickySectionTabs from "@/components/multi-centre/StickySectionTabs";
 import MultiCentreCalendarSection from "./components/MultiCentreCalendarSection";
 import McMobileStickyFooter from "@/components/multi-centre/McMobileStickyFooter";
@@ -16,6 +15,7 @@ import { useMultiCentreFilters } from "./hooks/useMultiCentreFilters";
 import EnquiryModal from "@/components/hotels/EnquiryModal";
 import OfferCards from "@/components/multi-centre/OffersCards";
 import Image from "next/image";
+import { MapPin } from "lucide-react";
 import ContactAndTrending from "./components/contactandtrending";
 import MultiCentrePageSkeleton from "./components/MultiCentrePageSkeleton";
 import { buildEnquirySource } from "@/lib/source-builder";
@@ -190,9 +190,16 @@ function getLegTransport(
 type MultiCentrePageClientProps = {
   initialContent: Omit<McPageResponse, "pricing"> | null;
   initialPricing: McDefaultPricingResponse | null;
+  urlMonth?: string;
+  urlAirport?: string;
 };
 
-export default function MultiCentrePageClient({ initialContent, initialPricing }: MultiCentrePageClientProps) {
+export default function MultiCentrePageClient({
+  initialContent,
+  initialPricing,
+  urlMonth,
+  urlAirport,
+}: MultiCentrePageClientProps) {
   const params = useParams<{ slug: string }>();
   const pathname = usePathname();
   const slug = params?.slug;
@@ -239,7 +246,12 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
     setSelectedStaticSeason(null);
   }, [slug]);
 
-  const { mcData, contentLoading, pricingLoading, error, selectedAirportId, priceData, currentLandingDealDate, handleAirportChange, isStatic, staticPricingData } = useMultiCentreData(slug, { initialContent, initialPricing });
+  const { mcData, contentLoading, pricingLoading, error, selectedAirportId, priceData, currentLandingDealDate, handleAirportChange, isStatic, staticPricingData } = useMultiCentreData(slug, {
+    initialContent,
+    initialPricing,
+    urlMonth,
+    urlAirport,
+  });
   const showStaticPriceSection = isStatic;
 
   const { availableAirports, onAirportChange } = useMultiCentreFilters(mcData, selectedAirportId, handleAirportChange);
@@ -339,11 +351,35 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
     const stopLabels = [departure, ...destinations.map((dest: string) => cleanStopLabel(dest)), departure];
 
     return stopLabels.map((title, index) => {
+      const isFirst = index === 0;
+      const isLast = index === stopLabels.length - 1;
       const nextStop = stopLabels[index + 1];
+
+      let subtitle = "3 Nights";
+      let badgeType: TimelineStop["badgeType"] = "stay";
+      if (isFirst) {
+        subtitle = "Origin";
+        badgeType = "origin";
+      } else if (isLast) {
+        subtitle = "Return";
+        badgeType = "return";
+      } else {
+        const matchedItinerary =
+          itinerary.find((item) => {
+            const itemTitle = String(item?.title || item?.location || item?.hotel || "").toLowerCase();
+            const cityTitle = title.toLowerCase();
+            return itemTitle.includes(cityTitle) || (itemTitle && cityTitle.includes(itemTitle));
+          }) || itinerary[index - 1];
+        subtitle =
+          matchedItinerary?.duration ||
+          (matchedItinerary?.nights ? `${matchedItinerary.nights} Nights` : "3 Nights");
+      }
 
       return {
         title,
-        displayDay: index === stopLabels.length - 1 ? 1 : index + 1,
+        subtitle,
+        badgeType,
+        displayDay: isLast ? 1 : index + 1,
         transportToNextStop: nextStop
           ? getLegTransport(travelLegs, transportSequence, title, nextStop, index, stopLabels.length)
           : undefined,
@@ -366,6 +402,46 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
     };
   }, [mcData]);
 
+  const processedHotels = useMemo(() => {
+    const pageHotels = mcData?.page?.hotels || [];
+    const itinerary = mcData?.sections?.itinerary || [];
+
+    return pageHotels.map((pHotel, idx) => {
+      const matchedItinerary =
+        itinerary.find((item) => {
+          if (!item) return false;
+          const locLower = (pHotel.location || "").toLowerCase();
+          const titleLower = (item.title || "").toLowerCase();
+          const hotelLower = (item.hotel || "").toLowerCase();
+          return (
+            (locLower && titleLower.includes(locLower)) ||
+            (locLower && titleLower && locLower.includes(titleLower)) ||
+            (locLower && hotelLower.includes(locLower))
+          );
+        }) || itinerary[idx];
+
+      const rawImages = Array.isArray(pHotel.images) ? pHotel.images.filter(Boolean) : [];
+      const normalizedImages = rawImages.map((src) => {
+        const raw = String(src);
+        return /^https?:\/\//i.test(raw) ? raw : raw.startsWith("/") ? raw : `/${raw}`;
+      });
+
+      return {
+        id: `hotel-${idx}`,
+        location: pHotel.location || matchedItinerary?.title || `Stop ${idx + 1}`,
+        duration: matchedItinerary?.duration || "3 Nights",
+        hotelName: matchedItinerary?.hotel || pHotel.location || "Featured Hotel",
+        rating: matchedItinerary?.rating || 4,
+        board: matchedItinerary?.board || "Bed & Breakfast",
+        description: pHotel.description || matchedItinerary?.description || "",
+        images: normalizedImages.length > 0 ? normalizedImages : ["/placeholder.jpg"],
+        extras: matchedItinerary?.extras
+          ? String(matchedItinerary.extras).split(",").map((extra) => extra.trim()).filter(Boolean)
+          : [],
+      };
+    });
+  }, [mcData]);
+
   const staticPriceString = showStaticPriceSection
     ? selectedStaticSeason?.price ?? staticPricingData?.fromPrice ?? null
     : null;
@@ -384,7 +460,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
   if (error || !mcData) {
     return (
       <main className="mx-auto w-full bg-white px-4 md:px-10">
-        <div className="mx-auto max-w-[1280px] py-10 text-[#595858]">
+        <div className="mx-auto max-w-[1280px] py-10 text-[#1a1b4b]">
           Unable to load this multi-centre itinerary.
         </div>
       </main>
@@ -394,7 +470,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
   const page = mcData.page;
   // console.log(mcData.sections)
   return (
-    <main className="mx-auto w-full bg-white px-4 md:px-10">
+    <main className="mx-auto w-full bg-[#FAFCFD] px-4 md:px-10">
       <EnquiryModal
         open={isEnquiryOpen}
         onClose={handleCloseEnquiry}
@@ -425,19 +501,14 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
         onEnquire={() => handleEnquireNow(selectedDate)}
       />
 
-      <div className="mx-auto max-w-[1280px] flex justify-center pb-0 md:justify-end md:pb-4">
-        <ShareOffer variant="headerRow" />
+      <div className="mx-auto mb-5 w-full max-w-[1280px] space-y-3 rounded-[16px] border border-slate-200/60 bg-slate-50/70 p-2 shadow-xs sm:p-4">
+        <AboutThisPackage duration={mcData?.page?.durationLabel || ""} destination={mcData?.page?.destinations ?? []} accommodation={calculatedPackageInfo.accommodation} board={calculatedPackageInfo.board} />
       </div>
 
       <div className="mx-auto max-w-[1280px] pb-[16px]">
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
           {/* Left column */}
           <div className="w-full min-w-0 space-y-6">
-            {/* Insert The About Pacjage and Time line Here */}
-            <div className="mb-6">
-              <AboutThisPackage duration={mcData?.page?.durationLabel || ""} destination={mcData?.page?.destinations ?? []} accommodation={calculatedPackageInfo.accommodation} board={calculatedPackageInfo.board} />
-            </div>
-
             <div className="mb-6">
               <HorizontalTimeLine items={timelineItems} />
             </div>
@@ -475,7 +546,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
                           viewBox="0 0 24 24"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
-                          className="text-[#393939]"
+                          className="text-[#1a1b4b]"
                           aria-hidden="true"
                         >
                           <g clipPath="url(#clip0_atol)">
@@ -508,7 +579,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
                         </svg>
                       </div>
                       <div className="flex flex-col items-start p-2 h-[40px] w-full min-w-0 md:min-w-[300px]">
-                        <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#393939] text-[13px] md:text-[16px] leading-[24px] font-normal">
+                        <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#1a1b4b] text-[13px] md:text-[16px] leading-[24px] font-normal">
                           All holidays are ATOL protected!
                         </span>
                       </div>
@@ -521,28 +592,32 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
               </div>
             </div>
 
-            <div ref={tabsBarRef} className="sticky self-start bg-white z-30 border-b" style={{ top: "calc(var(--main-nav-height, 0px) - 1px)" }} >
-              <div className="flex overflow-x-auto gap-6 text-sm font-medium">
-                {[
-                  { key: "highlights", label: "Highlights", targetId: "mc-highlights" },
-                  { key: "whats-included", label: "What's Included", targetId: "whats-included" },
-                  { key: "itinerary", label: "Itinerary", targetId: "mc-itinerary" },
-                  { key: "hotel-details", label: "Hotel Details", targetId: "hotel-details" },
-                ].map((tab) => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => {
-                      setActiveTab(tab.key);
-                      scrollToSection(tab.targetId);
-                    }}
-                    className={`pt-4 pb-3 shrink-0 border-b-4 ${
-                      activeTab === tab.key ? 'border-pml-primary' : 'border-transparent'
-                    } text-gray-600 hover:text-gray-900`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+            <div ref={tabsBarRef} className="sticky z-30 w-full pb-2.5" style={{ top: "calc(var(--main-nav-height, 0px) - 1px)" }}>
+              <div className="mx-auto w-full rounded-[16px] border border-[#E5E7EB] bg-white p-1.5 shadow-xs">
+                <div className="flex items-center justify-between gap-1 overflow-x-auto text-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                  {[
+                    { key: "highlights", label: "Highlights", targetId: "mc-highlights" },
+                    { key: "whats-included", label: "What's Included", targetId: "whats-included" },
+                    { key: "itinerary", label: "Itinerary", targetId: "mc-itinerary" },
+                    { key: "hotel-details", label: "Hotel Details", targetId: "hotel-details" },
+                  ].map((tab) => (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(tab.key);
+                        scrollToSection(tab.targetId);
+                      }}
+                      className={`min-w-max shrink-0 flex-1 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 sm:px-5 sm:py-2.5 sm:text-sm ${
+                        activeTab === tab.key
+                          ? "border border-[#FCE7F3] bg-[#FFF0F7] text-pml-primary shadow-xs"
+                          : "border border-transparent text-[#1a1b4b] hover:bg-gray-50"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -550,7 +625,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
               highlights={mcData.sections.highlights}
               whatsIncluded={mcData.sections.whats_included}
               itinerary={mcData.sections.itinerary}
-              hotels={mcData.page.hotels}
+              hotels={processedHotels}
             />
           </div>
 
@@ -588,7 +663,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="text-[#393939]"
+                        className="text-[#1a1b4b]"
                         aria-hidden="true"
                       >
                         <g clipPath="url(#clip0_atol)">
@@ -622,7 +697,7 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
                     </div>
 
                     <div className="flex flex-col items-start p-2 h-[40px] w-full min-w-0 md:min-w-[300px]">
-                      <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#393939] text-[13px] md:text-[16px] leading-[24px] font-normal">
+                      <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#1a1b4b] text-[13px] md:text-[16px] leading-[24px] font-normal">
                         All holidays are ATOL protected!
                       </span>
                     </div>
@@ -647,22 +722,35 @@ export default function MultiCentrePageClient({ initialContent, initialPricing }
       </div>
       
       {mcData?.page?.map_image && (
-        <div className="mx-auto max-w-[1280px] pb-[32px] md:pb-[48px]">
-          <div className="w-full rounded-[8px] border border-[#EDEDED]">
-            {mcData?.page?.map_image && (
+        <section className="mx-auto max-w-[1280px] pb-8 md:pb-12">
+          <div className="w-full rounded-2xl border border-pink-100 bg-white p-3 shadow-2xs sm:p-5">
+            <div className="mb-3 flex items-center gap-2.5 px-1 sm:mb-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-pink-100 bg-pink-50 text-[#CB2187] sm:h-10 sm:w-10">
+                <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-extrabold leading-tight text-[#1a1b4b] sm:text-base md:text-lg">
+                  Route Overview Map
+                </h3>
+                <p className="text-[11px] font-medium text-gray-500 sm:text-xs">
+                  Visual route breakdown of your itinerary
+                </p>
+              </div>
+            </div>
+            <div className="relative w-full overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
               <Image
                 src={mcData.page.map_image}
-                alt="Map image"
+                alt="Route overview map"
                 width={1280}
                 height={400}
                 sizes="(max-width: 768px) 100vw, 1280px"
                 quality={90}
-                className="w-full h-[200px] md:h-[400px] object-cover md:object-contain object-center rounded-[8px]"
+                className="h-[180px] w-full rounded-xl object-cover object-center sm:h-[280px] md:h-[400px] md:object-contain"
                 priority
               />
-            )}
+            </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* Fine Print Section */}

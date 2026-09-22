@@ -38,7 +38,7 @@ export type HotelResult = {
 };
 
 export type FilterOptions = {
-  destinations?: string[];
+  regions?: any[];
   holiday_types?: any[];
   ratings?: any[];
   resorts?: any[];
@@ -58,7 +58,7 @@ type BackendSearchResponse = {
   facets: FilterOptions;
   total_count: number;
   // Total hotels matching the base search (destination/dates/airports/
-  // nights) only, ignoring rating/board_basis/resorts/holiday_types/price/
+  // nights) only, ignoring rating/board_basis/regions/resorts/holiday_types/price/
   // flight-time filters -- unlike total_count, this stays the same across
   // every filter combination within the same search.
   base_total_count: number;
@@ -144,6 +144,7 @@ function computeFetchKey(f: Partial<SearchFilters> | null | undefined): string {
     departure_airports: f?.departure_airports || [],
     board_basis: f?.board_basis || [],
     ratings: f?.rating || [],
+    regions: f?.regions || [],
     resorts: f?.resorts || [],
     price_min: f?.price_min,
     price_max: f?.price_max,
@@ -168,7 +169,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
   const [rateLimitRetryAfter, setRateLimitRetryAfter] = useState<number | null>(null);
 
   // Bumped to force the main effect to re-run for the SAME fetchKey — used
-  // when loadMore discovers the search session expired mid-scroll (404/410)
+  // when loadMore discovers the search session expired while paging (404/410)
   // and needs a fresh create-search call rather than silently dying.
   const [refetchNonce, setRefetchNonce] = useState(0);
 
@@ -294,7 +295,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
         // Same cache write the POST path does — so a same-browser reload
         // of this exact filter combination hits the fast cache path too,
         // and loadMore's stale-cursor recovery (removeSearchCache) has a
-        // real entry to drop if this search later 404s/410s mid-scroll.
+        // real entry to drop if this search later 404s/410s while paging.
         //
         // Keyed for the filters this search will be looked up under AFTER
         // page.tsx syncs the search bar to the resolved base criteria
@@ -449,6 +450,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
         departure_airports: filters.departure_airports,
         board_basis: filters.board_basis && filters.board_basis.length > 0 ? filters.board_basis : "ANY",
         ratings: filters.rating,
+        regions: filters.regions,
         resorts: filters.resorts,
         price_min: filters.price_min,
         price_max: filters.price_max,
@@ -539,7 +541,7 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchKey, refetchNonce, opts?.waitForExternalData, opts?.externalDataReady, opts?.blockAutoFetch]);
 
-  // loadMore scrolls fetching subsequent pages from Django backend
+  // loadMore fetches subsequent pages from Django backend
   const loadMore = useCallback(() => {
     if (loadingMore || !cursor || !searchId) return;
 
@@ -554,19 +556,19 @@ export function useSearch(filters: SearchFilters, opts?: UseSearchOptions) {
         // don't expire — see the redesign notes), and an invalid/expired
         // cursor signature comes back as 400 ("Invalid or expired cursor
         // token"), not 404/410. Without this, that's the realistic
-        // "expired mid-scroll" case and it was falling through to the
+        // "expired while paging" case and it was falling through to the
         // generic catch below — which doesn't clear the stale cursor —
         // making this whole recovery path effectively unreachable. loadMore
         // only ever sends `cursor` (never `criteria`), so a 400 here can't
         // be confused with the other validation errors this endpoint can
         // return for a malformed request.
         if (r.status === 404 || r.status === 410 || r.status === 400) {
-          // The search session expired (or was never found) mid-scroll.
-          // Previously this just logged an error and infinite scroll went
+          // The search session expired (or was never found) while paging.
+          // Previously this just logged an error and further pages went
           // silently dead. Instead: drop the stale cache entry and bump
           // refetchNonce so the main effect re-runs a fresh create-search
-          // for the same criteria — the user keeps scrolling and just sees
-          // a brief reload instead of a dead end.
+          // for the same criteria — the user can keep loading more and just
+          // sees a brief reload instead of a dead end.
           removeSearchCache(fetchKey);
           setSearchId(null);
           setCursor(null);

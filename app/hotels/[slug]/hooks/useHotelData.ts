@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { HotelPageResponse, HotelDeal, DealsByDate, StaticPricingData } from "@/types/hotel";
-import { processDealsByDate } from "@/lib/hotel-utils";
+import { processDealsByDate, pickDealForDate, toIsoDateKey } from "@/lib/hotel-utils";
 
 type PageSnapshot = {
   hotelData: HotelPageResponse;
@@ -48,7 +48,8 @@ type DerivedHotelPageState = {
 // path so the three-mode branching logic exists in exactly one place.
 function deriveHotelPageState(
   contentData: HotelPageResponse,
-  liveJson: any
+  liveJson: any,
+  requestedCheckinDate?: string | null
 ): DerivedHotelPageState {
   const liveApiData =
     liveJson?.api_data ??
@@ -142,13 +143,19 @@ function deriveHotelPageState(
     contentData.page.Tax_per_night,
     contentData.page.location
   );
-  const initialDate = defaultDeal.hotel.checkInDate;
+  const picked = pickDealForDate(
+    processed,
+    requestedCheckinDate,
+    defaultDeal.hotel.checkInDate
+  );
+  const initialDate = picked.date || toIsoDateKey(defaultDeal.hotel.checkInDate);
+  const initialDeal = picked.deal || defaultDeal;
 
   return {
     hotelData: mergedHotelData,
     dealsByDate: processed,
     selectedDate: initialDate,
-    selectedDeal: defaultDeal,
+    selectedDeal: initialDeal,
     noDealsMessage: "",
     isAutoDeal,
     staticPricing: null,
@@ -157,7 +164,7 @@ function deriveHotelPageState(
       hotelData: mergedHotelData,
       dealsByDate: processed,
       selectedDate: initialDate,
-      selectedDeal: defaultDeal,
+      selectedDeal: initialDeal,
       noDealsMessage: "",
       auto: isAutoDeal,
       staticPricing: null,
@@ -174,7 +181,7 @@ export function useHotelData(seed?: HotelDataSeed) {
   // and never re-derived on re-render.
   const seededState = useMemo(() => {
     if (!seed?.initialHotelData) return null;
-    return deriveHotelPageState(seed.initialHotelData, seed.initialLive);
+    return deriveHotelPageState(seed.initialHotelData, seed.initialLive, searchParams.get("checkinDate"));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally computed once for the initial seed only
   }, []);
 
@@ -298,7 +305,7 @@ export function useHotelData(seed?: HotelDataSeed) {
           }
         }
 
-        const derived = deriveHotelPageState(contentData, liveJson);
+        const derived = deriveHotelPageState(contentData, liveJson, searchParams.get("checkinDate"));
 
         if (
           derived.shouldRedirectIfQueryPresent &&

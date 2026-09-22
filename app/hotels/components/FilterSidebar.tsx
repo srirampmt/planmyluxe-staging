@@ -1,5 +1,5 @@
 import {
-  BadgePoundSterling, Check, Clock3, MapPin, Moon, Palmtree,
+  BadgePoundSterling, Check, Clock3, Globe, MapPin, Moon, Palmtree,
   PlaneLanding, PlaneTakeoff, Star, Sun, Sunrise, Sunset, Tag, UtensilsCrossed,
   type LucideIcon,
 } from 'lucide-react';
@@ -254,6 +254,17 @@ type OptionItem = { value: string; label: string; count?: number };
 const toItems = (arr?: (string | OptionItem)[]): OptionItem[] =>
   (arr || []).map(x => typeof x === "string" ? { value: x, label: x } : x);
 
+// Region / Resort facets (value == label == the hotel's configured name). Same
+// "always keep, flag disabled" treatment as board basis: a 0-count option that
+// isn't selected is disabled by the caller, never dropped from the list.
+const toNameFacetItems = (arr: unknown, selected?: string[]) =>
+  Array.isArray(arr)
+    ? toItems(arr).map(item => ({
+        ...item,
+        disabled: item.count != null && item.count === 0 && !selected?.includes(item.value),
+      })).sort((a, b) => (a.label || "").localeCompare(b.label || ""))
+    : [];
+
 // The only board-basis codes OfferSelector._normalize_board_basis (backend)
 // ever normalizes offers to -- the source of truth for this facet's options.
 const HOTEL_BOARD_BASIS_CODES = ["RO", "BB", "HB", "FB", "AI", "SC"] as const;
@@ -342,16 +353,8 @@ export default function FilterSidebar({
       });
   }, [options, filters.board_basis]);
 
-  const destItems = useMemo(() => {
-    if (!options || !Array.isArray(options.destinations)) return [];
-    // Same "always keep, flag disabled" treatment as board basis above.
-    return toItems(options.destinations)
-      .map(item => ({
-        ...item,
-        disabled: item.count != null && item.count === 0 && !filters.resorts?.includes(item.value),
-      }))
-      .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
-  }, [options, filters.resorts]);
+  const regionItems = useMemo(() => toNameFacetItems(options?.regions, filters.regions), [options, filters.regions]);
+  const resortItems = useMemo(() => toNameFacetItems(options?.resorts, filters.resorts), [options, filters.resorts]);
 
   const outboundOptions = useMemo(() => {
     const counts = options?.outbound_flight_times && typeof options.outbound_flight_times === "object"
@@ -560,11 +563,24 @@ export default function FilterSidebar({
           </div>
         )}
 
-        {destItems.length > 0 && (
-          <div className={sectionClass} data-testid="filter-section-resort-destination">
+        {regionItems.length > 0 && (
+          <div className={sectionClass} data-testid="filter-section-region">
+            <SectionHeading title="Region" icon={Globe} />
+            <CheckboxGroup
+              items={regionItems}
+              selectedValues={filters.regions}
+              onToggle={(v) => toggleArray("regions", v)}
+              testIdPrefix="filter-region"
+              maxVisible={5}
+            />
+          </div>
+        )}
+
+        {resortItems.length > 0 && (
+          <div className={sectionClass} data-testid="filter-section-resort">
             <SectionHeading title="Resort" icon={MapPin} />
             <CheckboxGroup
-              items={destItems}
+              items={resortItems}
               selectedValues={filters.resorts}
               onToggle={(v) => toggleArray("resorts", v)}
               testIdPrefix="filter-resort"

@@ -22,6 +22,7 @@ export type SearchFilters = {
   outbound_flight_time: string[];
   inbound_flight_time: string[];
   board_basis: string[];
+  regions: string[];
   resorts: string[];
   special_offers_only: boolean;
 };
@@ -41,6 +42,7 @@ const DEFAULT_FILTERS: SearchFilters = {
   outbound_flight_time: [],
   inbound_flight_time: [],
   board_basis: [],
+  regions: [],
   resorts: [],
   special_offers_only: false,
 };
@@ -57,6 +59,7 @@ function seedFromUrl(searchParams: URLSearchParams): SearchFilters {
   const outbound = searchParams.get("outbound") || "";
   const inbound = searchParams.get("inbound") || "";
   const board_basis = searchParams.get("board_basis") || "";
+  const regions = searchParams.get("regions") || "";
   const resorts = searchParams.get("resorts") || "";
   const rating = searchParams.get("rating") || "";
 
@@ -77,6 +80,7 @@ function seedFromUrl(searchParams: URLSearchParams): SearchFilters {
     outbound_flight_time: outbound ? outbound.split(",") : [],
     inbound_flight_time: inbound ? inbound.split(",") : [],
     board_basis: board_basis ? board_basis.split(",") : [],
+    regions: regions ? regions.split(",") : [],
     resorts: resorts ? resorts.split(",") : [],
     rating: rating ? rating.split(",") : [],
   };
@@ -99,6 +103,7 @@ function seedFromStorage(): Partial<SearchFilters> {
       outbound_flight_time: [],
       inbound_flight_time: [],
       board_basis: [],
+      regions: [],
       resorts: [],
     };
   } catch {
@@ -128,7 +133,7 @@ const URL_PARAM_KEYS = [
   "dtmax", "date_max",
   "n", "nights",
   "outbound", "inbound",
-  "board_basis", "resorts",
+  "board_basis", "regions", "resorts",
   "rating",
 ] as const;
 
@@ -173,6 +178,7 @@ export function useSearchFilters() {
       outbound_flight_time: [],
       inbound_flight_time: [],
       board_basis: [],
+      regions: [],
       resorts: [],
       special_offers_only: false,
     }));
@@ -186,6 +192,7 @@ export function useSearchFilters() {
         key === "outbound_flight_time" ||
         key === "inbound_flight_time" ||
         key === "board_basis" ||
+        key === "regions" ||
         key === "resorts"
       ) {
         return { ...prev, [key]: (prev[key] as string[]).filter((v) => v !== value) };

@@ -105,7 +105,26 @@ export type DestinationPage = {
   Canonical_URL?: string;
   Twitter_Image?: string;
   Head_Scripts?: string;
-
+  flight_time?: string | { value?: string; detail?: string };
+  time_difference?: string | { value?: string; detail?: string };
+  currency?: string | { value?: string; detail?: string };
+  language?: string | { value?: string; detail?: string };
+  resorts_hierarchy?: Array<{
+    name: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    country: number;
+    region: number;
+    resort: number;
+    city: number;
+  }> | null;
+  weather_data?: Array<{
+    month_name?: string;
+    month?: string;
+    temperature?: string | number;
+    temp?: string | number;
+  }> | "" | null;
+  highlights?: string;
   faqs?: DestinationFaq[] | "" | null;
 };
 

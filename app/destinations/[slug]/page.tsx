@@ -233,7 +233,7 @@ import type { DestinationResponse, DestinationSummary } from "@/types/destinatio
 import { buildMetadataFromSeo, getSeoMetadata } from "@/lib/seo/metadata";
 import PopularResorts from "@/components/destinationdetail/PopularResorts";
 import TrustBullets from "@/components/search/TrustBullets";
-import ExpertSupportBanner from "@/components/destinationdetail/ExpertSupportBanner";
+// import ExpertSupportBanner from "@/components/destinationdetail/ExpertSupportBanner";
  
 type PageProps = {
   params: Promise<{ slug: string }>;

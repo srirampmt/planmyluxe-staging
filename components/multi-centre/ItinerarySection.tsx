@@ -93,7 +93,7 @@ const BadgePill = ({
       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm shrink-0 ${
         isIncluded
           ? "border-emerald-200 bg-[#e6f8f1] text-emerald-900"
-          : "border-slate-200/80 bg-white text-[#1a1b4b]"
+          : "border-slate-200/80 bg-white text-black"
       }`}
     >
       {/* Icon Node wrapper */}
@@ -107,7 +107,7 @@ const BadgePill = ({
 
       {/* Fallback to value string if children are not passed */}
       {children || (
-        <span className="font-semibold text-[#1a1b4b]">{value}</span>
+        <span className="font-semibold text-black">{value}</span>
       )}
     </span>
   );
@@ -141,11 +141,11 @@ export default function ItineraryTimeline({
       {/* Header Bar */}
       <div className="flex flex-col justify-between gap-3 border-b border-gray-200 pb-4 sm:flex-row sm:items-end">
         <div>
-          <h2 className="pl-3 text-[18px] font-extrabold tracking-tight text-[#1a1b4b] sm:text-xl">
+          <h2 className="pl-3 text-[18px] font-extrabold tracking-tight text-black sm:text-xl">
             {title}
           </h2>
           {subtitle && (
-            <p className="mt-1 max-w-xl text-xs leading-relaxed text-[#1a1b4b]/70 sm:text-sm">
+            <p className="mt-1 max-w-xl text-xs leading-relaxed text-black/70 sm:text-sm">
               {subtitle}
             </p>
           )}
@@ -201,7 +201,7 @@ export default function ItineraryTimeline({
                   <div className="p-4 sm:p-5 space-y-3.5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
-                        <h3 className="text-base font-bold text-[#1a1b4b] sm:text-lg">
+                        <h3 className="text-base font-bold text-black sm:text-lg">
                           {item.title}
                         </h3>
 
@@ -272,7 +272,7 @@ export default function ItineraryTimeline({
                               ? "Collapse description"
                               : "Expand description"
                           }
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-[#1a1b4b] transition-colors hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600 active:scale-95 sm:hidden"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-black transition-colors hover:border-pink-200 hover:bg-pink-50 hover:text-pink-600 active:scale-95 sm:hidden"
                         >
                           {isExpanded ? (
                             <Minus className="h-4 w-4 text-pink-600" />
@@ -289,7 +289,7 @@ export default function ItineraryTimeline({
                           !isExpanded ? "hidden sm:block" : "block"
                         }`}
                       >
-                        <p className="text-xs sm:text-sm leading-relaxed text-[#1a1b4b]">
+                        <p className="text-xs sm:text-sm leading-relaxed text-black">
                           {item.description}
                         </p>
                       </div>

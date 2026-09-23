@@ -42,7 +42,7 @@ export default function OfferCards({
           <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] pb-[20px] md:pb-[50px] lg:pb-[50px]">
             <div className="w-full max-w-[1280px] mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-3 md:mb-5">
-                <h2 className="text-[24px] md:text-[48px] font-semibold text-[#1a1b4b] leading-[30px] md:leading-[60px] tracking-[-0.005em] max-w-[626px]">
+                <h2 className="text-[24px] md:text-[48px] font-semibold text-black leading-[30px] md:leading-[60px] tracking-[-0.005em] max-w-[626px]">
                   {"Similar Offers"}
                 </h2>
                 <a
@@ -86,7 +86,7 @@ export default function OfferCards({
                         </div>
  
                         <div className="pt-[6px] pr-[8px] pb-[14px] pl-[8px] flex-grow flex flex-col justify-start items-start text-left bg-white">
-                          <div className="text-[14px] font-semibold text-[#1a1b4b] leading-[1.4] p-[4px] w-full line-clamp-1 min-h-[28px]">{deal.location || ""}</div>
+                          <div className="text-[14px] font-semibold text-black leading-[1.4] p-[4px] w-full line-clamp-1 min-h-[28px]">{deal.location || ""}</div>
  
                           <div className="flex items-center justify-start p-[4px] min-h-[28px]">
                             <div className="flex gap-[2px]">
@@ -107,13 +107,13 @@ export default function OfferCards({
  
                           <h5 className="text-[14px] md:text-[16px] font-semibold text-pml-primary leading-[24px] mb-[10px] p-[4px] w-full min-h-[32px] truncate">{deal.title || ""}</h5>
  
-                          <div className={`rounded-[8px] text-[12px] text-[#1a1b4b] font-medium mb-[9px] w-full min-h-[48px] flex items-center justify-center text-center ${Boolean((deal.extras || "").trim()) ? "bg-[#EDEDED] border border-[#DFDEDE] px-[6px] md:px-[12px] py-[6px]" : ""}`}>
+                          <div className={`rounded-[8px] text-[12px] text-black font-medium mb-[9px] w-full min-h-[48px] flex items-center justify-center text-center ${Boolean((deal.extras || "").trim()) ? "bg-[#EDEDED] border border-[#DFDEDE] px-[6px] md:px-[12px] py-[6px]" : ""}`}>
                             {Boolean((deal.extras || "").trim()) ? <span className="line-clamp-2 leading-[18px] tracking-[0.02em]">{deal.extras}</span> : null}
                           </div>
  
                           <div className="mt-auto ml-auto flex items-center justify-end gap-[8px] w-full max-w-[289px] px-[8px] font-['Montserrat']">
                             <div className="flex items-center gap-[6px]">
-                              <span className="text-[14px] text-[#1a1b4b] whitespace-nowrap">
+                              <span className="text-[14px] text-black whitespace-nowrap">
                                 {String(deal.nights ?? "00").padStart(2, "0")} nights from
                               </span>
  
@@ -121,7 +121,7 @@ export default function OfferCards({
                                 £{displayPrice.toLocaleString("en-GB", { maximumFractionDigits: 0 })}
                               </span>
  
-                              <span className="text-[14px] text-[#1a1b4b] whitespace-nowrap">
+                              <span className="text-[14px] text-black whitespace-nowrap">
                                 Per Person
                               </span>
                             </div>

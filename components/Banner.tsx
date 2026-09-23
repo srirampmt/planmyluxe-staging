@@ -26,8 +26,7 @@ export function Banner({ title, description, image, priority = false }: BannerPr
         ) : (
           <div className="w-full h-full bg-neutral-200" />
         )}
-        {/* Overlay for text readability */}
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
         
         {/* Hero Text - Constrained width */}
         <div className="absolute inset-0 flex items-center">

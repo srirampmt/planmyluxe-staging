@@ -108,7 +108,7 @@ function CalendarMenu({
                     setOpen(false);
                   }}
                   className={`flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left text-[14px] font-semibold ${
-                    isActive ? "bg-[#FFF0F7] text-pml-primary" : "text-[#1a1b4b] hover:bg-[#FAFAFA]"
+                    isActive ? "bg-[#FFF0F7] text-pml-primary" : "text-black hover:bg-[#FAFAFA]"
                   }`}
                 >
                   <span className="truncate">{option.label}</span>
@@ -318,20 +318,20 @@ export default function MultiCentreCalendar({
           options={availableAirports.map((airport) => ({ value: airport.id, label: airport.label }))}
           onChange={onAirportChange}
           leading={<Plane className="h-4 w-4 shrink-0 text-pml-primary" />}
-          triggerClassName="flex w-full items-center gap-2 rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b] transition-colors hover:bg-[#F5F5F5]"
+          triggerClassName="flex w-full items-center gap-2 rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-black transition-colors hover:bg-[#F5F5F5]"
         />
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-3" id="holiday-calendar-grid">
         <div>
           <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A8A8A]">Board basis</div>
-          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b]">
+          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-black">
             {boardBasis}
           </div>
         </div>
         <div>
           <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8A8A8A]">Duration</div>
-          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-[#1a1b4b]">
+          <div className="rounded-2xl border border-[#EDEDED] bg-[#FAFAFA] p-2.5 text-[14px] font-semibold text-black">
             {duration}
           </div>
         </div>
@@ -352,7 +352,7 @@ export default function MultiCentreCalendar({
           options={monthOptions}
           onChange={handleMonthYearSelect}
           leading={<Calendar className="h-3.5 w-3.5 shrink-0 text-pml-primary" />}
-          triggerClassName="flex items-center gap-1.5 bg-transparent text-[14px] font-bold tracking-wide text-[#1a1b4b]"
+          triggerClassName="flex items-center gap-1.5 bg-transparent text-[14px] font-bold tracking-wide text-black"
         />
 
         <button
@@ -366,7 +366,7 @@ export default function MultiCentreCalendar({
 
       <div className="grid grid-cols-7 gap-1.5 mb-2">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center text-[12px] font-semibold text-[#1a1b4b]">
+          <div key={d} className="text-center text-[12px] font-semibold text-black">
             {d}
           </div>
         ))}
@@ -410,14 +410,14 @@ export default function MultiCentreCalendar({
                 <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full border-2 border-white bg-amber-300" />
               )}
               {isCheapestInMonth && !isSelected && (
-                <span className="absolute -top-1.5 -right-1 rounded-full bg-amber-300 px-1 text-[8px] font-bold uppercase text-[#1a1b4b] shadow-sm">
+                <span className="absolute -top-1.5 -right-1 rounded-full bg-amber-300 px-1 text-[8px] font-bold uppercase text-black shadow-sm">
                   Save
                 </span>
               )}
-              <div className={`text-[13px] font-semibold ${isSelected || isCheapestInMonth ? "text-white" : "text-[#1a1b4b]"}`}>
+              <div className={`text-[13px] font-semibold ${isSelected || isCheapestInMonth ? "text-white" : "text-black"}`}>
                 {cell.day}
               </div>
-              <div className={`text-[11px] font-medium ${isSelected || isCheapestInMonth ? "text-white" : hasPrice ? "text-[#1a1b4b]" : "text-[#8A8A8A]"}`}>
+              <div className={`text-[11px] font-medium ${isSelected || isCheapestInMonth ? "text-white" : hasPrice ? "text-black" : "text-[#8A8A8A]"}`}>
                 {isDisabledDate ? "" : showPhoneIcon ? <Phone className="h-3 w-3" /> : hasPrice ? formatPrice(cell.price!) : "-"}
               </div>
             </button>
@@ -438,7 +438,7 @@ export default function MultiCentreCalendar({
             {pricingSourceMode === "builder" && (selectedPriceItem as any)?.referenceId && (
               <div className="flex items-center gap-1.5 rounded-xl border border-[#EDEDED] bg-white/90 px-2.5 py-1">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-[#8A8A8A]">Ref:</span>
-                <span className="font-mono text-[11px] font-bold text-[#1a1b4b]">{(selectedPriceItem as any).referenceId}</span>
+                <span className="font-mono text-[11px] font-bold text-black">{(selectedPriceItem as any).referenceId}</span>
                 <button
                   type="button"
                   onClick={handleCopyReferenceId}
@@ -461,7 +461,7 @@ export default function MultiCentreCalendar({
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="block text-sm font-bold leading-tight text-[#1a1b4b] sm:text-base">
+                  <span className="block text-sm font-bold leading-tight text-black sm:text-base">
                     {new Date(selectedDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                   <span className="block text-xs font-medium text-[#8A8A8A]">
@@ -492,7 +492,7 @@ export default function MultiCentreCalendar({
               <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
                 <Info className="h-3.5 w-3.5" />
               </div>
-              <h4 className="text-xs font-bold text-[#1a1b4b]">Local Hotel Tax Note</h4>
+              <h4 className="text-xs font-bold text-black">Local Hotel Tax Note</h4>
             </div>
             <button
               type="button"
@@ -502,10 +502,10 @@ export default function MultiCentreCalendar({
               {showTaxDetails ? "Hide" : "Details"}
             </button>
           </div>
-          <div className="mt-2.5 space-y-2 pl-8 text-[11px] leading-relaxed text-[#1a1b4b]">
+          <div className="mt-2.5 space-y-2 pl-8 text-[11px] leading-relaxed text-black">
             <p>
               <span className="capitalize">{location}</span> local tax of{" "}
-              <strong className="font-bold text-[#1a1b4b]">{formatPrice((selectedPriceItem as any).localTax)}</strong> per guest applies.
+              <strong className="font-bold text-black">{formatPrice((selectedPriceItem as any).localTax)}</strong> per guest applies.
             </p>
             {showTaxDetails && (
               <p className="text-[10.5px] text-[#8A8A8A]">
@@ -513,9 +513,9 @@ export default function MultiCentreCalendar({
                 using live exchange rates, so the final figure can shift slightly.
               </p>
             )}
-            <div className="mt-2 flex items-center justify-between rounded-xl border border-amber-200/50 bg-white/90 px-2.5 py-2 text-xs font-semibold text-[#1a1b4b]">
+            <div className="mt-2 flex items-center justify-between rounded-xl border border-amber-200/50 bg-white/90 px-2.5 py-2 text-xs font-semibold text-black">
               <span className="font-medium text-[#8A8A8A]">Package + Tax estimate:</span>
-              <span className="font-bold text-[#1a1b4b]">
+              <span className="font-bold text-black">
                 {formatPrice((selectedPriceItem as any).price)} + <span className="text-pml-primary">{formatPrice((selectedPriceItem as any).localTax)}</span> ={" "}
                 <span className="font-extrabold text-pml-primary">{formatPrice((selectedPriceItem as any).totalPrice)}</span>
               </span>
@@ -524,22 +524,22 @@ export default function MultiCentreCalendar({
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-4 text-[#1a1b4b]">
+      <div className="mt-4 flex flex-col gap-2.5 text-black sm:flex-row">
         <a
           href={`tel:${phoneTel}`}
           data-testid="mc-cta-call"
-          className="inline-flex items-center justify-center gap-1.5 rounded-2xl px-2 py-2 text-[12px] font-semibold leading-[140%] bg-gradient-to-br from-[#d81b60] to-[#c01878] text-white border border-transparent shadow-[0_8px_20px_-4px_rgba(203,33,135,0.35)] transition-all duration-200 hover:opacity-95 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary focus-visible:ring-offset-2"
+          className="inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl bg-gradient-to-br from-[#d81b60] to-[#c01878] px-3 py-2 text-[12px] font-semibold leading-[140%] text-white border border-transparent shadow-[0_8px_20px_-4px_rgba(203,33,135,0.35)] transition-all duration-200 hover:opacity-95 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary focus-visible:ring-offset-2"
           aria-label={`Call ${phoneDisplay}`}
         >
-          <Phone className="h-3.5 w-3.5" />
-          <span>{phoneDisplay}</span>
+          <Phone className="h-3.5 w-3.5 shrink-0" />
+          <span className="whitespace-nowrap">{phoneDisplay}</span>
         </a>
 
         <button
           type="button"
           onClick={handleOpenChat}
           data-testid="mc-cta-chat"
-          className="inline-flex items-center justify-center gap-1.5 rounded-2xl px-3 py-2 text-[12px] font-semibold leading-[140%] bg-white text-pml-primary border-2 border-pml-primary transition-all duration-200 hover:bg-pml-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary focus-visible:ring-offset-2"
+          className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border-2 border-pml-primary bg-white px-3 py-2 text-[12px] font-semibold leading-[140%] text-pml-primary transition-all duration-200 hover:bg-pml-primary/10 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary focus-visible:ring-offset-2"
           aria-label="Open chat"
         >
           <svg
@@ -579,7 +579,7 @@ export default function MultiCentreCalendar({
             })
           }
           data-testid="mc-cta-whatsapp"
-          className="inline-flex items-center justify-center gap-1.5 rounded-2xl px-3 py-2 text-[12px] font-semibold leading-[140%] bg-pml-whatsapp text-white border border-pml-whatsapp shadow-[0_8px_20px_-4px_rgba(37,211,102,0.35)] transition-all duration-200 hover:bg-pml-whatsapp/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-whatsapp focus-visible:ring-offset-2"
+          className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl border border-pml-whatsapp bg-pml-whatsapp px-3 py-2 text-[12px] font-semibold leading-[140%] text-white shadow-[0_8px_20px_-4px_rgba(37,211,102,0.35)] transition-all duration-200 hover:bg-pml-whatsapp/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pml-whatsapp focus-visible:ring-offset-2"
           aria-label="Send a WhatsApp message"
         >
           <svg

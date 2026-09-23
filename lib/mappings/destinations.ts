@@ -90,7 +90,7 @@ export function makeDestinationSelection(row: DestinationRow): DestinationSelect
 export function isDestinationSelection(v: unknown): v is DestinationSelection {
   if (!v || typeof v !== 'object') return false;
   const obj = v as Record<string, unknown>;
-  if (typeof obj.destination_id !== 'number' || !Number.isFinite(obj.destination_id) || obj.destination_id < 0) {
+  if (typeof obj.destination_id !== 'number' || !Number.isFinite(obj.destination_id)) {
     return false;
   }
   const flagsPresent = LEVELS.filter((level) => obj[level] === true);
@@ -106,7 +106,7 @@ export function decodeDestinationParam(raw: string | null | undefined): Destinat
   if (!raw) return null;
   const [idPart, levelPart] = raw.split(':');
   const id = Number(idPart);
-  if (!Number.isFinite(id) || id < 0) return null;
+  if (!Number.isFinite(id)) return null;
   if (!LEVELS.includes(levelPart as DestinationLevel)) return null;
   return { destination_id: id, [levelPart as DestinationLevel]: true } as DestinationSelection;
 }

@@ -87,9 +87,7 @@ export default function MultiCentreBannerArt() {
         preserveAspectRatio="xMidYMid meet"
         fill="none"
       >
-        <path id="mc-plane-path" d={PLANE_PATH} fill="none" />
-
-        <g>
+        <g transform="translate(673 65) rotate(5)">
           <image
             href="/images/mc-airliner.svg"
             x="-26.5"
@@ -98,20 +96,15 @@ export default function MultiCentreBannerArt() {
             height="50.4"
             preserveAspectRatio="none"
           />
-          <animateMotion dur="18s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#mc-plane-path" />
-          </animateMotion>
         </g>
       </svg>
 
       <style>{`
         .mc-dash {
           stroke-dasharray: 10 14;
-          animation: mc-flow 16s linear infinite;
         }
         .mc-dash-slow {
           stroke-dasharray: 6 16;
-          animation: mc-flow 22s linear infinite reverse;
         }
         .mc-pin-ring {
           transform-box: fill-box;
@@ -125,9 +118,6 @@ export default function MultiCentreBannerArt() {
         .mc-glow-alt {
           animation: mc-drift 16s ease-in-out infinite alternate-reverse;
         }
-        @keyframes mc-flow {
-          to { stroke-dashoffset: -240; }
-        }
         @keyframes mc-pulse {
           0% { transform: scale(0.7); opacity: 0.4; }
           70% { transform: scale(1.7); opacity: 0; }
@@ -138,8 +128,6 @@ export default function MultiCentreBannerArt() {
           to { transform: translate3d(24px, -16px, 0); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .mc-dash,
-          .mc-dash-slow,
           .mc-pin-ring,
           .mc-glow,
           .mc-glow-alt {

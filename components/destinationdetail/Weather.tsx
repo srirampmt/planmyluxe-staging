@@ -37,11 +37,11 @@ export default function Weather({ Weather_title, Weather_subtitle, seasonCards }
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] pb-10">
         <div className="w-full max-w-[1280px] mx-auto">
           {/* Title Section */}
-          <div className="mb-8 md:mb-10 lg:mb-12 max-w-[843px]">
-            <h2 className="text-[#7C7C7C] text-[28px] md:text-[48px] lg:text-[48px] font-semibold leading-[60px] mb-4 max-w-[626px]">
+          <div className="mb-6 max-w-[720px] lg:max-w-none">
+            <h2 className="text-black text-[28px] md:text-[40px] font-semibold leading-tight lg:whitespace-nowrap mb-3">
               {title}
             </h2>
-            <p className="text-[#7C7C7C] text-[16px] lg:text-[18px] leading-[28px] max-w-[850px]">
+            <p className="text-black/70 text-[16px] leading-7 max-w-[720px]">
               {subtitle}
             </p>
           </div>

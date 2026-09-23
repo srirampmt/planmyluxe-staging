@@ -147,7 +147,7 @@ export function Features() {
         <div className="w-full max-w-[1280px] mx-auto">
           <div className="bg-white rounded-2xl ">
             {/* Header row */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
               <h2 className="text-2xl font-semibold tracking-tight text-[#4b5563] font-['Montserrat']">
                 Sign up for exclusive savings...
               </h2>

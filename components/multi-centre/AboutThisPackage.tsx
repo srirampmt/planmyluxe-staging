@@ -31,7 +31,7 @@ export default function AboutThisPackage({
             <div className="text-[10px] font-medium uppercase tracking-wider text-[#9F9F9F] md:text-[11px]">
               DURATION
             </div>
-            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-[#1a1b4b] md:text-[12px]">
+            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-black md:text-[12px]">
               {duration}
             </div>
           </div>
@@ -50,7 +50,7 @@ export default function AboutThisPackage({
             <div className="text-[10px] font-medium uppercase tracking-wider text-[#9F9F9F] md:text-[11px]">
               DESTINATION
             </div>
-            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-[#1a1b4b] md:text-[12px]">
+            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-black md:text-[12px]">
               {Array.isArray(destination)
                 ? destination.join(" - ")
                 : destination}
@@ -71,7 +71,7 @@ export default function AboutThisPackage({
             <div className="text-[10px] font-medium uppercase tracking-wider text-[#9F9F9F] md:text-[11px] overflow-hidden">
               ACCOMMODATION
             </div>
-            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-[#1a1b4b] md:text-[12px]">
+            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-black md:text-[12px]">
               {accommodation}
             </div>
           </div>
@@ -90,7 +90,7 @@ export default function AboutThisPackage({
             <div className="text-[10px] font-medium uppercase tracking-wider text-[#9F9F9F] md:text-[11px]">
               BOARD
             </div>
-            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-[#1a1b4b] md:text-[12px]">
+            <div className="mt-0.5 break-words text-[10px] font-semibold leading-[140%] text-black md:text-[12px]">
               {board}
             </div>
           </div>

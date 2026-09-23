@@ -104,7 +104,7 @@ export default function MultiCentreMobileSearch({
           <style dangerouslySetInnerHTML={{ __html: "header.fixed { display: none !important; }" }} />
           <div className="mx-auto w-full max-w-[640px] px-4 pb-8 pt-4">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-[16px] font-bold text-[#1a1b4b]">Edit search</p>
+              <p className="text-[16px] font-bold text-[#1a1a1a]">Edit search</p>
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}

@@ -276,7 +276,7 @@ function MediaCarousel({
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 via-black/15 to-transparent" />
 
       {chip ? (
-        <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] shadow-[0_2px_10px_rgba(26,27,75,0.08)]">
+        <span className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] shadow-[0_2px_10px_rgba(26,27,75,0.08)]">
           {chip}
         </span>
       ) : null}
@@ -288,37 +288,45 @@ function MediaCarousel({
       ) : null}
 
       {showControls ? (
-        <button
-          type="button"
-          aria-label="Previous photo"
-          onClick={goPrev}
-          className="absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-[#1a1b4b] shadow-[0_4px_14px_rgba(26,27,75,0.16)]"
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={2} />
-        </button>
+        <div className="group/prev absolute inset-y-0 left-0 z-20 flex w-12 items-center pl-2">
+          <button
+            type="button"
+            aria-label="Previous photo"
+            onClick={goPrev}
+            className="pointer-events-none flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.35)] text-white opacity-0 transition-opacity duration-200 group-hover/media:pointer-events-auto group-hover/media:opacity-100 group-hover/prev:bg-[rgba(0,0,0,0.72)]"
+          >
+            <ChevronLeft className="h-4 w-4 text-white" strokeWidth={2} />
+          </button>
+        </div>
       ) : null}
 
       {showControls ? (
-        <button
-          type="button"
-          aria-label="Next photo"
-          onClick={goNext}
-          className="absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/95 text-[#1a1b4b] shadow-[0_4px_14px_rgba(26,27,75,0.16)]"
-        >
-          <ChevronRight className="h-4 w-4" strokeWidth={2} />
-        </button>
+        <div className="group/next absolute inset-y-0 right-0 z-20 flex w-12 items-center justify-end pr-2">
+          <button
+            type="button"
+            aria-label="Next photo"
+            onClick={goNext}
+            className="pointer-events-none flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(0,0,0,0.35)] text-white opacity-0 transition-opacity duration-200 group-hover/media:pointer-events-auto group-hover/media:opacity-100 group-hover/next:bg-[rgba(0,0,0,0.72)]"
+          >
+            <ChevronRight className="h-4 w-4 text-white" strokeWidth={2} />
+          </button>
+        </div>
       ) : null}
 
       {showControls ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-2.5 z-10 flex justify-center gap-1.5">
-          {images.map((src, dotIndex) => (
-            <span
-              key={`${src}-dot`}
-              className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
-                dotIndex === index ? "w-4 bg-white" : "w-1.5 bg-white/55"
-              }`}
-            />
-          ))}
+        <div className="pointer-events-none absolute inset-x-0 bottom-2.5 z-10 flex justify-center">
+          <div className="flex items-center gap-1.5 rounded-full bg-[rgba(0,0,0,0.28)] px-2 py-1 transition-colors duration-200 group-hover/media:bg-[rgba(0,0,0,0.45)]">
+            {images.map((src, dotIndex) => (
+              <span
+                key={`${src}-dot-${dotIndex}`}
+                className={`h-1.5 rounded-full transition-all duration-300 ease-out ${
+                  dotIndex === index
+                    ? "w-4 bg-[rgba(255,255,255,0.65)]"
+                    : "w-1.5 bg-[rgba(255,255,255,0.5)]"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
     </div>
@@ -361,7 +369,7 @@ export function ListingPackageCard({
       <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
         <h3
           title={title}
-          className="truncate text-[17px] font-semibold leading-snug tracking-[-0.02em] text-[#1a1b4b] sm:text-[18px]"
+          className="truncate text-[17px] font-semibold leading-snug tracking-[-0.02em] text-[#1a1a1a] sm:text-[18px]"
         >
           {title}
         </h3>
@@ -405,36 +413,37 @@ export function ListingPackageCard({
           </ul>
         ) : null}
 
-        <div className="mt-auto flex items-end justify-between gap-4 border-t border-[#ece8e4] pt-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a8490]">
-              From
-            </p>
-            <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-[22px] font-semibold leading-none tracking-tight text-[#1a1b4b]">
-                £{Math.round(Number(pkg.starting_price) || 0).toLocaleString()}
-              </span>
-              <span className="text-[12px] font-medium text-[#8a8490]">pp</span>
-            </div>
-            {typeof pkg.local_tax === "number" && pkg.local_tax > 0 ? (
-              <div className="group/tax relative mt-1.5 inline-block">
-                <span className="flex cursor-help items-center gap-1 whitespace-nowrap text-[11px] font-medium text-[#1B7A4E]">
-                  Tax £{pkg.local_tax.toFixed(2)} excluded
-                  <Info className="h-3 w-3 flex-shrink-0" />
+        <div className="mt-auto border-t border-[#ece8e4] pt-4">
+          <div className="flex h-12 items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-col justify-center gap-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-[22px] font-semibold leading-none tracking-tight text-[#1a1a1a]">
+                  £{Math.round(Number(pkg.starting_price) || 0).toLocaleString()}
                 </span>
-                <div className="pointer-events-none absolute bottom-full left-0 z-30 mb-1.5 hidden w-56 bg-[#1a1b4b] p-2.5 text-[10px] font-medium leading-snug text-white group-hover/tax:block">
-                  Payable directly at the hotel at check-in or check-out — it is not paid to us. Calculated using live exchange rates, so the final figure can shift slightly.
-                </div>
+                <span className="text-[12px] font-medium text-[#8a8490]">pp</span>
               </div>
-            ) : null}
+              {typeof pkg.local_tax === "number" && pkg.local_tax > 0 ? (
+                <div className="group/tax relative inline-block">
+                  <span className="flex cursor-help items-center gap-1 whitespace-nowrap text-[11px] font-medium leading-4 text-[#1B7A4E]">
+                    Tax £{pkg.local_tax.toFixed(2)} excluded
+                    <Info className="h-3 w-3 flex-shrink-0" />
+                  </span>
+                  <div className="pointer-events-none absolute bottom-full left-0 z-30 mb-1.5 hidden w-56 bg-[#1a1a1a] p-2.5 text-[10px] font-medium leading-snug text-white group-hover/tax:block">
+                    Payable directly at the hotel at check-in or check-out — it is not paid to us. Calculated using live exchange rates, so the final figure can shift slightly.
+                  </div>
+                </div>
+              ) : null}
+            </div>
+            <div className="flex h-full shrink-0 items-center">
+              <Link
+                href={href}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#CB2187] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white no-underline"
+              >
+                View details
+                <ArrowRight className="h-3.5 w-3.5 stroke-[2]" />
+              </Link>
+            </div>
           </div>
-          <Link
-            href={href}
-            className="mb-0.5 inline-flex items-center gap-1.5 rounded-full bg-[#CB2187] px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white no-underline"
-          >
-            View details
-            <ArrowRight className="h-3.5 w-3.5 stroke-[2]" />
-          </Link>
         </div>
       </div>
     </article>

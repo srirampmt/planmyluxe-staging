@@ -827,7 +827,7 @@ export default function MultiCenterSearchBar({
                 <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-100">
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[#CB2187]" />
-                    <span className="text-sm font-bold text-[#1a1b4b]">Select Departure Month</span>
+                    <span className="text-sm font-bold text-[#1a1a1a]">Select Departure Month</span>
                   </div>
                   <button
                     type="button"
@@ -843,7 +843,7 @@ export default function MultiCenterSearchBar({
                   {yearSections.map((section) => (
                     <div key={section.year}>
                       <div className="flex items-center gap-2 mb-2.5">
-                        <span className="text-xs font-bold text-[#1a1b4b] tracking-wider uppercase">
+                        <span className="text-xs font-bold text-[#1a1a1a] tracking-wider uppercase">
                           {section.year}
                         </span>
                         <div className="flex-1 h-px bg-gray-100" />

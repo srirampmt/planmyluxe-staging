@@ -299,7 +299,7 @@ export default function MultiCentrePageClient({
 
       const navHeight = getMainNavHeightPx();
       const tabsHeight = tabsBarRef.current?.offsetHeight ?? 0;
-      const offset = 12;
+      const offset = 8;
       const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - navHeight - tabsHeight - offset;
 
@@ -460,7 +460,7 @@ export default function MultiCentrePageClient({
   if (error || !mcData) {
     return (
       <main className="mx-auto w-full bg-white px-4 md:px-10">
-        <div className="mx-auto max-w-[1280px] py-10 text-[#1a1b4b]">
+        <div className="mx-auto max-w-[1280px] py-10 text-black">
           Unable to load this multi-centre itinerary.
         </div>
       </main>
@@ -501,7 +501,7 @@ export default function MultiCentrePageClient({
         onEnquire={() => handleEnquireNow(selectedDate)}
       />
 
-      <div className="mx-auto mb-5 w-full max-w-[1280px] space-y-3 rounded-[16px] border border-slate-200/60 bg-slate-50/70 p-2 shadow-xs sm:p-4">
+      <div className="mx-auto mb-5 w-full max-w-[1280px]">
         <AboutThisPackage duration={mcData?.page?.durationLabel || ""} destination={mcData?.page?.destinations ?? []} accommodation={calculatedPackageInfo.accommodation} board={calculatedPackageInfo.board} />
       </div>
 
@@ -546,7 +546,7 @@ export default function MultiCentrePageClient({
                           viewBox="0 0 24 24"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg"
-                          className="text-[#1a1b4b]"
+                          className="text-black"
                           aria-hidden="true"
                         >
                           <g clipPath="url(#clip0_atol)">
@@ -579,7 +579,7 @@ export default function MultiCentrePageClient({
                         </svg>
                       </div>
                       <div className="flex flex-col items-start p-2 h-[40px] w-full min-w-0 md:min-w-[300px]">
-                        <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#1a1b4b] text-[13px] md:text-[16px] leading-[24px] font-normal">
+                        <span className="flex items-center w-full max-w-[254px] h-[24px] text-black text-[13px] md:text-[16px] leading-[24px] font-normal">
                           All holidays are ATOL protected!
                         </span>
                       </div>
@@ -592,7 +592,7 @@ export default function MultiCentrePageClient({
               </div>
             </div>
 
-            <div ref={tabsBarRef} className="sticky z-30 w-full pb-2.5" style={{ top: "calc(var(--main-nav-height, 0px) - 1px)" }}>
+            <div ref={tabsBarRef} className="sticky z-30 w-full" style={{ top: "calc(var(--main-nav-height, 0px) - 1px)" }}>
               <div className="mx-auto w-full rounded-[16px] border border-[#E5E7EB] bg-white p-1.5 shadow-xs">
                 <div className="flex items-center justify-between gap-1 overflow-x-auto text-sm [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                   {[
@@ -611,7 +611,7 @@ export default function MultiCentrePageClient({
                       className={`min-w-max shrink-0 flex-1 rounded-xl px-4 py-2 text-xs font-bold transition-all duration-200 sm:px-5 sm:py-2.5 sm:text-sm ${
                         activeTab === tab.key
                           ? "border border-[#FCE7F3] bg-[#FFF0F7] text-pml-primary shadow-xs"
-                          : "border border-transparent text-[#1a1b4b] hover:bg-gray-50"
+                          : "border border-transparent text-black hover:bg-gray-50"
                       }`}
                     >
                       {tab.label}
@@ -663,7 +663,7 @@ export default function MultiCentrePageClient({
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
-                        className="text-[#1a1b4b]"
+                        className="text-black"
                         aria-hidden="true"
                       >
                         <g clipPath="url(#clip0_atol)">
@@ -697,7 +697,7 @@ export default function MultiCentrePageClient({
                     </div>
 
                     <div className="flex flex-col items-start p-2 h-[40px] w-full min-w-0 md:min-w-[300px]">
-                      <span className="flex items-center w-full max-w-[254px] h-[24px] text-[#1a1b4b] text-[13px] md:text-[16px] leading-[24px] font-normal">
+                      <span className="flex items-center w-full max-w-[254px] h-[24px] text-black text-[13px] md:text-[16px] leading-[24px] font-normal">
                         All holidays are ATOL protected!
                       </span>
                     </div>
@@ -729,7 +729,7 @@ export default function MultiCentrePageClient({
                 <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold leading-tight text-[#1a1b4b] sm:text-base md:text-lg">
+                <h3 className="text-sm font-extrabold leading-tight text-black sm:text-base md:text-lg">
                   Route Overview Map
                 </h3>
                 <p className="text-[11px] font-medium text-gray-500 sm:text-xs">

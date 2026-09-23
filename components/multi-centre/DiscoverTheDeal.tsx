@@ -47,7 +47,7 @@ const StyledWrapper = ({
     </div>
 
     {/* Title */}
-    <h2 className="mb-6 text-[18px] font-bold leading-[140%] text-[#1a1b4b] md:text-[20px]">
+    <h2 className="mb-6 text-[18px] font-bold leading-[140%] text-black md:text-[20px]">
       {title}
     </h2>
 
@@ -77,7 +77,7 @@ export default function DiscoverTheDeal({
   if (items.length) {
     return (
       <StyledWrapper title={title}>
-        <ul className="grid grid-cols-1 gap-x-6 gap-y-4 text-[14px] leading-[160%] text-[#1a1b4b]  md:text-[15px]">
+        <ul className="grid grid-cols-1 gap-x-6 gap-y-4 text-[14px] leading-[160%] text-black  md:text-[15px]">
           {items.map((it, i) => (
             <li key={i} className="flex items-start gap-3">
               <CheckCircleIcon />
@@ -97,7 +97,7 @@ export default function DiscoverTheDeal({
   if (paragraphs.length > 1) {
     return (
       <StyledWrapper title={title}>
-        <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-[14px] leading-[160%] text-[#1a1b4b] md:grid-cols-2 md:text-[15px]">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-[14px] leading-[160%] text-black md:grid-cols-2 md:text-[15px]">
           {paragraphs.map((paragraph, idx) => (
             <div key={idx} className="flex items-start gap-3">
               <CheckCircleIcon />
@@ -112,7 +112,7 @@ export default function DiscoverTheDeal({
   // 3. Final fallback: render sanitized HTML or raw text
   return (
     <StyledWrapper title={title}>
-      <div className="text-[14px] leading-[160%] text-[#1a1b4b] md:text-[15px]">
+      <div className="text-[14px] leading-[160%] text-black md:text-[15px]">
         {raw ? renderSanitizedHtml(raw) : null}
       </div>
     </StyledWrapper>

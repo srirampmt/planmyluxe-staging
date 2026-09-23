@@ -74,7 +74,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
       <section className="my-8 max-w-6xl mx-auto bg-white border border-gray-200/80 rounded-[16px] p-4 sm:p-7 shadow-xs">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 ">
-          <h2 className="text-[18px] sm:text-2xl font-extrabold text-[#1a1b4b]">
+          <h2 className="text-[18px] sm:text-2xl font-extrabold text-black">
             Featured Package Hotels
           </h2>
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold self-start sm:self-auto">
@@ -95,7 +95,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
                   className={`text-sm sm:text-base font-bold pb-3 transition-all relative whitespace-nowrap ${
                     isActive
                       ? "text-[#CB2187]"
-                      : "text-[#1a1b4b]/60 hover:text-[#1a1b4b]"
+                      : "text-black/60 hover:text-black"
                   }`}
                 >
                   {`${idx + 1}. ${h.location}`}
@@ -123,7 +123,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
                 </span>
               </div>
 
-              <h3 className="text-[18px] sm:text-xl font-extrabold text-[#1a1b4b]">
+              <h3 className="text-[18px] sm:text-xl font-extrabold text-black">
                 {currentHotel.hotelName}
               </h3>
 
@@ -138,7 +138,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
               <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-2 border-2 border-[#CB2187]/20 text-[#CB2187] hover:bg-[#CB2187] hover:text-white px-4 py-2 rounded-full text-xs font-bold transition-all"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#E4E4E7] bg-white px-3.5 py-2 text-xs font-semibold text-[#1a1a1a] shadow-xs transition-colors hover:border-[#CB2187] hover:bg-[#CB2187] hover:text-white"
               >
                 <ImageIcon className="w-4 h-4" />
                 <span>View All {normalizedImages.length} Photos</span>
@@ -192,17 +192,17 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
 
           {/* Description & Amenities */}
           <div className="bg-gray-50/80 rounded-2xl p-4 sm:p-6 border border-gray-100">
-            <p className="text-[#1a1b4b] text-xs sm:text-sm leading-relaxed mb-4">
+            <p className="text-black text-xs sm:text-sm leading-relaxed mb-4">
               {currentHotel.description}
             </p>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-[#1a1b4b] shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-black shadow-2xs">
                 <Building2 className="w-3.5 h-3.5 text-[#CB2187]" />
                 Central Location
               </span>
               {currentHotel.board && (
-                <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-[#1a1b4b] shadow-2xs">
+                <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-black shadow-2xs">
                   <Utensils className="w-3.5 h-3.5 text-[#CB2187]" />
                   {currentHotel.board} Included
                 </span>
@@ -210,7 +210,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
               {currentHotel.extras?.map((extra, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-[#1a1b4b] shadow-2xs"
+                  className="inline-flex items-center gap-1.5 bg-white border border-gray-200 px-3 py-1.5 rounded-full text-xs font-medium text-black shadow-2xs"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#CB2187]" />
                   {extra}
@@ -238,7 +238,7 @@ export const FeaturedPackageHotels: React.FC<FeaturedPackageHotelsProps> = memo(
                     aria-label="Close"
                     className="absolute right-0 top-1/2 -translate-y-1/2 rounded-md p-2 hover:bg-black/5 transition-colors"
                   >
-                    <X size={20} className="cursor-pointer text-[#1a1b4b]" />
+                    <X size={20} className="cursor-pointer text-black" />
                   </button>
                 </SheetClose>
               </SheetTitle>

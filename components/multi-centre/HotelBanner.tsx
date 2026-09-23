@@ -101,7 +101,7 @@ const HotelBanner = memo(function HotelBanner({
                   {title}
                 </h1>
 
-                <p className="text-[#1a1b4b] text-xs sm:text-[14px] leading-[140%] mb-3">
+                <p className="text-black text-xs sm:text-[14px] leading-[140%] mb-3">
                   {subtitle}
                 </p>
               </div>
@@ -121,15 +121,15 @@ const HotelBanner = memo(function HotelBanner({
                           </span>
                         </div>
                       ) : (
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-pml-primary text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        <div className="flex items-baseline gap-0.5 text-[#1a1a1a]">
+                          <span className="text-2xl sm:text-3xl font-extrabold tracking-tight">
                             <span className="text-sm font-medium">From</span>{" "}
                             {totalPrice != null
                               ? formatPrice(totalPrice)
                               : formatGbpPrice(price)}
                             /
                           </span>
-                          <span className="text-pml-primary text-sm font-semibold ml-[-5px]">
+                          <span className="text-sm font-semibold ml-[-5px]">
                             pp
                           </span>
                         </div>
@@ -151,11 +151,11 @@ const HotelBanner = memo(function HotelBanner({
               </div>
             </div>
 
-            {/* IMAGES GRID - Optimized with Next.js Image */}
-            <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-2 md:gap-4 items-start rounded-[16px] overflow-hidden">
+            {/* IMAGES GRID - hero plus two stacked photos, bottoms aligned */}
+            <div className="grid grid-cols-1 gap-1.5 overflow-hidden rounded-[16px] md:h-[292px] md:grid-cols-[2fr_1fr] lg:h-[365px]">
               {/* Large image - full width on mobile, left side on md+ */}
               <div
-                className="relative cursor-pointer"
+                className="relative h-[180px] min-h-0 cursor-pointer overflow-hidden sm:h-[243px] md:h-auto"
                 onClick={() => setOpen(true)}
               >
                 {badgeText && (
@@ -171,34 +171,30 @@ const HotelBanner = memo(function HotelBanner({
                 )}
 
                 {thumbnail_1 && (
-                  <div className="overflow-hidden">
-                    <Image
-                      src={thumbnail_1}
-                      width={850}
-                      height={365} /* Reduced from 405 */
-                      className="w-full h-[180px] sm:h-[243px] md:h-[292px] lg:h-[365px] object-cover hover:scale-[1.01] transition-transform duration-300"
-                      alt={`${title} main view`}
-                      loading="eager"
-                      priority
-                      quality={75}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 850px"
-                    />
-                  </div>
+                  <Image
+                    src={thumbnail_1}
+                    fill
+                    className="object-cover"
+                    alt={`${title} main view`}
+                    loading="eager"
+                    priority
+                    quality={75}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 850px"
+                  />
                 )}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-rows-2 md:grid-cols-1 gap-2 md:gap-4">
+              <div className="grid h-[108px] min-h-0 grid-cols-2 gap-1.5 sm:h-[121px] md:h-auto md:grid-cols-1 md:grid-rows-2">
                 {/* Top/Left image */}
                 {thumbnail_2 && (
                   <div
-                    className="cursor-pointer overflow-hidden"
+                    className="relative min-h-0 cursor-pointer overflow-hidden"
                     onClick={() => setOpen(true)}
                   >
                     <Image
                       src={thumbnail_2}
-                      width={420}
-                      height={175} /* Reduced from 194 */
-                      className="w-full h-[108px] sm:h-[121px] md:h-[142px] lg:h-[175px] object-cover hover:scale-[1.01] transition-transform duration-300"
+                      fill
+                      className="object-cover"
                       alt={`${title} view 2`}
                       quality={75}
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 420px"
@@ -209,14 +205,13 @@ const HotelBanner = memo(function HotelBanner({
                 {/* Bottom/Right image WITH MORE ICON */}
                 {thumbnail_3 && (
                   <div
-                    className="relative cursor-pointer overflow-hidden"
+                    className="relative min-h-0 cursor-pointer overflow-hidden"
                     onClick={() => setOpen(true)}
                   >
                     <Image
                       src={thumbnail_3}
-                      width={420}
-                      height={175} /* Reduced from 194 */
-                      className="w-full h-[108px] sm:h-[121px] md:h-[142px] lg:h-[175px] object-cover hover:scale-[1.01] transition-transform duration-300"
+                      fill
+                      className="object-cover"
                       alt={`${title} view 3`}
                       quality={75}
                       sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 420px"
@@ -258,16 +253,16 @@ const HotelBanner = memo(function HotelBanner({
       >
         <SheetContent
           side="bottom"
-          className="z-[1001] flex h-[100svh] w-full flex-col overflow-hidden bg-white md:h-auto md:max-h-[100vh]"
+          className="z-[1001] flex h-[100svh] w-full flex-col overflow-hidden border-0 bg-[#FAF3F8]"
         >
-          <SheetHeader className="sticky top-0 z-20 border-b bg-white px-[20px] py-4 pt-[calc(env(safe-area-inset-top)+16px)] md:px-[128px]">
-            <SheetTitle className="relative flex items-center justify-center text-lg font-semibold md:text-xl">
+          <SheetHeader className="sticky top-0 z-20 bg-[#FAF3F8] px-[20px] py-5 pt-[calc(env(safe-area-inset-top)+20px)] md:px-[64px]">
+            <SheetTitle className="relative flex items-center justify-center text-lg font-bold text-pml-primary md:text-xl">
               <span>More Photos</span>
               <SheetClose asChild>
                 <button
                   type="button"
                   aria-label="Close"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 rounded-md p-2 hover:bg-black/5"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full p-2 text-[#595858] hover:bg-pml-primary/10"
                 >
                   <X size={20} className="cursor-pointer" />
                 </button>
@@ -275,23 +270,21 @@ const HotelBanner = memo(function HotelBanner({
             </SheetTitle>
           </SheetHeader>
 
-          {/* PHOTO GRID - Only load when sheet is open */}
-          <div className="flex-1 overflow-y-auto px-[20px] pb-8 md:px-[300px]">
-            <div className="mt-4 grid grid-cols-1 gap-3 md:mt-8 md:gap-6">
+          <div className="flex-1 overflow-y-auto px-[20px] pb-10 md:px-[64px]">
+            <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
               {open && hasMoreImages
                 ? normalizedImages.map((img, i) => (
-                    <div key={i} className="mx-auto w-full max-w-[800px]">
-                      <Image
-                        src={img}
-                        width={800}
-                        height={467}
-                        alt={`${title} photo ${i + 1}`}
-                        loading="lazy"
-                        quality={75}
-                        className="w-full rounded-[8px] object-cover shadow-sm transition-shadow hover:shadow-md"
-                        sizes="(max-width: 768px) 100vw, 800px"
-                      />
-                    </div>
+                    <Image
+                      key={i}
+                      src={img}
+                      width={700}
+                      height={360}
+                      alt={`${title} photo ${i + 1}`}
+                      loading="lazy"
+                      quality={75}
+                      className="h-[220px] w-full rounded-2xl object-cover shadow-md"
+                      sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 30vw"
+                    />
                   ))
                 : null}
             </div>

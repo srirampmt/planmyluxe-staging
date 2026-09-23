@@ -159,7 +159,7 @@ export default function Tailortripcard() {
         }}
       />
       <section className="w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat']" >
-        <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] py-[20px] md:py-[80px] lg:py-[80px]">
+        <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] py-6 md:py-10">
           <div className="w-full max-w-[1280px] mx-auto relative h-[664px]">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 rounded-[4px] overflow-hidden">

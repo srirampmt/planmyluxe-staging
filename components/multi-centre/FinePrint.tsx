@@ -66,14 +66,14 @@ export default function FinePrint(content: any) {
           <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
             <Info className="h-3.5 w-3.5" />
           </div>
-          <h2 className="text-lg font-bold text-[#1a1b4b]">
+          <h2 className="text-lg font-bold text-black">
             Fine Print & Important Information
           </h2>
         </div>
       </div>
 
       {contentItems.length ? (
-        <ul className="space-y-2 text-[#1a1b4b] text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
+        <ul className="space-y-2 text-black text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
           {displayedItems.map((item, idx) => (
             <li key={idx} className="pl-1">
               {item}
@@ -83,7 +83,7 @@ export default function FinePrint(content: any) {
       ) : html.trim() ? (
         <div className="mb-0">{renderRichText(html)}</div>
       ) : (
-        <ul className="space-y-2 text-[#1a1b4b] text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
+        <ul className="space-y-2 text-black text-[13px] md:text-[15px] leading-[140%] list-disc pl-5 marker:text-amber-600">
           {displayedItems.map((item, idx) => (
             <li key={idx} className="pl-1">
               {item}

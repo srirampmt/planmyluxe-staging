@@ -185,7 +185,7 @@ function MultiCentreListing() {
                 <li aria-hidden="true" className="flex shrink-0 items-center">
                   <ChevronRight className="h-[14px] w-[14px]" />
                 </li>
-                <li className="truncate font-bold text-[#1a1b4b]" aria-current="page">
+                <li className="truncate font-bold text-[#1a1a1a]" aria-current="page">
                   Multi Centre Search
                 </li>
               </ol>
@@ -206,7 +206,7 @@ function MultiCentreListing() {
               <li>
                 <Link
                   href="/"
-                  className="flex items-center gap-1 font-bold text-pml-primary hover:underline"
+                  className="flex items-center gap-1 font-bold text-white hover:text-pml-primary"
                 >
                   <Home className="h-[14px] w-[14px] shrink-0" />
                   Home
@@ -247,12 +247,12 @@ function MultiCentreListing() {
       {/* 2. RESULTS CONTAINER */}
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-[16px] pt-6 pb-16 sm:px-[24px] sm:pt-7 md:px-[32px] lg:px-[40px]">
         <div className="mx-auto w-full max-w-[1280px]">
-        <div className="mb-10 flex flex-col gap-6 border-b border-[#e8e2dc] pb-7 sm:mb-12 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 border-b border-[#e8e2dc] pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center justify-between gap-3 lg:block">
             <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187] lg:mb-2">
               Multi-centre collection
             </p>
-            <h2 className="text-right text-[16px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1b4b] lg:text-left lg:text-[32px] xl:text-[36px]">
+            <h2 className="text-right text-[16px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1a1a] lg:text-left lg:text-[32px] xl:text-[36px]">
               {totalCount} {totalCount === 1 ? "holiday" : "holidays"}
               {destinationTitle !== "All Destinations" ? (
                 <>
@@ -281,7 +281,7 @@ function MultiCentreListing() {
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187]">
               No matches
             </p>
-            <h3 className="text-[22px] font-semibold tracking-tight text-[#1a1b4b]">
+            <h3 className="text-[22px] font-semibold tracking-tight text-[#1a1a1a]">
               No holidays in this collection
             </h3>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#6b6570]">
@@ -289,7 +289,7 @@ function MultiCentreListing() {
             </p>
             <Link
               href="/multi-centre"
-              className="mt-8 inline-flex items-center gap-2 border border-[#1a1b4b] px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] transition-colors hover:border-[#CB2187] hover:text-[#CB2187]"
+              className="mt-8 inline-flex items-center gap-2 border border-[#1a1a1a] px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] transition-colors hover:border-[#CB2187] hover:text-[#CB2187]"
             >
               View all multi-centre holidays
             </Link>
@@ -319,7 +319,7 @@ function MultiCentreListing() {
               className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
                 currentPage <= 1
                   ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
               }`}
               aria-label="Previous page"
             >
@@ -348,7 +348,7 @@ function MultiCentreListing() {
                   className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition-colors ${
                     isActive
                       ? "bg-[#CB2187] text-white"
-                      : "border border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                      : "border border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
                   }`}
                 >
                   {pageNum}
@@ -363,7 +363,7 @@ function MultiCentreListing() {
               className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
                 currentPage >= totalPages
                   ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1b4b] hover:border-[#CB2187] hover:text-[#CB2187]"
+                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
               }`}
               aria-label="Next page"
             >
@@ -379,7 +379,7 @@ function MultiCentreListing() {
                 <Gem className="h-5 w-5 stroke-[1.6]" />
               </div>
               <div>
-                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1b4b]">Best price guarantee</h4>
+                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1a1a]">Best price guarantee</h4>
                 <p className="mt-1 text-[12px] leading-relaxed text-[#6b6570]">Unbeatable prices, every time.</p>
               </div>
             </div>
@@ -388,7 +388,7 @@ function MultiCentreListing() {
                 <Gift className="h-5 w-5 stroke-[1.6]" />
               </div>
               <div>
-                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1b4b]">Exclusive offers</h4>
+                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1a1a]">Exclusive offers</h4>
                 <p className="mt-1 text-[12px] leading-relaxed text-[#6b6570]">Access to member-only deals.</p>
               </div>
             </div>
@@ -397,7 +397,7 @@ function MultiCentreListing() {
                 <Headphones className="h-5 w-5 stroke-[1.6]" />
               </div>
               <div>
-                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1b4b]">24/7 support</h4>
+                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1a1a]">24/7 support</h4>
                 <p className="mt-1 text-[12px] leading-relaxed text-[#6b6570]">We&apos;re here whenever you need us.</p>
               </div>
             </div>
@@ -406,7 +406,7 @@ function MultiCentreListing() {
                 <ShieldCheck className="h-5 w-5 stroke-[1.6]" />
               </div>
               <div>
-                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1b4b]">Secure booking</h4>
+                <h4 className="text-[13px] font-semibold tracking-tight text-[#1a1a1a]">Secure booking</h4>
                 <p className="mt-1 text-[12px] leading-relaxed text-[#6b6570]">Book with confidence.</p>
               </div>
             </div>

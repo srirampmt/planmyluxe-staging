@@ -64,7 +64,7 @@ export default function DealCollections({
         <div className="w-full max-w-[1280px] mx-auto">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-3 md:mb-5">
-            <h2 className="text-[24px] md:text-[48px] font-semibold text-[#4c4c4c] leading-[30px] md:leading-[60px] tracking-[-0.005em] max-w-[626px]">
+            <h2 className="text-[24px] md:text-[48px] font-semibold text-[#4c4c4c] leading-[30px] md:leading-[60px] lg:leading-[1.15] tracking-[-0.005em] max-w-[626px] lg:max-w-none lg:whitespace-nowrap">
               {title}
             </h2>
 

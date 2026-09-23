@@ -43,30 +43,27 @@ export default function GoodFor({
     { title: title_4 ?? '', description: description_4 ?? '' },
   ].filter((item) => item.title.trim() || item.description.trim());
   return (
-    <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-white font-['Montserrat']">
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] ">
-        <div className="w-full max-w-[1280px] mx-auto bg-[#FBE3F1] rounded-[8px] p-6 ">
+    <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat']">
+      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] py-4 md:py-6">
+        <div className="w-full max-w-[1280px] mx-auto bg-[#FBE3F1] rounded-[8px] p-5 sm:p-6 md:p-8 shadow-sm border border-[#f5d0e7]/50">
           {/* Title */}
-          <h2 className="uppercase text-[#1a1a1a] text-[16px] md:text-[24px] lg:text-[24px] font-bold md:font-semibold mb-2 md:mb-4 leading-[32px]">
+          <h2 className="uppercase text-[#1a1a1a] text-[15px] sm:text-[16px] md:text-[18px] font-bold tracking-wider mb-4 md:mb-5 leading-tight">
             {destinationName ? `${destinationName} - Perfect for` : 'Perfect for'}
           </h2>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {goodForItems.map((item, index) => (
-                <div key={index} className="space-y-3">
-                    {/* Title with check icon */}
-                    <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 mt-1">
+                <div key={index} className="flex h-full min-h-[88px] flex-col justify-center gap-1 rounded-[8px] bg-white px-4 py-3">
+                    <div className="flex items-center gap-2">
+                        <div className="flex-shrink-0">
                             <CheckIcon />
                         </div>
-                        <h3 className="text-[#1a1a1a] text-[16px] md:text-[18px] font-semibold leading-tight">
+                        <h3 className="text-[15px] font-semibold leading-tight text-black">
                             {item.title}
                         </h3>
                     </div>
-                    
-                    {/* Description */}
-                    <p className="text-[#4c4c4c] text-[14px] md:text-[15px] leading-relaxed">
+                    <p className="line-clamp-1 pl-6 text-[13px] leading-5 text-black/70">
                         {item.description}
                     </p>
                 </div>

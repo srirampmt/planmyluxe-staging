@@ -72,7 +72,7 @@ export function ListingSortControl({
               Sort
             </span>
             <span className="h-3 w-px bg-[#ece8e4]" />
-            <span className="text-[13px] font-semibold text-[#1a1b4b]">{selected.label}</span>
+            <span className="text-[13px] font-semibold text-[#1a1a1a]">{selected.label}</span>
             <ChevronDown
               className={`h-3.5 w-3.5 text-[#8a8490] transition-transform ${
                 open ? "rotate-180" : ""
@@ -101,7 +101,7 @@ export function ListingSortControl({
                   className={`flex w-full items-center justify-between gap-6 px-4 py-2.5 text-left text-[13px] ${
                     isActive
                       ? "bg-[#f8eef5] font-semibold text-[#CB2187]"
-                      : "font-medium text-[#1a1b4b] hover:bg-[#faf8f6]"
+                      : "font-medium text-[#1a1a1a] hover:bg-[#faf8f6]"
                   }`}
                 >
                   {option.label}

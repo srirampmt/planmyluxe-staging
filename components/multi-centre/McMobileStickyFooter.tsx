@@ -174,8 +174,8 @@ export default function McMobileStickyFooter({
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     From
                   </span>
-                  <div className="flex items-baseline text-xl font-extrabold text-[#1a1b4b] leading-none">
-                    <span className="text-xs font-bold text-[#1a1b4b] mr-0.5">
+                  <div className="flex items-baseline text-xl font-extrabold text-black leading-none">
+                    <span className="text-xs font-bold text-black mr-0.5">
                       £
                     </span>
                     {Math.round(selectedPrice)}
@@ -190,7 +190,7 @@ export default function McMobileStickyFooter({
                   <div className="mt-0.5 flex items-center gap-1 text-[10px] font-medium text-slate-500">
                     <span>{formatPrice((selectedPriceItem as any).price)}</span>
                     <span>+</span>
-                    <span className="font-semibold text-[#1a1b4b]">
+                    <span className="font-semibold text-black">
                       £{Math.round(Number((selectedPriceItem as any).localTax))}{" "}
                       tax
                     </span>
@@ -203,7 +203,7 @@ export default function McMobileStickyFooter({
               </div>
             ) : (
               <div className="flex flex-col justify-center">
-                <span className="text-xs font-bold text-[#1a1b4b] leading-tight">
+                <span className="text-xs font-bold text-black leading-tight">
                   Select a date
                 </span>
                 <span className="text-[10px] font-medium text-slate-400">

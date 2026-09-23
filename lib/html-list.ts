@@ -12,6 +12,7 @@ const NAMED_ENTITIES: Record<string, string> = {
   ndash: "–",
   mdash: "—",
   hellip: "…",
+  bull: "•",
   eacute: "é",
   Eacute: "É",
   aacute: "á",
@@ -41,14 +42,24 @@ function stripTags(value: string) {
   return decodeEntities(value.replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
 }
 
+/** CMS copy often joins points with • / &bull; inside one paragraph. */
+function splitOnBullets(text: string): string[] {
+  return text
+    .split(/\s*[•·]\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
 /** Pull checklist text from CMS HTML. Returns nothing when the markup is not a list or paragraphs. */
 export function parseHtmlItems(html: string): string[] {
   if (!html) return [];
   const listItems = [...html.matchAll(/<li\b[^>]*>([\s\S]*?)<\/li>/gi)]
     .map((match) => stripTags(match[1]))
     .filter(Boolean);
-  if (listItems.length) return listItems;
-  return [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
-    .map((match) => stripTags(match[1]))
-    .filter(Boolean);
+  const blocks = listItems.length
+    ? listItems
+    : [...html.matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+        .map((match) => stripTags(match[1]))
+        .filter(Boolean);
+  return blocks.flatMap(splitOnBullets);
 }

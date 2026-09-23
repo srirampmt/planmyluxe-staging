@@ -29,24 +29,24 @@ export default function StickySectionTabs({
   hotels,
 }: Props) {
   return (
-    <>
-      <div className="mt-8 grid grid-cols-1">
+    <div className="!mt-2">
+      <div className="grid grid-cols-1">
         <section
           id="mc-highlights"
-          className="scroll-mt-[120px] rounded-[16px] border border-[#EDEDED] bg-white p-4 shadow-xs md:p-6"
+          className="scroll-mt-[calc(var(--main-nav-height)+52px)] rounded-[16px] border border-[#EDEDED] bg-white p-4 shadow-xs md:p-6"
         >
           <Highlights highlights={highlights} />
         </section>
 
         <section
           id="whats-included"
-          className="scroll-mt-[120px] mt-8 rounded-[16px] border border-[#EDEDED] bg-white p-4 shadow-xs md:p-6"
+          className="scroll-mt-[calc(var(--main-nav-height)+52px)] mt-8 rounded-[16px] border border-[#EDEDED] bg-white p-4 shadow-xs md:p-6"
         >
           <WhatsIncluded whatsIncluded={whatsIncluded} />
         </section>
       </div>
 
-      <section id="mc-itinerary" className="scroll-mt-[120px] mt-8">
+      <section id="mc-itinerary" className="scroll-mt-[calc(var(--main-nav-height)+52px)] mt-8">
         <div className="overflow-hidden rounded-[16px] border border-[#EDEDED] bg-white">
           <div className="max-h-[500px] overflow-y-auto p-4">
             <ItinerarySection itinerary={itinerary} />
@@ -54,9 +54,9 @@ export default function StickySectionTabs({
         </div>
       </section>
 
-      <section id="hotel-details" className="scroll-mt-[120px] mt-8">
+      <section id="hotel-details" className="scroll-mt-[calc(var(--main-nav-height)+52px)] mt-8">
         <FeaturedPackageHotels hotels={hotels} />
       </section>
-    </>
+    </div>
   );
 }

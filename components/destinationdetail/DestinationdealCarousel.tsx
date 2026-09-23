@@ -40,7 +40,7 @@ export default function DestinationDealCarousel({
     <section className="w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat']">
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto">
-          <div className="bg-gradient-to-br from-[#1a9b9e] via-[#2ab5b8] to-[#5bc9cc] w-full py-[36px] md:py-[70px] md:pt-20 md:pb-24 lg:pt-24 lg:pb-[80px] relative z-0">
+            <div className="bg-gradient-to-br from-[#1a9b9e] via-[#2ab5b8] to-[#5bc9cc] w-full py-8 md:py-10 relative z-0">
             <div
               className="absolute top-0 bottom-0 bg-cover bg-center bg-no-repeat pointer-events-none"
               style={{

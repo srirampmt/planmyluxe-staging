@@ -208,7 +208,7 @@ import { notFound } from "next/navigation";
 import React, { Fragment, cache } from "react";
 import Link from "next/link";
 import SeoHeadScripts from "@/components/seo/SeoHeadScripts";
- 
+import SearchBanner from "@/components/SearchBanner";
 import Banner from "@/components/Banner";
 import DestinationDealCarousel from "@/components/destinationdetail/DestinationdealCarousel";
 // import Experience from "@/components/destinationdetail1/Experience";
@@ -217,7 +217,6 @@ import Explore from "@/components/destinationdetail/explore";
 import GoodFor from "@/components/destinationdetail/goodfor";
 import KeyFacts from "@/components/destinationdetail/KeyFacts";
 import ResortsMap from "@/components/destinationdetail/resortsMap";
-import Climate from "@/components/destinationdetail/climate";
 import Weather from "@/components/destinationdetail/Weather";
 import FAQs from "@/components/faqs";
 import DestinationHighlights from "@/components/destinationdetail/DestinationHighlights";
@@ -230,6 +229,16 @@ import Trustsection from "@/components/Trustsection";
  
 import { fetchBackend } from "@/lib/backendFetch";
 import type { DestinationResponse, DestinationSummary } from "@/types/destination";
+import {
+  encodeDestinationParam,
+  getDestinationBreadcrumb,
+  getDestinationLabel,
+  getDestinationLevel,
+  isSelectableDestinationRow,
+  makeDestinationSelection,
+  type DestinationLevel,
+  type DestinationRow,
+} from "@/lib/mappings/destinations";
 import { buildMetadataFromSeo, getSeoMetadata } from "@/lib/seo/metadata";
 import PopularResorts from "@/components/destinationdetail/PopularResorts";
 import TrustBullets from "@/components/search/TrustBullets";
@@ -263,6 +272,63 @@ const slugToName = (slug: string): string => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+const LEVEL_RANK: DestinationLevel[] = ["city", "resort", "region", "country", "top_level"];
+
+async function resolveDestinationHotelsHref(name: string): Promise<string> {
+  const params = new URLSearchParams();
+  params.set("q", name);
+  try {
+    const res = await fetchBackend("/client/api/destinations/", { cache: "no-store" });
+    if (!res.ok) return `/hotels?${params.toString()}`;
+    const data = await res.json();
+    const all: DestinationRow[] = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.destinations)
+        ? data.destinations
+        : [];
+    const query = name.trim().toLowerCase();
+    const named = all
+      .filter(isSelectableDestinationRow)
+      .filter((row) => getDestinationLabel(row).trim().toLowerCase() === query);
+    named.sort((a, b) => {
+      const rank = (row: DestinationRow) => {
+        const level = getDestinationLevel(row);
+        const index = level ? LEVEL_RANK.indexOf(level) : LEVEL_RANK.length;
+        return index < 0 ? LEVEL_RANK.length : index;
+      };
+      return rank(a) - rank(b);
+    });
+    const match = named[0];
+    if (match) params.set("did", encodeDestinationParam(makeDestinationSelection(match)));
+  } catch {
+    // Search still opens with the destination name.
+  }
+  return `/hotels?${params.toString()}`;
+}
+
+async function resolveInitialDest(name: string | undefined): Promise<string | undefined> {
+  if (!name) return undefined;
+  try {
+    const res = await fetchBackend("/client/api/destinations/", { cache: "no-store" });
+    if (!res.ok) return undefined;
+    const data = await res.json();
+    const all: DestinationRow[] = Array.isArray(data) ? data : Array.isArray(data?.destinations) ? data.destinations : [];
+
+    const query = name.trim().toLowerCase();
+    const matches = all.filter(isSelectableDestinationRow).filter((row) => {
+      const label = getDestinationLabel(row).toLowerCase();
+      const breadcrumb = getDestinationBreadcrumb(row).toLowerCase();
+      return label.includes(query) || breadcrumb.includes(query);
+    });
+    if (matches.length === 0) return undefined;
+
+    const match = matches.find((row) => getDestinationLabel(row).toLowerCase() === query) ?? matches[0];
+    return encodeDestinationParam(makeDestinationSelection(match));
+  } catch {
+    return undefined;
+  }
+}
  
 const getDestinationResponse = cache(async (slug: string): Promise<DestinationResponse | null> => {
   try {
@@ -320,6 +386,8 @@ export default async function DestinationPage({ params }: PageProps) {
   ];
  
   const targetName = page.name || slugToName(slug);
+  const initialDest = await resolveInitialDest(page.name);
+  const destinationHotelsHref = await resolveDestinationHotelsHref(targetName);
   const parentCountrySlug = (page as any).country_slug || "";
   const parentRegionSlug = (page as any).region_slug || "";
  
@@ -346,16 +414,18 @@ export default async function DestinationPage({ params }: PageProps) {
       <SeoHeadScripts html={seo?.Head_Scripts} debugId="destination" />
       <div className="min-h-screen bg-[#F9FAFB]">
         <main className="w-full bg-[#F9FAFB] overflow-x-clip">
-          <Banner title={page.banner_title} description={page.banner_subtitle} image={page.banner_image} />
+          <SearchBanner title={page.banner_title} description={page.banner_subtitle} image={page.banner_image} initialDest={initialDest} disablePrefill />
+          {/* <Banner title={page.banner_title} description={page.banner_subtitle} image={page.banner_image} /> */}
           {/* <Features /> */}
-          <TrustBullets/>
           <IntroDescription
             title={page.best_experience_title || `Luxury Holidays in ${targetName}`}
             line1={page.best_experience_line_1}
             line2={page.best_experience_line_2}
             line3={page.best_experience_line_3}
             breadcrumbs={breadcrumbs}
-          />
+            />
+          <TrendingCarousel title={page.destination_deals_title_1} deal_collection={asArray(page.destination_deals_1)} viewAllHref={destinationHotelsHref} layout="grid" />
+          {/* <TrustBullets/> */}
           <GoodFor title_1={page?.title_1} title_2={page?.title_2}
             title_3={page?.title_3} title_4={page?.title_4}
             description_1={page?.description_1} description_2={page?.description_2}
@@ -363,7 +433,6 @@ export default async function DestinationPage({ params }: PageProps) {
             destinationName={slug}
           />
           {/* <ExpertSupportBanner/> */}
-          <TrendingCarousel title={page.destination_deals_title_1} deal_collection={asArray(page.destination_deals_1)} />
  
           {/* <Experience
             best_experience_title={page.best_experience_title}
@@ -397,6 +466,7 @@ export default async function DestinationPage({ params }: PageProps) {
             explore_subtitle_4={page.explore_subtitle_4}
             explore_description_4={page.explore_description_4}
             explore_image_4={page.explore_image_4}
+            sectionClassName="py-6 md:py-8"
           />
  
           <ResortsMap destinationName={targetName} resortsList={page.resorts_hierarchy} />
@@ -405,6 +475,8 @@ export default async function DestinationPage({ params }: PageProps) {
           <Weather
             Weather_title={page?.Weather_title}
             Weather_subtitle={page?.Weather_subtitle}
+            destinationName={targetName}
+            weatherData={asArray(page.weather_data)}
             seasonCards={[
               {
                 image: page?.season_card_image_1,
@@ -428,11 +500,11 @@ export default async function DestinationPage({ params }: PageProps) {
               },
             ]}
           />
-          <Climate destinationName={targetName} weatherData={asArray(page.weather_data)} />
           <DestinationDealCarousel
             trending_deals_title_1={page?.handpicked_deals_title}
             trending_deals_subtitle_1={page?.handpicked_deals_subtitle}
             trending_deals_1={asArray(page?.handpicked_deals)}
+            sectionClassName="py-6 md:py-8"
           />
           <PopularResorts
             title={page.similar_destinations_title}
@@ -448,12 +520,13 @@ export default async function DestinationPage({ params }: PageProps) {
           <FAQs faqItems={asArray(page.faqs)
             .map((f) => ({ question: f.question ?? "", answer: f.answer ?? "" }))
             .filter((f) => Boolean(f.question) && Boolean(f.answer))}
+            sectionClassName="py-6 md:py-8"
           />
          
           <DestinationHighlights destinationName={targetName} highlights={page.highlights} />
          
-          <Tailortripcard />
-           <TrustBullets/>
+          {/* <Tailortripcard /> */}
+           <TrustBullets sectionClassName="py-6 md:py-8" />
           {/* <Signup /> */}
           {/* <Trustsection /> */}
         </main>

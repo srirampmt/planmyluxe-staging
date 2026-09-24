@@ -15,11 +15,9 @@ interface MegaMenuProps {
   children: ReactNode;
   isOpen: boolean;
   onRequestClose?: () => void;
-  onMouseEnter?: () => void;
-  onMouseLeave?: () => void;
 }
 
-const MegaMenu = ({ children, isOpen, onRequestClose, onMouseEnter, onMouseLeave }: MegaMenuProps) => {
+const MegaMenu = ({ children, isOpen, onRequestClose }: MegaMenuProps) => {
   return (
     <div
       className={`
@@ -30,8 +28,6 @@ const MegaMenu = ({ children, isOpen, onRequestClose, onMouseEnter, onMouseLeave
         xl:min-h-[280px] xl:max-h-[600px]
         xl:overflow-y-auto xl:py-6
       `}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
       onClick={(e) => {
         if (!onRequestClose) return;
         const target = e.target as HTMLElement | null;
@@ -95,30 +91,9 @@ export function MainNav() {
   const headerRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
-  const hoverCloseTimeoutRef = useRef<number | null>(null);
 
   const toggleDropdown = (dropdown: string) => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown);
-  };
-
-  const isDesktop = () => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth >= 1280;
-  };
-
-  const clearHoverCloseTimeout = () => {
-    if (hoverCloseTimeoutRef.current) {
-      window.clearTimeout(hoverCloseTimeoutRef.current);
-      hoverCloseTimeoutRef.current = null;
-    }
-  };
-
-  const scheduleHoverClose = () => {
-    clearHoverCloseTimeout();
-    // Small delay prevents flicker when moving across tiny gaps
-    hoverCloseTimeoutRef.current = window.setTimeout(() => {
-      setOpenDropdown(null);
-    }, 180);
   };
 
   const closeDropdowns = () => {
@@ -137,17 +112,6 @@ export function MainNav() {
     } else {
       closeDropdowns();
     }
-  };
-
-  const handleDropdownMouseEnter = (dropdown: string) => {
-    if (!isDesktop()) return;
-    clearHoverCloseTimeout();
-    setOpenDropdown(dropdown);
-  };
-
-  const handleDropdownMouseLeave = () => {
-    if (!isDesktop()) return;
-    scheduleHoverClose();
   };
 
   // Handle click outside to close menu on mobile/tablet
@@ -256,11 +220,7 @@ export function MainNav() {
               `}>
                 <ul className="flex flex-col xl:flex-row xl:items-center gap-1 xl:gap-2 items-center">
                   <li className="relative group w-full xl:w-auto">
-                    <div
-                      onMouseEnter={() => handleDropdownMouseEnter('deals')}
-                      onMouseLeave={handleDropdownMouseLeave}
-                      className="w-full xl:w-auto"
-                    >
+                    <div className="w-full xl:w-auto">
                     <button onClick={() => toggleDropdown('deals')} className="flex items-center justify-center xl:justify-start py-2 px-3 gap-1 w-full xl:w-auto cursor-pointer bg-transparent border-none hover:text-pml-primary transition-colors" >
                       <span className="font-['Montserrat'] font-medium text-base text-[#4C4C4C]">Deals & Offers</span>
                       <svg className={`w-4 h-4 text-[#595858] transition-transform duration-300 ${openDropdown === 'deals' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -271,8 +231,6 @@ export function MainNav() {
                     <MegaMenu
                       isOpen={openDropdown === 'deals'}
                       onRequestClose={handleMegaMenuaClick}
-                      onMouseEnter={clearHoverCloseTimeout}
-                      onMouseLeave={handleDropdownMouseLeave}
                     >
                       <div className="flex flex-col items-center xl:items-stretch xl:flex-row xl:justify-between w-full gap-4 xl:gap-0">
                         {/* Latest Offers */}
@@ -320,11 +278,7 @@ export function MainNav() {
                   </li>
 
                   <li className="relative group w-full xl:w-auto">
-                    <div
-                      onMouseEnter={() => handleDropdownMouseEnter('holiday')}
-                      onMouseLeave={handleDropdownMouseLeave}
-                      className="w-full xl:w-auto"
-                    >
+                    <div className="w-full xl:w-auto">
                     <button
                       onClick={() => toggleDropdown('holiday')}
                       className="flex items-center justify-center xl:justify-start py-2 px-3 gap-1 w-full xl:w-auto cursor-pointer bg-transparent border-none hover:text-pml-primary transition-colors"
@@ -335,7 +289,7 @@ export function MainNav() {
                       </svg>
                     </button>
                     
-                    <MegaMenu isOpen={openDropdown === 'holiday'} onRequestClose={handleMegaMenuaClick} onMouseEnter={clearHoverCloseTimeout} onMouseLeave={handleDropdownMouseLeave} >
+                    <MegaMenu isOpen={openDropdown === 'holiday'} onRequestClose={handleMegaMenuaClick}>
                       <div className="flex flex-col items-center xl:items-stretch xl:flex-row xl:justify-between w-full gap-4 xl:gap-0">
                         {/* Holiday Styles */}
                         <div className="xl:flex-[0_0_32%] xl:border-r xl:border-pml-border xl:pr-6 text-center xl:text-left">
@@ -380,7 +334,7 @@ export function MainNav() {
                   </li>
 
                   <li className="relative group w-full xl:w-auto">
-                    <div onMouseEnter={() => handleDropdownMouseEnter('destinations')} onMouseLeave={handleDropdownMouseLeave} className="w-full xl:w-auto" >
+                    <div className="w-full xl:w-auto">
                       <button onClick={() => toggleDropdown('destinations')} className="flex items-center justify-center xl:justify-start py-2 px-3 gap-1 w-full xl:w-auto cursor-pointer bg-transparent border-none hover:text-pml-primary transition-colors" >
                         <span className="font-['Montserrat'] font-medium text-base text-[#4C4C4C]">Destinations</span>
                         <svg className={`w-4 h-4 text-[#595858] transition-transform duration-300 ${openDropdown === 'destinations' ? 'rotate-180' : ''}`} width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
@@ -388,7 +342,7 @@ export function MainNav() {
                         </svg>
                       </button>
                       
-                      <MegaMenu isOpen={openDropdown === 'destinations'} onRequestClose={handleMegaMenuaClick} onMouseEnter={clearHoverCloseTimeout} onMouseLeave={handleDropdownMouseLeave} >
+                      <MegaMenu isOpen={openDropdown === 'destinations'} onRequestClose={handleMegaMenuaClick}>
                         <div className="w-full">
                           <p className="text-[0.95rem] font-bold mb-3 text-[#595858] text-center xl:text-left">Our Destinations</p>
                           <div className="flex gap-4 overflow-x-auto pb-2 xl:justify-start xl:grid xl:grid-cols-4 xl:gap-8 xl:overflow-visible xl:pb-0">
@@ -454,11 +408,7 @@ export function MainNav() {
                   </li>
 
                   <li className="relative group w-full xl:w-auto">
-                    <div
-                      onMouseEnter={() => handleDropdownMouseEnter('support')}
-                      onMouseLeave={handleDropdownMouseLeave}
-                      className="w-full xl:w-auto"
-                    >
+                    <div className="w-full xl:w-auto">
                     <button
                       onClick={() => toggleDropdown('support')}
                       className="flex items-center justify-center xl:justify-start py-2 px-3 gap-1 w-full xl:w-auto cursor-pointer bg-transparent border-none hover:text-pml-primary transition-colors"
@@ -472,8 +422,6 @@ export function MainNav() {
                     <MegaMenu
                       isOpen={openDropdown === 'support'}
                       onRequestClose={handleMegaMenuaClick}
-                      onMouseEnter={clearHoverCloseTimeout}
-                      onMouseLeave={handleDropdownMouseLeave}
                     >
                       <div className="grid grid-cols-2 gap-4 xl:flex xl:flex-row xl:justify-between w-full xl:gap-0">
                         {/* Help & Support */}

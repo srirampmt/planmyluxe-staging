@@ -32,7 +32,7 @@ export default function IntroDescription({
 
   return (
     <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat']">
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] py-4 md:py-6">
+      <div className="mx-auto mt-6 w-full max-w-[1440px] px-[16px] py-6 sm:px-[24px] md:mt-8 md:px-[32px] md:py-8 lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto border border-slate-200/80 rounded-[8px] p-5 sm:p-6 md:px-8 md:py-6 bg-white shadow-sm space-y-2">
           {breadcrumbs.length > 0 && (
             <nav aria-label="Breadcrumbs" className="flex flex-wrap items-center text-[11px] font-medium leading-4 text-slate-500">
@@ -57,7 +57,7 @@ export default function IntroDescription({
             </nav>
           )}
 
-          <h2 className="text-[22px] sm:text-[28px] lg:text-[32px] font-semibold text-black tracking-tight leading-tight lg:whitespace-nowrap lg:leading-none">
+          <h2 className="font-['Montserrat'] text-[24px] md:text-[48px] font-semibold text-[#4c4c4c] leading-[30px] md:leading-[1.15] tracking-[-0.005em]">
             {title}
           </h2>
 
@@ -65,7 +65,7 @@ export default function IntroDescription({
             {line1 || line2 || line3 ? (
               <>
                 {line1 && (
-                  <p className="text-[14px] sm:text-[15px] md:text-[16px] lg:text-[17px] text-[#4c4c4c] leading-[22px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] font-normal max-w-[720px]">
+                  <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
                     {line1}
                   </p>
                 )}
@@ -73,12 +73,12 @@ export default function IntroDescription({
                 {isExpanded && (
                   <div className="space-y-4 transition-all duration-300 ease-in-out">
                     {line2 && (
-                      <p className="text-[14px] sm:text-[15px] md:text-[16px] lg:text-[17px] text-[#4c4c4c] leading-[22px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] font-normal max-w-[720px]">
+                      <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
                         {line2}
                       </p>
                     )}
                     {line3 && (
-                      <p className="text-[14px] sm:text-[15px] md:text-[16px] lg:text-[17px] text-[#4c4c4c] leading-[22px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] font-normal max-w-[720px]">
+                      <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
                         {line3}
                       </p>
                     )}
@@ -86,7 +86,7 @@ export default function IntroDescription({
                 )}
               </>
             ) : defaultText ? (
-              <p className="text-[14px] sm:text-[15px] md:text-[16px] lg:text-[17px] text-[#4c4c4c] leading-[22px] sm:leading-[24px] md:leading-[28px] lg:leading-[30px] font-normal max-w-[720px]">
+              <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
                 {defaultText}
               </p>
             ) : null}

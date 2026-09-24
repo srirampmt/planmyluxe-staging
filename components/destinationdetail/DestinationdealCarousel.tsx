@@ -17,10 +17,12 @@ export default function DestinationDealCarousel({
   trending_deals_title_1,
   trending_deals_subtitle_1,
   trending_deals_1,
+  sectionClassName = "",
 }: {
   trending_deals_title_1?: string;
   trending_deals_subtitle_1?: string;
   trending_deals_1: any[];
+  sectionClassName?: string;
 }) {
   const router = useRouter();
   const cardPointerDownRef = React.useRef<{
@@ -37,7 +39,7 @@ export default function DestinationDealCarousel({
 
   // ...existing code...
   return (
-    <section className="w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat']">
+    <section className={`w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat'] ${sectionClassName}`}>
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto">
             <div className="bg-gradient-to-br from-[#1a9b9e] via-[#2ab5b8] to-[#5bc9cc] w-full py-8 md:py-10 relative z-0">
@@ -56,11 +58,11 @@ export default function DestinationDealCarousel({
 
             <div className="max-w-7xl mx-auto relative z-10">
               <div className="text-left md:mb-10">
-                <h2 className="text-[24px] md:text-[48px] font-semibold text-white leading-[30px] md:leading-[60px] tracking-[-0.005em] max-w-[626px] mb-4 md:md-8">
+                <h2 className="font-['Montserrat'] text-[24px] md:text-[48px] font-semibold text-white leading-[30px] md:leading-[1.15] tracking-[-0.005em] mb-3">
                   {title}
                 </h2>
 
-                <p className="text-white max-w-[624px] text-[14px] md:text-[16px] leading-[24px] line-clamp-2 md:line-clamp-none lg:line-clamp-none">
+                <p className="text-white w-full text-[15px] md:text-[16px] leading-7">
                   {subtitle}
                 </p>
               </div>

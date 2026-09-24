@@ -15,14 +15,14 @@ interface FAQItem {
 }
 
 
-export default function FAQs({ faqItems }: { faqItems?: FAQItem[] }) {
+export default function FAQs({ faqItems, sectionClassName = "my-2 md:my-8" }: { faqItems?: FAQItem[]; sectionClassName?: string }) {
   if (!faqItems || faqItems.length === 0) return null;
   return (
-    <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-white font-['Montserrat'] my-2 md:my-8">
+    <section className={`w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-white font-['Montserrat'] ${sectionClassName}`}>
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto">
           {/* Title */}
-          <h2 className="text-[#C8105B] text-[18px] md:text-[24px] lg:text-[24px] font-semibold mb-4 leading-[32px] max-w-[571px]">
+          <h2 className="font-['Montserrat'] text-[24px] md:text-[48px] font-semibold text-[#4c4c4c] leading-[30px] md:leading-[1.15] tracking-[-0.005em] mb-4">
             Frequently asked questions
           </h2>
 
@@ -34,11 +34,11 @@ export default function FAQs({ faqItems }: { faqItems?: FAQItem[] }) {
                 value={`item-${index}`}
                 className="bg-[#FBE8F4] rounded-[10px] px-6 border-0"
               >
-                <AccordionTrigger className="text-[#4c4c4c] text-[16px] md:text-[20px] font-medium hover:no-underline">
+                <AccordionTrigger className="text-[#1a1a1a] text-[15px] md:text-[16px] font-semibold hover:no-underline">
                   {item.question}
                 </AccordionTrigger>
 
-                <AccordionContent className="text-[#666666] text-[12px] md:text-[14px] leading-relaxed pt-2 pb-4">
+                <AccordionContent className="text-[#4c4c4c] text-[15px] md:text-[16px] leading-7 pt-2 pb-4">
                   {item.answer}
                 </AccordionContent>
               </AccordionItem>

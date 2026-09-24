@@ -24,6 +24,7 @@ export interface ExploreProps {
   explore_description_4?: string;
   explore_image_4?: string;
   best_experience_image_1?: string;
+  sectionClassName?: string;
 }
 
 // Category icons for the mobile drawer / modal
@@ -162,7 +163,7 @@ export default function Explore(props: ExploreProps) {
   if (exploreItems.length === 0) return null;
 
   return (
-    <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat'] py-4 md:py-6">
+    <section className={`w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat'] ${props.sectionClassName || "py-4 md:py-6"}`}>
         <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
           <div className="w-full max-w-[1280px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch">
@@ -208,10 +209,10 @@ export default function Explore(props: ExploreProps) {
                         )}
                       </div>
                       <div className="space-y-1 sm:space-y-1.5 min-w-0 flex-1">
-                        <h4 className="font-montserrat text-[13.5px] sm:text-[15px] lg:text-[14.5px] xl:text-[16px] font-semibold text-[#7C7C7C] uppercase tracking-wide leading-[17px] sm:leading-[20px] lg:leading-[19px] xl:leading-[22px] line-clamp-2 group-hover:text-[var(--brand-primary)] transition-colors">
+                        <h3 className="font-['Montserrat'] text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 group-hover:text-[var(--brand-primary)] transition-colors">
                           {item.title}
-                        </h4>
-                        <p className="font-montserrat text-[11.5px] sm:text-[12.5px] lg:text-[12px] xl:text-[13px] font-normal text-[#4c4c4c] leading-[16px] sm:leading-[18px] lg:leading-[17px] xl:leading-[19px] line-clamp-2">
+                        </h3>
+                        <p className="font-['Montserrat'] text-[14px] md:text-[15px] font-normal text-[#4c4c4c] leading-6 line-clamp-2">
                           {item.description}
                         </p>
                         <button

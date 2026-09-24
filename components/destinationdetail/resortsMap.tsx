@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { MapPin, RotateCcw } from "lucide-react";
+import {
+  encodeDestinationParam,
+  getDestinationLabel,
+  getDestinationLevel,
+  makeDestinationSelection,
+  type DestinationLevel,
+  type DestinationRow,
+} from "@/lib/mappings/destinations";
 
 interface ResortItem {
   name: string;
@@ -115,19 +124,32 @@ const escapeHtml = (str: string): string => {
     .replace(/'/g, "&#039;");
 };
 
-const buildSearchUrl = (resort: ResortItem): string => {
-  const params = new URLSearchParams();
-  if (resort.city > 0) {
-    params.set("destinations", `city-${resort.city}`);
-  } else if (resort.resort > 0) {
-    params.set("destinations", `resort-${resort.resort}`);
-  } else if (resort.region > 0) {
-    params.set("destinations", `reg-${resort.region}`);
-  } else {
-    params.set("destinations", `country-${resort.country}`);
-  }
-  params.set("q", resort.name);
-  return `/search?${params.toString()}`;
+const LEVEL_RANK: DestinationLevel[] = ["city", "resort", "region", "country", "top_level"];
+
+const pickDestination = (
+  rows: DestinationRow[],
+  name: string,
+  destinationName: string
+): DestinationRow | null => {
+  const needle = name.trim().toLowerCase();
+  const dest = destinationName.trim().toLowerCase();
+  const named = rows.filter((row) => getDestinationLabel(row).trim().toLowerCase() === needle);
+  const pool = named.length ? named : rows;
+  const underDest = pool.filter((row) =>
+    [row.country_name, row.top_level_name, row.region_name, row.resort_name].some((part) =>
+      part?.toLowerCase().includes(dest)
+    )
+  );
+  const candidates = (underDest.length ? underDest : pool).slice();
+  candidates.sort((a, b) => {
+    const rank = (row: DestinationRow) => {
+      const level = getDestinationLevel(row);
+      const index = level ? LEVEL_RANK.indexOf(level) : LEVEL_RANK.length;
+      return index < 0 ? LEVEL_RANK.length : index;
+    };
+    return rank(a) - rank(b);
+  });
+  return candidates[0] ?? null;
 };
 
 const getValidCoords = (resort: ResortItem): [number, number] | null => {
@@ -150,6 +172,7 @@ export default function ResortsMap({
   resortsList = [],
   apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
 }: ResortsMapProps) {
+  const router = useRouter();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const infoWindowRef = useRef<any>(null);
@@ -171,6 +194,9 @@ export default function ResortsMap({
       { marker: any; normalIcon: any; hoverIcon: any; selectedIcon: any }
     >
   >({});
+  const iconsRef = useRef<{ normalIcon: any; hoverIcon: any; selectedIcon: any } | null>(null);
+  const geocodeCacheRef = useRef<Record<string, { lat: number; lng: number }>>({});
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevSelectedNameRef = useRef<string | null>(null);
   const bounceTimeoutRef = useRef<any>(null);
   const fitDestinationViewRef = useRef<() => void>(() => {});
@@ -190,7 +216,7 @@ export default function ResortsMap({
     return Array.isArray(resortsList) ? resortsList : [];
   }, [resortsList]);
 
-  const defaultLimit = isDesktop ? 20 : 10;
+  const defaultLimit = isDesktop ? 16 : 14;
   const displayedResorts = isExpanded ? list : list.slice(0, defaultLimit);
 
   // Load Google Maps SDK with Places and Geometry libraries
@@ -261,13 +287,8 @@ export default function ResortsMap({
       const map = new google.maps.Map(mapContainerRef.current, mapOptions);
 
       infoWindowRef.current = new google.maps.InfoWindow({
-        disableAutoPan: false,
-      });
-
-      infoWindowRef.current.addListener("closeclick", () => {
-        setSelectedResort(null);
-        setHoveredResort(null);
-        fitDestinationViewRef.current?.();
+        disableAutoPan: true,
+        headerDisabled: true,
       });
 
       map.addListener("click", () => {
@@ -468,21 +489,114 @@ export default function ResortsMap({
     fitDestinationView();
   }, [fitDestinationView]);
 
-  const handleLocationClick = useCallback((resort: ResortItem) => {
-    if (selectedResort?.name === resort.name) {
-      handleResetView();
-      return;
+  const geocodeResort = useCallback((resort: ResortItem): Promise<[number, number] | null> => {
+    const existing = getValidCoords(resort);
+    if (existing) return Promise.resolve(existing);
+
+    const cached = geocodeCacheRef.current[resort.name];
+    if (cached) return Promise.resolve([cached.lat, cached.lng]);
+
+    const google = (window as any).google;
+    if (!google?.maps?.places?.PlacesService) return Promise.resolve(null);
+
+    const query = `${resort.name}, ${destinationName}`;
+    const places = new google.maps.places.PlacesService(
+      mapInstanceRef.current || document.createElement("div")
+    );
+
+    const readLocation = (results: any): [number, number] | null => {
+      const location = results?.[0]?.geometry?.location;
+      if (!location) return null;
+      const lat = location.lat();
+      const lng = location.lng();
+      geocodeCacheRef.current[resort.name] = { lat, lng };
+      return [lat, lng];
+    };
+
+    return new Promise((resolve) => {
+      places.findPlaceFromQuery(
+        { query, fields: ["geometry", "name"] },
+        (results: any, status: string) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resolve(readLocation(results));
+            return;
+          }
+          places.textSearch({ query }, (textResults: any, textStatus: string) => {
+            if (textStatus === google.maps.places.PlacesServiceStatus.OK) {
+              resolve(readLocation(textResults));
+              return;
+            }
+            resolve(null);
+          });
+        }
+      );
+    });
+  }, [destinationName]);
+
+  const ensureMarker = useCallback((resort: ResortItem, coords: [number, number]) => {
+    const map = mapInstanceRef.current;
+    const google = (window as any).google;
+    const icons = iconsRef.current;
+    if (!map || !google?.maps || !icons) return null;
+
+    const existing = markersRef.current[resort.name];
+    if (existing) {
+      existing.marker.setPosition({ lat: coords[0], lng: coords[1] });
+      return existing;
     }
-    setSelectedResort(resort);
+
+    const marker = new google.maps.Marker({
+      position: { lat: coords[0], lng: coords[1] },
+      map,
+      title: resort.name,
+      icon: icons.normalIcon,
+      zIndex: 10,
+      cursor: "pointer",
+    });
+    marker.addListener("click", () => {
+      openHotelSearchRef.current(resort);
+    });
+    marker.addListener("mouseover", () => {
+      setHoveredResort(resort.name);
+    });
+    marker.addListener("mouseout", () => {
+      setHoveredResort((prev) => (prev === resort.name ? null : prev));
+    });
+
+    const entry = { marker, ...icons };
+    markersRef.current[resort.name] = entry;
+    return entry;
+  }, []);
+
+  const openHotelSearch = useCallback((resort: ResortItem) => {
+    const params = new URLSearchParams();
+    params.set("q", resort.name);
+    const go = (did: string) => {
+      if (did) params.set("did", did);
+      router.push(`/hotels?${params.toString()}`);
+    };
+    fetch(`/api/destinations?q=${encodeURIComponent(resort.name)}`)
+      .then((res) => res.json())
+      .then((data: DestinationRow[]) => {
+        const rows = Array.isArray(data) ? data : [];
+        const match = pickDestination(rows, resort.name, destinationName);
+        go(match ? encodeDestinationParam(makeDestinationSelection(match)) : "");
+      })
+      .catch(() => go(""));
+  }, [destinationName, router]);
+
+  const openHotelSearchRef = useRef(openHotelSearch);
+  openHotelSearchRef.current = openHotelSearch;
+
+  const handleResortHover = useCallback((resort: ResortItem) => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     setHoveredResort(resort.name);
-    const coords = getValidCoords(resort);
-    if (coords && mapInstanceRef.current) {
-      mapInstanceRef.current.panTo({ lat: coords[0], lng: coords[1] });
-      if (mapInstanceRef.current.getZoom()! < 8) {
-        mapInstanceRef.current.setZoom(8);
-      }
-    }
-  }, [selectedResort, handleResetView]);
+  }, []);
+
+  const handleResortHoverEnd = useCallback(() => {
+    if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    setHoveredResort(null);
+  }, []);
 
   // Render Pin Markers on Google Maps
   useEffect(() => {
@@ -560,6 +674,8 @@ export default function ResortsMap({
       anchor: new google.maps.Point(19, 41.5),
     };
 
+    iconsRef.current = { normalIcon, hoverIcon, selectedIcon };
+
     list.forEach((resort) => {
       const coords = getValidCoords(resort);
       if (!coords) return;
@@ -574,7 +690,7 @@ export default function ResortsMap({
       });
 
       marker.addListener("click", () => {
-        handleLocationClick(resort);
+        openHotelSearchRef.current(resort);
       });
 
       marker.addListener("mouseover", () => {
@@ -593,15 +709,58 @@ export default function ResortsMap({
       };
     });
 
-    if (!destinationViewportRef.current) {
-      fitDestinationView();
-    }
-
     return () => {
       Object.values(markersRef.current).forEach(({ marker }) => marker.setMap(null));
       markersRef.current = {};
     };
-  }, [mapInstance, list, fitDestinationView, handleLocationClick]);
+  }, [mapInstance, list]);
+
+  useEffect(() => {
+    if (!mapInstance) return;
+    let cancelled = false;
+
+    const fitPlacedPins = () => {
+      const google = (window as any).google;
+      const map = mapInstanceRef.current;
+      if (!google?.maps || !map) return;
+      const bounds = new google.maps.LatLngBounds();
+      let count = 0;
+      Object.values(markersRef.current).forEach(({ marker }) => {
+        const pos = marker.getPosition?.();
+        if (!pos) return;
+        bounds.extend(pos);
+        count += 1;
+      });
+      if (count === 1) {
+        map.setCenter(bounds.getCenter());
+        map.setZoom(10);
+        return;
+      }
+      if (count > 1) map.fitBounds(bounds, 48);
+    };
+
+    fitPlacedPins();
+
+    const missing = list.filter((resort) => !getValidCoords(resort) && !markersRef.current[resort.name]);
+    const queue = [...missing];
+    const worker = async () => {
+      while (queue.length && !cancelled) {
+        const resort = queue.shift();
+        if (!resort) break;
+        const coords = await geocodeResort(resort);
+        if (cancelled || !coords) continue;
+        ensureMarker({ ...resort, latitude: coords[0], longitude: coords[1] }, coords);
+      }
+    };
+
+    void Promise.all(Array.from({ length: 4 }, () => worker())).then(() => {
+      if (!cancelled) fitPlacedPins();
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mapInstance, list, geocodeResort, ensureMarker]);
 
   // Synchronize hover / selected resort to pin icons
   useEffect(() => {
@@ -670,55 +829,35 @@ export default function ResortsMap({
     }
   }, [selectedResort]);
 
-  // InfoWindow ("VIEW DEALS")
   useEffect(() => {
-    if (!mapInstance || !infoWindowRef.current) return;
+    const info = infoWindowRef.current;
+    if (!mapInstance || !info) return;
 
-    if (!selectedResort) {
-      infoWindowRef.current.close();
+    if (!hoveredResort) {
+      info.close();
       return;
     }
 
-    const coords = getValidCoords(selectedResort);
-    if (!coords) return;
+    const markerData = markersRef.current[hoveredResort];
+    if (!markerData?.marker) return;
 
-    const safeName = escapeHtml(selectedResort.name);
-    const searchUrl = buildSearchUrl(selectedResort);
-
-    infoWindowRef.current.setContent(`
-      <div style="font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 6px 4px 4px 4px; min-width: 140px; max-width: 220px;">
-        <div style="font-weight: 700; font-size: 13px; color: #1a1a1a; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; line-height: 1.2;">
-          ${safeName}
-        </div>
-        <a href="${searchUrl}" style="display: inline-block; background-color: #cb2187; color: #ffffff !important; font-size: 11px; font-weight: 700; padding: 6px 18px; border-radius: 9999px; text-decoration: none; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(203,33,135,0.35);">
-          VIEW DEALS
-        </a>
-      </div>
-    `);
-
-    const markerData = markersRef.current[selectedResort.name];
-    if (markerData?.marker) {
-      infoWindowRef.current.open({
-        anchor: markerData.marker,
-        map: mapInstance,
-      });
-    } else {
-      infoWindowRef.current.setPosition({ lat: coords[0], lng: coords[1] });
-      infoWindowRef.current.open(mapInstance);
-    }
-  }, [selectedResort, mapInstance]);
+    info.setContent(
+      `<div style="font-family: Montserrat, sans-serif; font-weight: 600; font-size: 12px; color: #1a1a1a; padding: 2px 2px 0;">${escapeHtml(hoveredResort)}</div>`
+    );
+    info.open({ anchor: markerData.marker, map: mapInstance });
+  }, [hoveredResort, mapInstance]);
 
   return (
     <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat']">
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] py-4 sm:py-6 md:py-8">
+      <div className="mx-auto w-full max-w-[1440px] px-[16px] py-6 sm:px-[24px] md:px-[32px] md:py-8 lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
           
           {/* Left Column: Regions and Resorts List */}
-          <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6 lg:p-7 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] flex flex-col h-[420px] sm:h-[460px] lg:h-[500px] w-full transition-all">
-            <div className="flex-1 min-h-0 flex flex-col">
-              <h4 className="font-montserrat text-[16px] sm:text-[18px] lg:text-[19px] font-semibold text-[#7C7C7C] uppercase tracking-wide mb-3 pb-2 border-b border-gray-100 shrink-0">
-                ALL REGIONS AND RESORTS - {destinationName}
-              </h4>
+          <div className={`lg:col-span-5 bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6 lg:p-7 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] flex w-full flex-col self-start transition-all ${isExpanded ? "h-[560px] sm:h-[600px] lg:h-[500px]" : ""}`}>
+            <div className={`flex flex-col ${isExpanded ? "min-h-0 flex-1" : ""}`}>
+              <h2 className="font-['Montserrat'] text-[18px] md:text-[20px] font-semibold text-[#1a1a1a] leading-snug mb-3 pb-2 border-b border-gray-100 shrink-0">
+                All regions and resorts in {destinationName}
+              </h2>
 
               {/* Destination Header Node: Focus Destination Boundary */}
               <div
@@ -736,26 +875,26 @@ export default function ResortsMap({
                   Specific resorts and region list not available.
                 </p>
               ) : (
-                <div className="flex flex-wrap content-start gap-2 flex-1 min-h-0 overflow-y-auto pr-1">
+                <div className={`grid grid-cols-2 content-start gap-2 ${isExpanded ? "min-h-0 flex-1 overflow-y-auto pr-1" : ""}`}>
                   {displayedResorts.map((resort, idx) => (
                     <button
-                      key={resort.name || idx}
-                      onClick={() => handleLocationClick(resort)}
-                      onMouseEnter={() => setHoveredResort(resort.name)}
-                      onMouseLeave={() => setHoveredResort(null)}
-                      className={`rounded-full border px-3 py-1.5 text-left font-montserrat text-[13px] leading-none transition-colors outline-none cursor-pointer ${
+                      key={`${resort.country}-${resort.region}-${resort.resort}-${resort.city}-${idx}`}
+                      onClick={() => openHotelSearch(resort)}
+                      onMouseEnter={() => handleResortHover(resort)}
+                      onMouseLeave={handleResortHoverEnd}
+                      className={`w-full rounded-full border bg-transparent px-3 py-1.5 text-left font-montserrat text-[13px] leading-none transition-colors outline-none cursor-pointer ${
                         hoveredResort === resort.name || selectedResort?.name === resort.name
-                          ? "border-[#cb2187] bg-[#FBE3F1] font-semibold text-[#cb2187]"
-                          : "border-[#E8E8E8] bg-[#F9FAFB] font-medium text-black hover:border-[#cb2187] hover:text-[#cb2187]"
+                          ? "border-transparent font-semibold text-[#cb2187]"
+                          : "border-transparent font-medium text-[#7C7C7C] hover:text-[#cb2187]"
                       }`}
                     >
-                      <span className="truncate">{resort.name}</span>
+                      <span className="block truncate">{resort.name}</span>
                     </button>
                   ))}
                   {list.length > defaultLimit && (
                     <button
                       onClick={() => setIsExpanded(!isExpanded)}
-                      className="rounded-full px-3 py-1.5 text-[13px] font-semibold leading-none text-[#cb2187] hover:underline cursor-pointer outline-none"
+                      className="col-span-2 rounded-full px-3 py-1.5 text-left text-[13px] font-semibold leading-none text-[#cb2187] hover:underline cursor-pointer outline-none"
                     >
                       {isExpanded ? "View Less" : "View More"}
                     </button>
@@ -766,7 +905,7 @@ export default function ResortsMap({
           </div>
 
           {/* Right Column: Interactive Google Map */}
-          <div className="lg:col-span-7 bg-[#d5dcde] rounded-2xl border border-gray-200/60 overflow-hidden shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] relative flex flex-col h-[420px] sm:h-[460px] lg:h-[500px] w-full transition-all">
+          <div className="relative hidden h-[320px] w-full flex-col overflow-hidden rounded-2xl border border-gray-200/60 bg-[#d5dcde] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] sm:h-[380px] lg:col-span-7 lg:flex lg:h-full lg:self-stretch">
             <div
               ref={mapContainerRef}
               className="w-full h-full flex-1 z-10"

@@ -129,7 +129,7 @@ export default function KeyFacts({
       : "grid-cols-2 lg:grid-cols-4";
 
   return (
-    <section className={`w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat'] py-4 md:py-6 ${className}`}>
+    <section className={`w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat'] py-6 md:py-8 ${className}`}>
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto">
           <div className={`grid ${gridClass} gap-2.5 sm:gap-3 md:gap-4`}>
@@ -152,9 +152,9 @@ export default function KeyFacts({
                 <div className="w-4 sm:w-5 h-[1.5px] bg-[#cb2187] rounded-full my-1.5 sm:my-2" />
 
                 {/* Dynamic Primary Metric Value */}
-                <h4 className="font-montserrat text-[14px] sm:text-[15.5px] font-bold text-[#1E1B4B] leading-tight mb-0.5">
+                <h3 className="font-['Montserrat'] text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] leading-snug mb-0.5">
                   {card.value}
-                </h4>
+                </h3>
 
                 {/* Dynamic Detail / Context Description (if available) */}
                 {card.detail ? (

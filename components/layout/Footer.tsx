@@ -158,7 +158,7 @@ const Footer = () => {
                     </clipPath>
                   </defs>
                 </svg>
-                <span className='font-light text-[16px] tracking-[0.04em]'>ALL HOLIDAYS ARE ATOL PROTECTED</span>
+                <span className='font-light text-[16px] tracking-[0.04em]'>FLIGHT-INCLUSIVE PACKAGES ARE ATOL PROTECTED · T7655</span>
               </div>
             </div>
 

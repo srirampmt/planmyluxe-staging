@@ -118,43 +118,27 @@ export default function Explore(props: ExploreProps) {
   const exploreItems = [
     {
       tagline: props.explore_subtitle_1,
-      title: props.explore_title_1 || "Affordable Luxury Holidays to Cancun & Riviera Maya",
-      description:
-        props.explore_description_1 ||
-        "Mexico's Caribbean coast offers the perfect mix of white-sand beaches, turquoise waters, and five-star experiences—making Cancun and the Riviera Maya a dream destination for affordable luxury.",
-      image:
-        props.explore_image_1 ||
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85",
+      title: props.explore_title_1,
+      description: props.explore_description_1,
+      image: props.explore_image_1,
     },
     {
       tagline: props.explore_subtitle_2,
-      title: props.explore_title_2 || "Best Beaches in Cancun & Riviera Maya",
-      description:
-        props.explore_description_2 ||
-        "The coastline from Cancun to Tulum is world-famous for its powdery white sand and clear, warm sea. Discover iconic beaches, scenic spots, and breathtaking views.",
-      image:
-        props.explore_image_2 ||
-        "https://images.unsplash.com/photo-1518638150340-f706e86654de?auto=format&fit=crop&w=1200&q=85",
+      title: props.explore_title_2,
+      description: props.explore_description_2,
+      image: props.explore_image_2,
     },
     {
       tagline: props.explore_subtitle_3,
-      title: props.explore_title_3 || "Best Places of Interest in Cancun & Riviera Maya",
-      description:
-        props.explore_description_3 ||
-        "From ancient ruins to vibrant culture, explore the must-visit attractions of this magical region—packed with history, adventure, and natural wonders.",
-      image:
-        props.explore_image_3 ||
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=85",
+      title: props.explore_title_3,
+      description: props.explore_description_3,
+      image: props.explore_image_3,
     },
     {
       tagline: props.explore_subtitle_4,
-      title: props.explore_title_4 || "Best Resorts for a Luxury Holiday in Cancun & Riviera Maya",
-      description:
-        props.explore_description_4 ||
-        "Luxury beachfront resorts offering infinity pools, gourmet dining, and all-inclusive ease—perfect for romantic getaways, family escapes, and more.",
-      image:
-        props.explore_image_4 ||
-        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=1200&q=85",
+      title: props.explore_title_4,
+      description: props.explore_description_4,
+      image: props.explore_image_4,
     },
   ].filter(
     (item) => item.tagline || item.title || item.description || item.image
@@ -299,7 +283,7 @@ export default function Explore(props: ExploreProps) {
             <div className="max-w-[960px] mx-auto px-4 sm:px-8 py-6 sm:py-10">
               {/* Hero Image */}
               {activeModalItem?.image && (
-                <div className="relative w-full h-[240px] xs:h-[280px] sm:h-[380px] md:h-[440px] rounded-[18px] sm:rounded-[24px] overflow-hidden shadow-md mb-6 sm:mb-8 bg-slate-100">
+                <div className="relative w-full h-[240px] xs:h-[280px] sm:h-[380px] md:h-[440px] rounded-[8px] overflow-hidden shadow-md mb-6 sm:mb-8 bg-slate-100">
                   <img
                     src={activeModalItem.image}
                     alt={activeModalItem.title || "Detail View"}
@@ -319,11 +303,11 @@ export default function Explore(props: ExploreProps) {
               )}
 
               {/* Main Content Card */}
-              <div className="bg-white rounded-[18px] sm:rounded-[24px] p-5 sm:p-8 md:p-10 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
+              <div className="bg-white rounded-[8px] p-5 sm:p-8 md:p-10 border border-slate-200/80 shadow-xs space-y-5 sm:space-y-6">
                 <div>
-                  <h1 className="text-[22px] sm:text-[32px] md:text-[38px] font-extrabold text-[#1a1a1a] tracking-tight leading-tight mb-3">
+                  <h2 className="text-[22px] sm:text-[32px] md:text-[38px] font-extrabold text-[#1a1a1a] tracking-tight leading-tight mb-3">
                     {activeModalItem?.title}
-                  </h1>
+                  </h2>
                   <div className="w-14 h-1 bg-[#cb2187] rounded-full" />
                 </div>
 
@@ -341,7 +325,7 @@ export default function Explore(props: ExploreProps) {
             {/* Click outside to close */}
             <div className="absolute inset-0" onClick={() => setActiveModalItem(null)} />
             
-            <div className="relative bg-white rounded-[10px] max-w-[650px] w-full overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative bg-white rounded-[8px] max-w-[650px] w-full overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
               {/* Close Button */}
               <button
                 onClick={() => setActiveModalItem(null)}

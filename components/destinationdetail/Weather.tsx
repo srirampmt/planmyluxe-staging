@@ -76,14 +76,14 @@ type WeatherProps = {
   Weather_subtitle?: string;
   seasonCards?: SeasonCard[];
   destinationName?: string;
-  weatherData?: Array<{ month_name?: string; month?: string; temperature?: string | number; temp?: string | number }> | "" | null;
+  weatherData?: Array<{ month_name?: string; month?: string; temperature?: string | number; temp?: string | number; metric?: "daily_max" }> | "" | null;
 };
 
 export default function Weather({ Weather_title, Weather_subtitle, seasonCards, destinationName, weatherData }: WeatherProps) {
-  const title = Weather_title || "What to expect from Mallorcas weather";
-  const subtitle =
-    Weather_subtitle ||
-    "Mallorca enjoys warm sunshine long summers and mild pleasant winters creating ideal conditions for beach days coastal walks and relaxed outdoor living. Temperatures rise through the spring and stay consistently high through late summer with clear skies gentle breezes and bright Mediterranean light. Autumn brings softer warmth and quieter days while winter remains comfortable with cool evenings and plenty of blue sky moments.";
+  const title =
+    Weather_title ||
+    (destinationName ? `What to expect from ${destinationName} weather` : "Destination weather");
+  const subtitle = Weather_subtitle || "";
 
   const cardsToRender: SeasonCard[] = Array.isArray(seasonCards)
     ? seasonCards.filter((c) => Boolean(c?.image) || Boolean(c?.title) || Boolean(c?.description))
@@ -156,9 +156,11 @@ export default function Weather({ Weather_title, Weather_subtitle, seasonCards, 
             <h2 className="font-['Montserrat'] text-[24px] md:text-[48px] font-semibold text-[#4c4c4c] leading-[30px] md:leading-[1.15] tracking-[-0.005em] mb-3">
               {title}
             </h2>
-            <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] w-full">
-              {subtitle}
-            </p>
+            {subtitle ? (
+              <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] w-full">
+                {subtitle}
+              </p>
+            ) : null}
           </div>
 
           <Climate destinationName={destinationName || ""} weatherData={weatherData} embedded linked={cardsToRender.length > 0} setApi={setMonthApi} />

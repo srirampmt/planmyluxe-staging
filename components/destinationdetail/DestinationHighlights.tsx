@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import DOMPurify from "isomorphic-dompurify";
 
 export interface DestinationHighlightsProps {
   destinationName?: string;
@@ -21,6 +22,14 @@ export default function DestinationHighlights({
   const [isExpanded, setIsExpanded] = useState(false);
   const [showToggle, setShowToggle] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
+  const safeHighlights = useMemo(
+    () =>
+      DOMPurify.sanitize(highlights || "").replace(
+        /<(\/?)h1(\s[^>]*)?>/gi,
+        "<$1h2$2>"
+      ),
+    [highlights]
+  );
 
   useEffect(() => {
     if (contentRef.current) {
@@ -28,9 +37,9 @@ export default function DestinationHighlights({
       const isOverflowing = contentRef.current.scrollHeight > 155;
       setShowToggle(isOverflowing);
     }
-  }, [highlights]);
+  }, [safeHighlights]);
 
-  if (isEmptyHtml(highlights)) {
+  if (isEmptyHtml(safeHighlights)) {
     return null;
   }
 
@@ -38,7 +47,7 @@ export default function DestinationHighlights({
     <section className={`w-full py-6 font-['Montserrat'] md:py-8 ${className}`}>
       <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto">
-          <div className="bg-white rounded-[16px] border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-6 sm:p-8 md:p-10 transition-all duration-300">
+          <div className="bg-white rounded-[8px] border border-gray-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.03)] p-6 sm:p-8 md:p-10 transition-all duration-300">
             {/* Highlights Content Container with Expand/Collapse */}
             <div
               ref={contentRef}
@@ -48,7 +57,7 @@ export default function DestinationHighlights({
             >
               <div
                 className="font-['Montserrat'] text-[15px] md:text-[16px] text-[#4c4c4c] leading-7 prose max-w-none [&_h1]:text-[24px] [&_h1]:md:text-[32px] [&_h1]:font-semibold [&_h1]:text-[#4c4c4c] [&_h1]:leading-tight [&_h2]:text-[20px] [&_h2]:md:text-[24px] [&_h2]:font-semibold [&_h2]:text-[#4c4c4c] [&_h2]:leading-snug [&_h3]:text-[16px] [&_h3]:md:text-[18px] [&_h3]:font-semibold [&_h3]:text-[#1a1a1a] [&_h4]:text-[16px] [&_h4]:font-semibold [&_h4]:text-[#1a1a1a] [&_strong]:text-[#1a1a1a] [&_strong]:font-semibold [&_a]:text-[#cb2187] [&_a]:underline [&_a]:font-semibold hover:[&_a]:text-[#a01869] [&_a]:cursor-pointer [&_a]:transition-colors [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-2 [&_li]:leading-7 [&_p]:mb-3"
-                dangerouslySetInnerHTML={{ __html: highlights! }}
+                dangerouslySetInnerHTML={{ __html: safeHighlights }}
               />
 
               {/* Bottom gradient fade when collapsed */}

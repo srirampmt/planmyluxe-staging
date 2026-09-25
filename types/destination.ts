@@ -22,6 +22,7 @@ export type DestinationSummary = {
   card_image?: string;
   card_subtitle?: string;
   active?: boolean;
+  public_path?: string;
 };
 
 export type DestinationFaq = {
@@ -113,19 +114,39 @@ export type DestinationPage = {
     name: string;
     latitude?: number | null;
     longitude?: number | null;
-    country: number;
-    region: number;
-    resort: number;
-    city: number;
+    href?: string;
+    country?: number;
+    region?: number;
+    resort?: number;
+    city?: number;
   }> | null;
   weather_data?: Array<{
     month_name?: string;
     month?: string;
     temperature?: string | number;
     temp?: string | number;
+    metric?: "daily_max";
   }> | "" | null;
   highlights?: string;
   faqs?: DestinationFaq[] | "" | null;
+  hierarchy_destination_id?: number | null;
+  hierarchy_level?: "" | "country" | "region" | "resort";
+  country_slug?: string;
+  region_slug?: string;
+  resort_slug?: string;
+  country_name?: string;
+  region_name?: string;
+  resort_name?: string;
+  public_path?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
+export type DestinationPathResponse = {
+  success: boolean;
+  source?: "cms" | "hierarchy";
+  page?: DestinationPage | null;
+  error?: string;
 };
 
 export type DestinationResponse = {

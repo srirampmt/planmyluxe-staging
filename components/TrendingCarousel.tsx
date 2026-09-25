@@ -166,7 +166,7 @@ export default function DealCollections({
             {layout === "grid" ? (
               <a
                 href={viewAllHref}
-                className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-[10px] border border-pml-primary bg-white px-[16px] py-[5px] text-[16px] font-semibold leading-none text-pml-primary transition-colors hover:bg-pml-primary hover:text-white"
+                className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] border border-pml-primary bg-white px-[16px] py-[5px] text-[16px] font-semibold leading-none text-pml-primary transition-colors hover:bg-pml-primary hover:text-white"
               >
                 <span className="md:hidden">Explore deals</span>
                 <span className="hidden md:inline">Explore more deals</span>
@@ -190,7 +190,7 @@ export default function DealCollections({
                   <button
                     type="button"
                     onClick={() => setVisibleCount((count) => Math.min(count + GRID_STEP, deals.length))}
-                    className="rounded-[10px] border border-pml-primary bg-pml-primary px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-pml-primary/90"
+                    className="rounded-[8px] border border-pml-primary bg-pml-primary px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-pml-primary/90"
                   >
                     View more deals
                   </button>

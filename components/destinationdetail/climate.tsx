@@ -14,6 +14,7 @@ interface WeatherDataPoint {
   month?: string;
   temperature?: string | number;
   temp?: string | number;
+  metric?: "daily_max";
   [key: string]: any;
 }
 
@@ -62,6 +63,9 @@ const cleanTemp = (tempStr: string | number | undefined | null): string => {
 };
 
 export default function Climate({ destinationName, weatherData, embedded = false, linked = false, setApi }: ClimateProps) {
+  const showsDailyHighs =
+    Array.isArray(weatherData) &&
+    weatherData.some((item) => item?.metric === "daily_max");
   // Check if valid weather data actually exists
   const hasValidWeather = useMemo(() => {
     if (!Array.isArray(weatherData) || weatherData.length === 0) {
@@ -152,7 +156,7 @@ export default function Climate({ destinationName, weatherData, embedded = false
     return (
       <div className="mb-8">
         <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-[#7C7C7C]">
-          Average monthly highs
+          {showsDailyHighs ? "Average monthly highs" : "Average monthly temperature"}
         </p>
         {months}
       </div>
@@ -191,7 +195,7 @@ export default function Climate({ destinationName, weatherData, embedded = false
                 {destinationName} Climate
               </h2>
               <p className="font-['Montserrat'] text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] mt-2">
-                Average Monthly Highs (°C)
+                {showsDailyHighs ? "Average Monthly Highs (°C)" : "Average Monthly Temperature (°C)"}
               </p>
               <div className="w-14 h-1 bg-amber-400 rounded-[8px] mt-3 sm:mt-3.5" />
             </div>

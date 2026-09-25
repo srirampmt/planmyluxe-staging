@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MapPin, RotateCcw } from "lucide-react";
 import {
@@ -16,15 +17,17 @@ interface ResortItem {
   name: string;
   latitude?: number | null;
   longitude?: number | null;
-  country: number;
-  region: number;
-  resort: number;
-  city: number;
+  href?: string;
+  country?: number;
+  region?: number;
+  resort?: number;
+  city?: number;
 }
 
 interface ResortsMapProps {
   destinationName: string;
   resortsList?: ResortItem[] | null;
+  hierarchyLevel?: "" | "country" | "region" | "resort";
   apiKey?: string;
 }
 
@@ -170,6 +173,7 @@ const getValidCoords = (resort: ResortItem): [number, number] | null => {
 export default function ResortsMap({
   destinationName,
   resortsList = [],
+  hierarchyLevel = "",
   apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
 }: ResortsMapProps) {
   const router = useRouter();
@@ -181,7 +185,9 @@ export default function ResortsMap({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [scrollEnabled, setScrollEnabled] = useState(false);
+  const [listOverflows, setListOverflows] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
   const [isDesktop, setIsDesktop] = useState(false);
   const [mapInstance, setMapInstance] = useState<any>(null);
   const [hoveredResort, setHoveredResort] = useState<string | null>(null);
@@ -213,14 +219,19 @@ export default function ResortsMap({
   }, []);
 
   const list = useMemo(() => {
-    return Array.isArray(resortsList) ? resortsList : [];
+    const rows = Array.isArray(resortsList) ? resortsList : [];
+    return rows.filter((resort) => Boolean(resort.href));
   }, [resortsList]);
 
-  const defaultLimit = isDesktop ? 16 : 14;
-  const displayedResorts = isExpanded ? list : list.slice(0, defaultLimit);
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    setListOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [list, scrollEnabled, isDesktop]);
 
   // Load Google Maps SDK with Places and Geometry libraries
   useEffect(() => {
+    if (list.length === 0) return;
     if (typeof window === "undefined") return;
 
     if (!apiKey) {
@@ -257,7 +268,7 @@ export default function ResortsMap({
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [apiKey]);
+  }, [apiKey, list.length]);
 
   // Initialize Google Maps instance with Map ID for Data-Driven Styling
   useEffect(() => {
@@ -847,16 +858,22 @@ export default function ResortsMap({
     info.open({ anchor: markerData.marker, map: mapInstance });
   }, [hoveredResort, mapInstance]);
 
+  if (list.length === 0) return null;
+
   return (
     <section className="w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] relative bg-[#F9FAFB] font-['Montserrat']">
       <div className="mx-auto w-full max-w-[1440px] px-[16px] py-6 sm:px-[24px] md:px-[32px] md:py-8 lg:px-[40px]">
         <div className="w-full max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-stretch">
           
           {/* Left Column: Regions and Resorts List */}
-          <div className={`lg:col-span-5 bg-white rounded-2xl border border-gray-200/60 p-5 sm:p-6 lg:p-7 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] flex w-full flex-col self-start transition-all ${isExpanded ? "h-[560px] sm:h-[600px] lg:h-[500px]" : ""}`}>
-            <div className={`flex flex-col ${isExpanded ? "min-h-0 flex-1" : ""}`}>
+          <div className={`lg:col-span-5 flex max-h-[420px] w-full flex-col self-stretch rounded-[8px] border border-gray-200/60 bg-white p-5 shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] sm:p-6 lg:max-h-[480px] lg:p-7 ${list.length > 4 ? "min-h-[280px] sm:min-h-[320px] lg:min-h-[360px]" : "min-h-0 lg:min-h-[240px]"}`}>
+            <div className="flex min-h-0 flex-1 flex-col">
               <h2 className="font-['Montserrat'] text-[18px] md:text-[20px] font-semibold text-[#1a1a1a] leading-snug mb-3 pb-2 border-b border-gray-100 shrink-0">
-                All regions and resorts in {destinationName}
+                {hierarchyLevel === "country"
+                  ? `Explore regions in ${destinationName}`
+                  : hierarchyLevel === "region"
+                    ? `Explore resorts in ${destinationName}`
+                    : `Explore ${destinationName}`}
               </h2>
 
               {/* Destination Header Node: Focus Destination Boundary */}
@@ -875,37 +892,61 @@ export default function ResortsMap({
                   Specific resorts and region list not available.
                 </p>
               ) : (
-                <div className={`grid grid-cols-2 content-start gap-2 ${isExpanded ? "min-h-0 flex-1 overflow-y-auto pr-1" : ""}`}>
-                  {displayedResorts.map((resort, idx) => (
-                    <button
-                      key={`${resort.country}-${resort.region}-${resort.resort}-${resort.city}-${idx}`}
-                      onClick={() => openHotelSearch(resort)}
-                      onMouseEnter={() => handleResortHover(resort)}
-                      onMouseLeave={handleResortHoverEnd}
-                      className={`w-full rounded-full border bg-transparent px-3 py-1.5 text-left font-montserrat text-[13px] leading-none transition-colors outline-none cursor-pointer ${
-                        hoveredResort === resort.name || selectedResort?.name === resort.name
-                          ? "border-transparent font-semibold text-[#cb2187]"
-                          : "border-transparent font-medium text-[#7C7C7C] hover:text-[#cb2187]"
-                      }`}
-                    >
-                      <span className="block truncate">{resort.name}</span>
-                    </button>
-                  ))}
-                  {list.length > defaultLimit && (
-                    <button
-                      onClick={() => setIsExpanded(!isExpanded)}
-                      className="col-span-2 rounded-full px-3 py-1.5 text-left text-[13px] font-semibold leading-none text-[#cb2187] hover:underline cursor-pointer outline-none"
-                    >
-                      {isExpanded ? "View Less" : "View More"}
-                    </button>
-                  )}
+                <div
+                  ref={listRef}
+                  className={`grid min-h-0 flex-1 grid-cols-2 content-start gap-2 ${scrollEnabled ? "overflow-y-auto pr-1" : "overflow-hidden"}`}
+                >
+                  {list.map((resort, idx) => {
+                    const className = `w-full rounded-full border bg-transparent px-3 py-1.5 text-left font-montserrat text-[13px] leading-none transition-colors outline-none cursor-pointer ${
+                      hoveredResort === resort.name || selectedResort?.name === resort.name
+                        ? "border-transparent font-semibold text-[#cb2187]"
+                        : "border-transparent font-medium text-[#7C7C7C] hover:text-[#cb2187]"
+                    }`;
+                    const label = <span className="block truncate">{resort.name}</span>;
+                    if (resort.href) {
+                      return (
+                        <Link
+                          key={resort.href}
+                          href={resort.href}
+                          onMouseEnter={() => handleResortHover(resort)}
+                          onMouseLeave={handleResortHoverEnd}
+                          className={className}
+                        >
+                          {label}
+                        </Link>
+                      );
+                    }
+                    return (
+                      <button
+                        key={`${resort.name}-${idx}`}
+                        onClick={() => openHotelSearch(resort)}
+                        onMouseEnter={() => handleResortHover(resort)}
+                        onMouseLeave={handleResortHoverEnd}
+                        className={className}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
+              )}
+              {listOverflows && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setScrollEnabled((open) => !open);
+                    if (scrollEnabled) listRef.current?.scrollTo({ top: 0 });
+                  }}
+                  className="mt-2 shrink-0 cursor-pointer px-3 py-1.5 text-left text-[13px] font-semibold leading-none text-[#cb2187] outline-none hover:underline"
+                >
+                  {scrollEnabled ? "Show less" : "Read more"}
+                </button>
               )}
             </div>
           </div>
 
           {/* Right Column: Interactive Google Map */}
-          <div className="relative hidden h-[320px] w-full flex-col overflow-hidden rounded-2xl border border-gray-200/60 bg-[#d5dcde] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] sm:h-[380px] lg:col-span-7 lg:flex lg:h-full lg:self-stretch">
+          <div className="relative flex h-[280px] w-full flex-col overflow-hidden rounded-[8px] border border-gray-200/60 bg-[#d5dcde] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.06)] sm:h-[320px] lg:col-span-7 lg:h-full lg:min-h-[360px] lg:max-h-[480px] lg:self-stretch">
             <div
               ref={mapContainerRef}
               className="w-full h-full flex-1 z-10"

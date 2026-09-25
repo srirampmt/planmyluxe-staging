@@ -36,7 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={montserrat.variable}>
+    <html lang="en-GB" suppressHydrationWarning className={montserrat.variable}>
+      <head>
+        <link rel="alternate" hrefLang="en-GB" href="https://planmyluxe.co.uk" />
+      </head>
       <body className={`${montserrat.className} bg-white `}>
         <ConsentModeDefault />
         <ConsentModeBridge />

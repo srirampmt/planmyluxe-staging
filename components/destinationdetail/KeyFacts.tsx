@@ -83,28 +83,40 @@ export default function KeyFacts({
 
   const allCards = [
     {
-      label: "FLIGHT TIME",
+      label: "Flight time",
       value: flight.value,
       detail: flight.detail,
-      icon: <Plane size={19} className="stroke-[1.9] rotate-45 transform" />,
+      icon: <Plane size={18} className="stroke-[1.9] rotate-45" />,
+      watermark: <Plane size={88} className="stroke-[1.2] rotate-45" />,
+      tone: "bg-[#F3F8FF] text-[#1D4ED8]",
+      wash: "text-[#1D4ED8]",
     },
     {
-      label: "TIME DIFFERENCE",
+      label: "Time difference",
       value: timeDiffFact.value,
       detail: timeDiffFact.detail,
-      icon: <Clock size={19} className="stroke-[1.9]" />,
+      icon: <Clock size={18} className="stroke-[1.9]" />,
+      watermark: <Clock size={88} className="stroke-[1.2]" />,
+      tone: "bg-[#FFF6EB] text-[#C2410C]",
+      wash: "text-[#C2410C]",
     },
     {
-      label: "CURRENCY",
+      label: "Currency",
       value: currencyFact.value,
       detail: currencyFact.detail,
-      icon: <Wallet size={19} className="stroke-[1.9]" />,
+      icon: <Wallet size={18} className="stroke-[1.9]" />,
+      watermark: <Wallet size={88} className="stroke-[1.2]" />,
+      tone: "bg-[#F1FBF4] text-[#15803D]",
+      wash: "text-[#15803D]",
     },
     {
-      label: "LANGUAGE",
+      label: "Language",
       value: languageFact.value,
       detail: languageFact.detail,
-      icon: <Languages size={19} className="stroke-[1.9]" />,
+      icon: <Languages size={18} className="stroke-[1.9]" />,
+      watermark: <Languages size={88} className="stroke-[1.2]" />,
+      tone: "bg-[#FDF2F8] text-[#BE185D]",
+      wash: "text-[#BE185D]",
     },
   ];
 
@@ -129,42 +141,33 @@ export default function KeyFacts({
       : "grid-cols-2 lg:grid-cols-4";
 
   return (
-    <section className={`w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat'] py-6 md:py-8 ${className}`}>
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
-        <div className="w-full max-w-[1280px] mx-auto">
-          <div className={`grid ${gridClass} gap-2.5 sm:gap-3 md:gap-4`}>
+    <section className={`w-full bg-[#F9FAFB] font-['Montserrat'] py-6 md:py-8 ${className}`}>
+      <div className="mx-auto w-full max-w-[1440px] px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
+        <div className={`mx-auto grid w-full max-w-[1280px] gap-3 sm:gap-4 ${gridClass}`}>
             {activeCards.map((card, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-[8px] border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.03)] py-3.5 px-3 sm:py-4 sm:px-3.5 flex flex-col items-center justify-center text-center hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group cursor-default"
+                className="relative min-h-[148px] overflow-hidden rounded-[8px] border border-black/5 bg-white px-5 py-5 shadow-[0_8px_24px_-16px_rgba(0,0,0,0.25)]"
               >
-                {/* Icon Inside Pink Rounded Badge */}
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[8px] bg-[#fdf0f7] text-[#cb2187] flex items-center justify-center mb-2.5 sm:mb-3 transition-transform duration-300 group-hover:scale-110 shrink-0 shadow-2xs">
-                  {card.icon}
+                <div className={`pointer-events-none absolute -right-3 -bottom-4 opacity-[0.12] ${card.wash}`}>
+                  {card.watermark}
                 </div>
-
-                {/* Constant Category Label */}
-                <span className="font-montserrat text-[9.5px] sm:text-[10.5px] font-bold text-[#8E98A8] uppercase tracking-[0.08em] select-none">
-                  {card.label}
-                </span>
-
-                {/* Subtle Pink Accent Divider Line */}
-                <div className="w-4 sm:w-5 h-[1.5px] bg-[#cb2187] rounded-full my-1.5 sm:my-2" />
-
-                {/* Dynamic Primary Metric Value */}
-                <h3 className="font-['Montserrat'] text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] leading-snug mb-0.5">
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[8px] ${card.tone}`}>
+                    {card.icon}
+                  </div>
+                  <p className={`rounded-[8px] px-2.5 py-1 text-right text-[11px] font-semibold uppercase leading-tight tracking-[0.08em] ${card.tone}`}>
+                    {card.label}
+                  </p>
+                </div>
+                <h3 className="relative mt-5 text-[22px] font-bold leading-none text-[#111827] md:text-[26px]">
                   {card.value}
                 </h3>
-
-                {/* Dynamic Detail / Context Description (if available) */}
                 {card.detail ? (
-                  <p className="font-montserrat text-[10.5px] sm:text-[11.5px] font-medium text-[#6B7280] leading-snug">
-                    {card.detail}
-                  </p>
+                  <p className="relative mt-2 text-[13px] leading-5 text-[#4B5563]">{card.detail}</p>
                 ) : null}
               </div>
             ))}
-          </div>
         </div>
       </div>
     </section>

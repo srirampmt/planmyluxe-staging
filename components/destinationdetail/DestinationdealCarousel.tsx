@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { CircleChevronRight } from "lucide-react";
 import { CustomPriceButton } from "../CustomPriceButton";
 
 
@@ -18,66 +11,66 @@ export default function DestinationDealCarousel({
   trending_deals_subtitle_1,
   trending_deals_1,
   sectionClassName = "",
+  viewAllHref,
+  viewAllLabel = "View all deals",
 }: {
   trending_deals_title_1?: string;
   trending_deals_subtitle_1?: string;
   trending_deals_1: any[];
   sectionClassName?: string;
+  viewAllHref?: string;
+  viewAllLabel?: string;
 }) {
   const router = useRouter();
-  const cardPointerDownRef = React.useRef<{
-    x: number;
-    y: number;
-    pointerId: number;
-  } | null>(null);
-
-  const [activeFilter] = useState("Popular");
+  const [visibleCount, setVisibleCount] = useState(4);
 
   const title = trending_deals_title_1 || "Trending Deals";
   const subtitle = trending_deals_subtitle_1 || "";
   const deals = trending_deals_1 || [];
+  const visibleDeals = deals.slice(0, visibleCount);
+  const hasMore = visibleCount < deals.length;
+
+  if (deals.length === 0) return null;
 
   // ...existing code...
   return (
-    <section className={`w-screen relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat'] ${sectionClassName}`}>
-      <div className="w-full max-w-[1440px] mx-auto px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
-        <div className="w-full max-w-[1280px] mx-auto">
-            <div className="bg-gradient-to-br from-[#1a9b9e] via-[#2ab5b8] to-[#5bc9cc] w-full py-8 md:py-10 relative z-0">
-            <div
-              className="absolute top-0 bottom-0 bg-cover bg-center bg-no-repeat pointer-events-none"
-              style={{
-                backgroundImage:
-                  "url('https://planmylux.s3.eu-west-2.amazonaws.com/uploads/media-library/homepage/destination-carousel-bg.png')",
-                width: "100vw",
-                left: "50%",
-                transform: "translateX(-50%)",
-              }}
-            >
-              <div className="absolute inset-0 bg-black opacity-10"></div>
-            </div>
+    <section className={`w-full bg-[#F9FAFB] font-['Montserrat'] ${sectionClassName}`}>
+      <div className="mx-auto w-full max-w-[1440px] px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
+        <div className="mx-auto w-full max-w-[1280px]">
+            <div className="relative">
+            <div className="relative">
+              <div className="flex flex-row items-center justify-between gap-3">
+                <div className="max-w-[720px] text-left">
+                  <h2 className="mb-2 font-['Montserrat'] text-[22px] font-semibold leading-snug tracking-[-0.01em] text-[#1a1a1a] md:text-[32px]">
+                    {title}
+                  </h2>
 
-            <div className="max-w-7xl mx-auto relative z-10">
-              <div className="text-left md:mb-10">
-                <h2 className="font-['Montserrat'] text-[24px] md:text-[48px] font-semibold text-white leading-[30px] md:leading-[1.15] tracking-[-0.005em] mb-3">
-                  {title}
-                </h2>
-
-                <p className="text-white w-full text-[15px] md:text-[16px] leading-7">
-                  {subtitle}
-                </p>
+                  {subtitle ? (
+                    <p className="text-[15px] leading-7 text-[#5c6370] md:text-[16px]">
+                      {subtitle}
+                    </p>
+                  ) : null}
+                </div>
+                {viewAllHref ? (
+                  <Link
+                    href={viewAllHref}
+                    className="inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-[8px] border border-pml-primary bg-white px-[16px] py-[5px] text-[14px] font-semibold leading-none text-pml-primary transition-colors hover:bg-pml-primary hover:text-white md:text-[16px]"
+                  >
+                    <span className="md:hidden">Explore deals</span>
+                    <span className="hidden md:inline">{viewAllLabel}</span>
+                  </Link>
+                ) : null}
               </div>
 
-              <div className="relative mt-5 md:mt-10">
-                <Carousel opts={{ align: "start" }} className="w-full relative">
-                  <CarouselContent>
-                    {deals.map((deal, idx) => {
+              <div className="relative mt-6 md:mt-8">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                    {visibleDeals.map((deal, idx) => {
                       const href = deal?.slug ? `/hotels/${deal.slug}` : "#";
 
                       return (
-                      <CarouselItem key={idx} className="basis-auto">
-                        <div className="cursor-pointer flex-[0_0_auto] w-[270px] sm:w-[300px] md:w-[360px] h-[436px] font-['Montserrat']">
+                        <div key={deal?.slug || idx} className="h-[360px] cursor-pointer font-['Montserrat'] sm:h-[420px] lg:h-[436px]">
                           <div
-                            className="bg-white rounded-[8px] overflow-hidden flex flex-col h-full border border-[#e0e0e0] group"
+                            className="group flex h-full flex-col overflow-hidden rounded-[8px] border border-gray-200/70 bg-white shadow-[0_8px_24px_-12px_rgba(0,0,0,0.18)]"
                             role={deal?.slug ? "link" : undefined}
                             tabIndex={deal?.slug ? 0 : undefined}
                             onKeyDown={(e) => {
@@ -87,34 +80,15 @@ export default function DestinationDealCarousel({
                                 router.push(href);
                               }
                             }}
-                            onPointerDownCapture={(e) => {
+                            onClick={(e) => {
                               if (!deal?.slug) return;
                               const target = e.target as Element | null;
-                              if (target?.closest("a")) return;
-                              cardPointerDownRef.current = {
-                                x: e.clientX,
-                                y: e.clientY,
-                                pointerId: e.pointerId,
-                              };
-                            }}
-                            onPointerUpCapture={(e) => {
-                              if (!deal?.slug) return;
-                              const target = e.target as Element | null;
-                              if (target?.closest("a")) return;
-
-                              const down = cardPointerDownRef.current;
-                              cardPointerDownRef.current = null;
-                              if (!down || down.pointerId !== e.pointerId) return;
-
-                              const dx = Math.abs(e.clientX - down.x);
-                              const dy = Math.abs(e.clientY - down.y);
-                              if (dx > 8 || dy > 8) return;
-
+                              if (target?.closest("a, button")) return;
                               router.push(href);
                             }}
                           >
                             {/* IMAGE */}
-                            <div className="relative w-full overflow-hidden bg-[#f5f5f5] h-[225px]">
+                            <div className="relative h-[140px] w-full overflow-hidden bg-[#f3f4f6] sm:h-[190px] lg:h-[210px]">
                               <img
                                 src={
                                   deal?.card_image ||
@@ -144,7 +118,7 @@ export default function DestinationDealCarousel({
                             {/* CONTENT */}
                             <div className="pt-[6px] pr-[8px] pb-[14px] pl-[8px] flex-grow flex flex-col justify-start items-start text-left bg-white">
                               {/* LOCATION */}
-                              <div className="text-[14px] font-semibold text-[#4c4c4c] leading-[1.4] p-[4px] w-full line-clamp-1 min-h-[28px]">
+                              <div className="min-h-[24px] w-full line-clamp-1 p-[4px] text-[11px] font-semibold leading-[1.4] text-[#4c4c4c] sm:min-h-[28px] sm:text-[14px]">
                                 {deal?.location || ""}
                               </div>
 
@@ -178,13 +152,13 @@ export default function DestinationDealCarousel({
                               </div>
 
                               {/* TITLE */}
-                              <h5 className="text-[14px] md:text-[16px] font-semibold text-pml-primary leading-[24px] mb-[10px] p-[4px] w-full min-h-[32px] truncate">
+                              <h3 className="mb-[8px] min-h-[32px] w-full truncate p-[4px] text-[13px] font-semibold leading-[20px] text-pml-primary sm:mb-[10px] sm:text-[14px] md:text-[16px] md:leading-[24px]">
                                 {deal?.name || deal?.title || ""}
-                              </h5>
+                              </h3>
 
                               {/* OFFER BOX */}
                               <div
-                                className={`rounded-[8px] text-[12px] text-[#4c4c4c] font-medium mb-[9px] w-full min-h-[48px] flex items-center justify-center text-center ${
+                                className={`mb-[9px] hidden min-h-[48px] w-full items-center justify-center rounded-[8px] text-center text-[12px] font-medium text-[#4c4c4c] sm:flex ${
                                   Boolean((deal?.intro_text || deal?.extras || "").trim())
                                     ? "bg-[#EDEDED] border border-[#DFDEDE] px-[6px] md:px-[12px] py-[6px]"
                                     : ""
@@ -198,23 +172,31 @@ export default function DestinationDealCarousel({
                               </div>
 
                               {/* PRICE CTA */}
-                              
-                              <CustomPriceButton
-                                starting_price={deal.starting_price}
-                                api_url={deal.api_url}
-                                href={href}
-                                variant="primary"
-                              />
+                              <div className="mt-auto w-full">
+                                <CustomPriceButton
+                                  starting_price={deal.starting_price}
+                                  api_url={deal.api_url}
+                                  href={href}
+                                  variant="primary"
+                                />
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </CarouselItem>
                       );
                     })}
-                  </CarouselContent>
-                  <CarouselNext className="hidden md:flex" />
-                  <CarouselPrevious className="hidden md:flex" />
-                </Carousel>
+                </div>
+                {hasMore ? (
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount((count) => Math.min(count + 4, deals.length))}
+                      className="rounded-[8px] border border-pml-primary bg-pml-primary px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-pml-primary/90"
+                    >
+                      View more deals
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

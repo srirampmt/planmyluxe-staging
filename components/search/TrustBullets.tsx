@@ -145,7 +145,7 @@ export function Features({ sectionClassName = "py-[16px]" }: { sectionClassName?
       ) : null}
       <div className={`mx-auto w-full max-w-[1440px] px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px] ${sectionClassName}`}>
         <div className="w-full max-w-[1280px] mx-auto">
-          <div className="bg-white rounded-2xl ">
+          <div className="bg-white rounded-[8px] ">
             {/* Header row */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
               <h2 className="text-2xl font-semibold tracking-tight text-[#4b5563] font-['Montserrat']">
@@ -170,8 +170,8 @@ export function Features({ sectionClassName = "py-[16px]" }: { sectionClassName?
             {/* Features grid */}
             <div className="flex gap-6 overflow-x-auto scrollbar-hide lg:grid lg:grid-cols-5 lg:overflow-visible">
               {features.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center text-center group shrink-0 w-[210px] lg:w-auto border border-gray-200 lg:border-0 rounded-xl p-2 lg:p-0 hover:border-[#cb2187] lg:hover:border-0 transition-colors duration-300">
-                  <div className="w-12 h-12 rounded-xl bg-[#fdf2f8] text-[#cb2187] group-hover:bg-[#cb2187] group-hover:text-white transition-colors duration-300 flex items-center justify-center mb-3 shrink-0">
+                <div key={idx} className="flex flex-col items-center text-center group shrink-0 w-[210px] lg:w-auto border border-gray-200 lg:border-0 rounded-[8px] p-2 lg:p-0 hover:border-[#cb2187] lg:hover:border-0 transition-colors duration-300">
+                  <div className="w-12 h-12 rounded-[8px] bg-[#fdf2f8] text-[#cb2187] group-hover:bg-[#cb2187] group-hover:text-white transition-colors duration-300 flex items-center justify-center mb-3 shrink-0">
                     {item.icon}
                   </div>
                   <h3 className="font-semibold text-sm text-[#4b5563] mb-1">{item.title}</h3>

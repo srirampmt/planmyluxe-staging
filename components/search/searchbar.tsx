@@ -7,16 +7,12 @@ import { Search, ChevronDown, MapPin, Calendar, Moon, ChevronLeft, ChevronRight,
 import { createPortal } from 'react-dom';
 import type { FilterOption } from '@/types/homepage';
 import { resolveAirportIdToIata, getAirportName, IATA_TO_ID } from '@/lib/mappings/airports';
-import { useDebounce } from '@/hooks/useDebounce';
 import {
-  getDestinationLevel,
   getDestinationLabel,
-  getDestinationBreadcrumb,
   makeDestinationSelection,
   encodeDestinationParam,
   decodeDestinationParam,
   type DestinationRow,
-  type DestinationLevel,
 } from '@/lib/mappings/destinations';
 
 const MONTH_NAMES = [
@@ -57,22 +53,6 @@ const regionAirports: Record<string, string[]> = {
   "Any North East / Yorkshire": ["NCL", "MME"],
   "Any North West": ["BLK", "LPL", "MAN"],
   "Any South West/Wales": ["BOH", "BRS", "CWL", "EXT", "NQY", "PLY", "SEN", "SOU", "MSE"],
-};
-
-const LEVEL_LABEL: Record<DestinationLevel, string> = {
-  top_level: 'Continent',
-  country: 'Country',
-  region: 'Region',
-  resort: 'Resort',
-  city: 'City',
-};
-
-const LEVEL_BADGE_CLASS: Record<DestinationLevel, string> = {
-  top_level: 'bg-emerald-50 text-emerald-600 border border-emerald-100',
-  country: 'bg-amber-50 text-amber-600 border border-amber-100',
-  region: 'bg-pink-50 text-pink-600 border border-pink-100',
-  resort: 'bg-purple-50 text-purple-600 border border-purple-100',
-  city: 'bg-sky-50 text-sky-600 border border-sky-100',
 };
 
 type DestinationGroupSection = {
@@ -567,9 +547,7 @@ export default function SearchBar({
   isMobileEdit?: boolean;
   onCloseMobileEdit?: () => void;
   // Real "search request in flight" signal from the parent's useSearch()
-  // hook, where one exists (results page). Distinct from the local
-  // `isSearching` state below, which tracks destination-autocomplete
-  // staleness, not the hotel search submission.
+  // hook, where one exists (results page).
   isSearchLoading?: boolean;
 }) {
   const router = useRouter();
@@ -987,35 +965,16 @@ export default function SearchBar({
     [destinationsData]
   );
 
-  const debouncedDestinationSearch = useDebounce(destinationSearch, 300);
-  const [searchResults, setSearchResults] = useState<DestinationRow[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-
-  useEffect(() => {
-    const query = debouncedDestinationSearch.trim();
-    if (!destSearchTouched || !query) {
-      setSearchResults([]);
-      setIsSearching(false);
-      return;
-    }
-    let cancelled = false;
-    setIsSearching(true);
-    fetch(`/api/destinations?q=${encodeURIComponent(query)}`)
-      .then(res => res.json())
-      .then(data => {
-        if (cancelled) return;
-        setSearchResults(Array.isArray(data) ? data : []);
-      })
-      .catch(err => {
-        if (cancelled) return;
-        console.error("Destination search failed:", err);
-        setSearchResults([]);
-      })
-      .finally(() => {
-        if (!cancelled) setIsSearching(false);
-      });
-    return () => { cancelled = true; };
-  }, [debouncedDestinationSearch, destSearchTouched]);
+  const destinationQuery = destSearchTouched ? destinationSearch.trim().toLowerCase() : '';
+  const filteredDestinationSections = useMemo(() => {
+    if (!destinationQuery) return destinationSections;
+    return destinationSections
+      .map(section => ({
+        ...section,
+        rows: section.rows.filter(row => getDestinationLabel(row).toLowerCase().includes(destinationQuery)),
+      }))
+      .filter(section => section.rows.length > 0);
+  }, [destinationSections, destinationQuery]);
   const availableAirports = useMemo(() => {
     if (!selectedDestinationObj) return [];
     const rawIds = (selectedDestinationObj.from_airports || '').split(',').map(c => c.trim()).filter(Boolean);
@@ -1188,11 +1147,11 @@ export default function SearchBar({
     if (submitLockRef.current) return;
     let effectiveDest = dest;
     let effectiveDestinationObj = selectedDestinationObj;
-    if (destSearchTouched && destinationSearch.trim()) {
-      const resultsAreStale = isSearching || destinationSearch !== debouncedDestinationSearch;
-      if (!resultsAreStale && searchResults.length === 1) {
-        effectiveDestinationObj = searchResults[0];
-        effectiveDest = encodeDestinationParam(makeDestinationSelection(searchResults[0]));
+    if (destinationQuery) {
+      const matches = filteredDestinationSections.flatMap(section => section.rows);
+      if (matches.length === 1) {
+        effectiveDestinationObj = matches[0];
+        effectiveDest = encodeDestinationParam(makeDestinationSelection(matches[0]));
       } else {
         effectiveDestinationObj = null;
         effectiveDest = '';
@@ -1304,65 +1263,16 @@ export default function SearchBar({
         </div>
       );
     }
-    if (destSearchTouched && destinationSearch.trim()) {
-      if (isSearching) {
-        return (
-          <div className="space-y-4 px-5 py-2 animate-pulse">
-            <DestinationsSkeletonGrid />
-          </div>
-        );
-      }
-      if (searchResults.length > 0) {
-        return (
-          <div className="space-y-1 px-3">
-            {searchResults.map(d => {
-              const isSelected = selectedDestinationObj?.destination_id === d.destination_id;
-              const level = getDestinationLevel(d);
-              const label = getDestinationLabel(d);
-              const breadcrumb = getDestinationBreadcrumb(d);
-              return (
-                <button
-                  key={d.destination_id}
-                  type="button"
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs sm:text-[13px] transition-all flex items-center gap-3 cursor-pointer group outline-none ${
-                    isSelected
-                      ? 'bg-pink-50/90 font-semibold text-[#CB2187] border border-pink-200/60'
-                      : 'hover:bg-gray-50 text-gray-700 border border-transparent'
-                  }`}
-                  onClick={() => selectDestination(d)}
-                >
-                  <div className="flex flex-col min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-semibold block truncate">
-                        {label}
-                      </span>
-                      {level && (
-                        <span className={`text-[8px] font-extrabold px-1 py-0.5 rounded-full uppercase tracking-wider ${LEVEL_BADGE_CLASS[level]}`}>
-                          {LEVEL_LABEL[level]}
-                        </span>
-                      )}
-                    </div>
-                    {breadcrumb && (
-                      <span className="text-[10px] text-gray-400 block truncate mt-0.5">
-                        {breadcrumb}
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        );
-      }
+    if (destinationQuery && filteredDestinationSections.length === 0) {
       return <p className="text-sm text-gray-500 px-3 py-3">No destinations found matching &quot;{destinationSearch}&quot;.</p>;
     }
 
     return (
       <div className="space-y-2 px-3">
-        {destinationSections.length > 0 && (
+        {filteredDestinationSections.length > 0 && (
           <div className="mb-1 pb-1">
             <div className="divide-y divide-gray-200">
-              {destinationSections.map(section => (
+              {filteredDestinationSections.map(section => (
                 <div key={section.heading} className="py-3 first:pt-0">
                   <p className="text-sm font-bold text-gray-800 mb-0.5">
                     {section.heading}

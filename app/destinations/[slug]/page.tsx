@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
- 
 import { cache } from "react";
 import SeoHeadScripts from "@/components/seo/SeoHeadScripts";
 import JsonLd from "@/components/seo/JsonLd";
@@ -14,7 +13,7 @@ import Weather from "@/components/destinationdetail/Weather";
 import FAQs from "@/components/faqs";
 import DestinationHighlights from "@/components/destinationdetail/DestinationHighlights";
 import BookingConfidence from "@/components/destinationdetail/BookingConfidence";
- 
+import TrustBullets from "@/components/search/TrustBullets";
 import { fetchBackend } from "@/lib/backendFetch";
 import type {
   DestinationDealHotel,
@@ -23,14 +22,14 @@ import type {
 } from "@/types/destination";
 import {
   encodeDestinationParam,
+  findDestinationForName,
   getDestinationBreadcrumb,
   getDestinationLabel,
-  getDestinationLevel,
   isSelectableDestinationRow,
   makeDestinationSelection,
-  type DestinationLevel,
   type DestinationRow,
 } from "@/lib/mappings/destinations";
+import { getDestinationRows } from "@/lib/searchServerData";
 import { destinationBreadcrumbs } from "@/lib/destinations/path";
 import { buildMetadataFromSeo, getSeoMetadata } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
@@ -73,36 +72,15 @@ const slugToName = (slug: string): string => {
     .join(' ');
 };
 
-const LEVEL_RANK: DestinationLevel[] = ["city", "resort", "region", "country", "top_level"];
-
 async function resolveDestinationHotelsHref(name: string): Promise<string> {
   const params = new URLSearchParams();
   params.set("q", name);
-  try {
-    const res = await fetchBackend("/client/api/destinations/", { cache: "no-store" });
-    if (!res.ok) return `/hotels?${params.toString()}`;
-    const data = await res.json();
-    const all: DestinationRow[] = Array.isArray(data)
-      ? data
-      : Array.isArray(data?.destinations)
-        ? data.destinations
-        : [];
-    const query = name.trim().toLowerCase();
-    const named = all
-      .filter(isSelectableDestinationRow)
-      .filter((row) => getDestinationLabel(row).trim().toLowerCase() === query);
-    named.sort((a, b) => {
-      const rank = (row: DestinationRow) => {
-        const level = getDestinationLevel(row);
-        const index = level ? LEVEL_RANK.indexOf(level) : LEVEL_RANK.length;
-        return index < 0 ? LEVEL_RANK.length : index;
-      };
-      return rank(a) - rank(b);
-    });
-    const match = named[0];
-    if (match) params.set("did", encodeDestinationParam(makeDestinationSelection(match)));
-  } catch {
-    // Search still opens with the destination name.
+  // No match leaves a bare ?q= link, which /hotels resolves itself.
+  const match = findDestinationForName(await getDestinationRows(), name);
+  if (match) {
+    params.set("did", encodeDestinationParam(makeDestinationSelection(match)));
+    params.set("n", "7");
+    params.set("search", "true");
   }
   return `/hotels?${params.toString()}`;
 }
@@ -360,6 +338,7 @@ export async function DestinationCmsPage({
             subtitle={targetName}
             resorts={similarDestinations}
           />
+          <TrustBullets />
         </main>
       </div>
     </>

@@ -1,6 +1,18 @@
 import "server-only";
 import { fetchBackend } from "@/lib/backendFetch";
 import { getClientIp } from "@/lib/antiSpam";
+import type { DestinationRow } from "@/lib/mappings/destinations";
+
+export async function getDestinationRows(): Promise<DestinationRow[]> {
+  try {
+    const res = await fetchBackend("/client/api/destinations/", { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : Array.isArray(data?.destinations) ? data.destinations : [];
+  } catch {
+    return [];
+  }
+}
 
 // Only the fields the search results UI reads (HotelCard, HotelResultsList,
 // isHotelOnOffer). Everything else Django puts on a card — supplier ids,

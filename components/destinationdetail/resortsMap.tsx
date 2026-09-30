@@ -205,6 +205,7 @@ export default function ResortsMap({
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevSelectedNameRef = useRef<string | null>(null);
   const bounceTimeoutRef = useRef<any>(null);
+  const destinationRowsRef = useRef<Promise<DestinationRow[]> | null>(null);
   const fitDestinationViewRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -586,14 +587,23 @@ export default function ResortsMap({
       if (did) params.set("did", did);
       router.push(`/hotels?${params.toString()}`);
     };
-    fetch(`/api/destinations?q=${encodeURIComponent(resort.name)}`)
-      .then((res) => res.json())
-      .then((data: DestinationRow[]) => {
-        const rows = Array.isArray(data) ? data : [];
-        const match = pickDestination(rows, resort.name, destinationName);
-        go(match ? encodeDestinationParam(makeDestinationSelection(match)) : "");
-      })
-      .catch(() => go(""));
+    if (!destinationRowsRef.current) {
+      destinationRowsRef.current = fetch("/api/destinations")
+        .then((res) => res.json())
+        .then((data) => (Array.isArray(data) ? (data as DestinationRow[]) : []))
+        .catch(() => {
+          destinationRowsRef.current = null;
+          return [];
+        });
+    }
+    destinationRowsRef.current.then((all) => {
+      const needle = resort.name.trim().toLowerCase();
+      const rows = all.filter(
+        (row) => row.is_active && getDestinationLabel(row).toLowerCase().includes(needle)
+      );
+      const match = rows.length ? pickDestination(rows, resort.name, destinationName) : null;
+      go(match ? encodeDestinationParam(makeDestinationSelection(match)) : "");
+    });
   }, [destinationName, router]);
 
   const openHotelSearchRef = useRef(openHotelSearch);

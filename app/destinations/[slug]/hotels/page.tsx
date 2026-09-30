@@ -1,8 +1,5 @@
-import {
-  DestinationHotelsPage,
-  generateDestinationHotelsMetadata,
-} from "@/components/destination-hotels/DestinationHotelsLanding";
+import { notFound } from "next/navigation";
 
-export const generateMetadata = generateDestinationHotelsMetadata;
-
-export default DestinationHotelsPage;
+export default function DestinationHotelsDisabled() {
+  notFound();
+}

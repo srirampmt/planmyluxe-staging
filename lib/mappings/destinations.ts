@@ -32,6 +32,7 @@ export type DestinationRow = {
   country_name: string;
   region_name: string;
   resort_name: string;
+  city_name?: string;
   from_airports: string;
   // Comma-separated NEGATIVE ids (e.g. "-1,-9,-12"), each naming a
   // regional "Any X" departure group (see lib/mappings/airports.ts's
@@ -88,6 +89,56 @@ export function makeDestinationSelection(row: DestinationRow): DestinationSelect
     destination_id: row.destination_id,
     [level]: true,
   } as DestinationSelection;
+}
+
+function normalizePlaceName(value: string | undefined): string {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+// Broadest first: when several options match a place name equally well,
+// the widest one shows the most deals.
+const BROAD_TO_NARROW: DestinationLevel[] = ['top_level', 'country', 'region', 'resort', 'city'];
+
+const OWN_LEVEL_NAME: Record<DestinationLevel, keyof DestinationRow> = {
+  top_level: 'top_level_name',
+  country: 'country_name',
+  region: 'region_name',
+  resort: 'resort_name',
+  city: 'city_name',
+};
+
+// Picks the destination option a free-text place name (e.g. "Croatia",
+// "Crete", "Bali") refers to. Prefers an option that IS that place (its
+// own-level name or label matches), then one that sits under it (the name
+// matches an ancestor field). Ties go to the broader level, then API order.
+export function findDestinationForName(rows: DestinationRow[], name: string): DestinationRow | null {
+  const query = normalizePlaceName(name);
+  if (!query) return null;
+
+  const candidates = rows.filter(isSelectableDestinationRow);
+  const levelIndex = (row: DestinationRow) => BROAD_TO_NARROW.indexOf(getDestinationLevel(row) ?? 'city');
+  const pickBroadest = (matches: DestinationRow[]) =>
+    matches.length ? matches.slice().sort((a, b) => levelIndex(a) - levelIndex(b))[0] : null;
+
+  const isThePlace = (row: DestinationRow) => {
+    const level = getDestinationLevel(row) ?? 'city';
+    const label = normalizePlaceName(getDestinationLabel(row));
+    return (
+      normalizePlaceName(row[OWN_LEVEL_NAME[level]] as string | undefined) === query ||
+      label === query ||
+      label.replace(/^all\s+/, '') === query
+    );
+  };
+  const isUnderThePlace = (row: DestinationRow) =>
+    [row.country_name, row.region_name, row.resort_name, row.city_name].some(
+      (part) => normalizePlaceName(part) === query
+    );
+
+  return pickBroadest(candidates.filter(isThePlace)) ?? pickBroadest(candidates.filter(isUnderThePlace));
 }
 
 export function isDestinationSelection(v: unknown): v is DestinationSelection {

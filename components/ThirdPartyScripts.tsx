@@ -11,22 +11,30 @@ const MULTI_CENTRE_PATH_PREFIX = '/multi-centre/';
 export default function ThirdPartyScripts() {
   const pathname = usePathname();
 
+  const isShortLinkPage = pathname === '/short';
+
   // Check if it's a deal page (hotel or multi-centre) that needs delayed GTM loading.
   const isDealPage = useMemo(() => {
     if (!pathname) return null;
+    if (isShortLinkPage) return false;
     return (
       pathname === '/hotels' || 
       pathname.startsWith(HOTEL_PATH_PREFIX) ||
       pathname === '/multi-centre' ||
       pathname.startsWith(MULTI_CENTRE_PATH_PREFIX)
     );
-  }, [pathname]);
+  }, [pathname, isShortLinkPage]);
 
   // Default to disabled until we know the route.
   // This prevents mounting scripts immediately on deal pages during the first render.
   const [gtmEnabled, setGtmEnabled] = useState(false);
 
   useEffect(() => {
+    if (isShortLinkPage) {
+      setGtmEnabled(false);
+      return;
+    }
+
     if (isDealPage === null) return;
 
     // Non-deal pages: enable GTM immediately.
@@ -52,7 +60,7 @@ export default function ThirdPartyScripts() {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [isDealPage]);
+  }, [isDealPage, isShortLinkPage]);
 
   return (
     <>

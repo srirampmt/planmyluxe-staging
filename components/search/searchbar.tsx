@@ -77,35 +77,44 @@ const LEVEL_BADGE_CLASS: Record<DestinationLevel, string> = {
   city: 'bg-sky-50 text-sky-600 border border-sky-100',
 };
 
-const FAVOURITE_SECTION_ORDER: DestinationLevel[] = ['top_level', 'country', 'region', 'resort', 'city'];
-
-const FAVOURITE_SECTION_HEADING: Record<DestinationLevel, string> = {
-  top_level: 'Continents',
-  country: 'Countries',
-  region: 'Regions',
-  resort: 'Resorts',
-  city: 'Cities',
-};
-
-type FavouriteSection = {
-  level: DestinationLevel;
+type DestinationGroupSection = {
   heading: string;
+  groupSortOrder: number;
   rows: DestinationRow[];
 };
 
-function groupFavouritesByLevel(rows: DestinationRow[]): FavouriteSection[] {
-  const byLevel = new Map<DestinationLevel, DestinationRow[]>();
+function groupByGroupName(rows: DestinationRow[]): DestinationGroupSection[] {
+  const byGroup = new Map<string, DestinationGroupSection>();
   for (const row of rows) {
-    const level = getDestinationLevel(row) ?? 'city';
-    if (!byLevel.has(level)) byLevel.set(level, []);
-    byLevel.get(level)!.push(row);
+    const heading = (row.group_name || '').trim() || 'Other';
+    const existing = byGroup.get(heading);
+    if (existing) {
+      existing.rows.push(row);
+      existing.groupSortOrder = Math.min(
+        existing.groupSortOrder,
+        row.group_sort_order ?? existing.groupSortOrder,
+      );
+    } else {
+      byGroup.set(heading, {
+        heading,
+        groupSortOrder: row.group_sort_order ?? 0,
+        rows: [row],
+      });
+    }
   }
-  for (const levelRows of byLevel.values()) {
-    levelRows.sort((a, b) => getDestinationLabel(a).localeCompare(getDestinationLabel(b)));
+  const sections = Array.from(byGroup.values());
+  for (const section of sections) {
+    section.rows.sort((a, b) => {
+      const sortDiff = (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      if (sortDiff !== 0) return sortDiff;
+      return getDestinationLabel(a).localeCompare(getDestinationLabel(b));
+    });
   }
-  return FAVOURITE_SECTION_ORDER
-    .map((level) => ({ level, heading: FAVOURITE_SECTION_HEADING[level], rows: byLevel.get(level) || [] }))
-    .filter((section) => section.rows.length > 0);
+  sections.sort((a, b) => {
+    if (a.groupSortOrder !== b.groupSortOrder) return a.groupSortOrder - b.groupSortOrder;
+    return a.heading.localeCompare(b.heading);
+  });
+  return sections;
 }
 
 function getCalendarDays(year: number, month: number) {
@@ -975,13 +984,9 @@ export default function SearchBar({
     };
   }, [openDropdown]);
 
-  const favouriteDestinations = useMemo(
-    () => destinationsData.filter(r => r.is_active && r.favourites),
+  const destinationSections = useMemo(
+    () => groupByGroupName(destinationsData.filter(r => r.is_active)),
     [destinationsData]
-  );
-  const favouriteSections = useMemo(
-    () => groupFavouritesByLevel(favouriteDestinations),
-    [favouriteDestinations]
   );
 
   const debouncedDestinationSearch = useDebounce(destinationSearch, 300);
@@ -1356,21 +1361,15 @@ export default function SearchBar({
 
     return (
       <div className="space-y-2 px-3">
-        {favouriteSections.length > 0 && (
+        {destinationSections.length > 0 && (
           <div className="mb-1 pb-1">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="w-1.5 h-3.5 bg-[#CB2187] rounded-full"></span>
-              <span className="text-[11px] font-extrabold text-[#CB2187] uppercase tracking-wider font-montserrat">
-                Popular Destinations
-              </span>
-            </div>
-            <div className="space-y-4">
-              {favouriteSections.map(section => (
-                <div key={section.level}>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+            <div className="divide-y divide-gray-200">
+              {destinationSections.map(section => (
+                <div key={section.heading} className="py-3 first:pt-0">
+                  <p className="text-sm font-bold text-gray-800 mb-0.5">
                     {section.heading}
                   </p>
-                  <div className="grid grid-cols-1 gap-2.5">
+                  <div className="grid grid-cols-1 gap-0">
                     {section.rows.map(row => {
                       const isSelected = selectedDestinationObj?.destination_id === row.destination_id;
                       const label = getDestinationLabel(row);
@@ -1378,14 +1377,13 @@ export default function SearchBar({
                         <button
                           key={row.destination_id}
                           type="button"
-                          className={`flex items-center gap-2.5 text-left px-3 py-2.5 rounded-[12px] text-xs font-semibold transition-all border border-solid group ${isSelected
+                          className={`flex items-center gap-2.5 text-left px-3 py-2 rounded-[10px] text-xs font-medium transition-all border border-solid group ${isSelected
                             ? 'bg-[#CB2187] border-[#CB2187] text-white shadow-sm shadow-black/10'
-                            : 'bg-white border-gray-200 text-gray-700 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/30'
+                            : 'bg-transparent border-transparent text-gray-600 hover:bg-[#CB2187]/10 hover:border-[#CB2187]/20'
                             } cursor-pointer`}
                           onClick={() => selectDestination(row, { openAirportNext: true })}
                         >
-                          <MapPin size={12} className={isSelected ? 'text-white' : 'text-slate-400 group-hover:text-[#CB2187]'} />
-                          <span className="flex-1 truncate">{label}</span>
+                          <span className="flex-1 truncate pl-1">{label}</span>
                         </button>
                       );
                     })}
@@ -1868,7 +1866,7 @@ export default function SearchBar({
                   document.body
                 )
               ) : (
-                <div className="absolute top-[calc(100%+12px)] left-0 w-full lg:w-[280px] bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 py-3 z-50 max-h-[380px] overflow-y-auto scroll-autohide">
+                <div className="absolute top-[calc(100%+12px)] left-0 w-full lg:w-[280px] bg-white rounded-[16px] shadow-[0_20px_50px_rgba(30,12,26,0.18)] border border-gray-100 py-3 z-50 max-h-[380px] overflow-y-auto scroll-visible">
                   {renderDestinationsDropdownContent()}
                 </div>
               )

@@ -25,6 +25,9 @@ export type DestinationRow = {
   city?: true;
   display_name?: string;
   name?: string;
+  group_name?: string;
+  group_sort_order?: number;
+  sort_order?: number;
   top_level_name: string;
   country_name: string;
   region_name: string;
@@ -37,7 +40,7 @@ export type DestinationRow = {
   // Optional: absent on rows from a backend that hasn't added it yet.
   from_airports_group_ids?: string;
   is_active: boolean;
-  favourites: boolean;
+  favourites?: boolean;
 };
 
 export type DestinationSelection = {

@@ -1,6 +1,7 @@
 import { fetchBackend } from "@/lib/backendFetch";
 import { NextRequest, NextResponse } from "next/server";
 import { getIdempotencyKey, getClientIp, checkRateLimit } from "@/lib/antiSpam";
+import { buildBackendContextHeaders, fetchSearchPage, toClientSearchPayload } from "@/lib/searchServerData";
 import { isDestinationSelection, type DestinationSelection } from "@/lib/mappings/destinations";
 import { resolveAirportIataToId } from "@/lib/mappings/airports";
 
@@ -78,58 +79,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "searchId query parameter is required." }, { status: 400 });
     }
 
-    // Forward cookies from browser request to Django backend
-    const clientCookies = request.headers.get("cookie") || "";
-
-    // Construct Django backend paging endpoint
-    let djangoUrl = `/client/api/v1/searches/${searchId}`;
-    const forwardParams = new URLSearchParams();
-    if (cursor) forwardParams.set("cursor", cursor);
-    if (criteria) forwardParams.set("criteria", criteria);
-    const forwardQs = forwardParams.toString();
-    if (forwardQs) {
-      djangoUrl += `?${forwardQs}`;
-    }
-
-    const visitorId = request.headers.get("x-visitor-id") || "";
-    const sessionId = request.headers.get("x-session-id") || "";
-    const clientSignature = request.headers.get("x-client-signature") || "";
-    const visitorCountry = request.headers.get("x-vercel-ip-country") || "";
-    const visitorLocation = JSON.stringify({
-      country: request.headers.get("x-vercel-ip-country") || request.headers.get("cf-ipcountry") || "",
-      region: request.headers.get("x-vercel-ip-country-region") || request.headers.get("cf-region") || "",
-      city: request.headers.get("x-vercel-ip-city") || request.headers.get("cf-ipcity") || "",
-      latitude: request.headers.get("x-vercel-ip-latitude") || request.headers.get("cf-latitude") || "",
-      longitude: request.headers.get("x-vercel-ip-longitude") || request.headers.get("cf-longitude") || "",
-      timezone: request.headers.get("x-vercel-ip-timezone") || "",
-    });
-
-    const response = await fetchBackend(djangoUrl, {
-      method: "GET",
-      headers: {
-        "Cookie": clientCookies,
-        "X-Visitor-ID": visitorId,
-        "X-Session-ID": sessionId,
-        "X-Client-Signature": clientSignature,
-        "X-Visitor-Country": visitorCountry,
-        "X-Visitor-Location": visitorLocation,
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
+    const { status, payload } = await fetchSearchPage(searchId, { cursor, criteria }, request.headers);
+    if (!payload) {
       return NextResponse.json(
-        { success: false, error: "Failed to retrieve search page results", backendStatus: response.status },
-        { status: response.status }
+        { success: false, error: "Failed to retrieve search page results" },
+        { status }
       );
     }
 
-    const data = await response.json();
-    return NextResponse.json({ success: true, ...data }, { status: 200 });
+    return NextResponse.json({ success: true, ...payload }, { status: 200 });
 
   } catch (err: any) {
     console.error("Internal error in cursor GET route handler:", err);
-    return NextResponse.json({ success: false, error: "Internal error", details: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }
 
@@ -205,7 +167,7 @@ export async function POST(request: NextRequest) {
       .map((code: string) => resolveAirportIataToId(code))
       .filter((id: string) => /^\d+$/.test(id));
     if (airportsList.length === 0) {
-      airportsList.push(...["LCY", "LGW", "LHR", "LTN", "STN"].map(resolveAirportIataToId));
+      airportsList.push(...["LCY", "LGW", "LHR", "LTN", "STN", "NWI", "JER"].map(resolveAirportIataToId));
     }
 
     const nights = body.nights ? (parseInt(String(body.nights), 10) || 7) : 7;
@@ -236,35 +198,12 @@ export async function POST(request: NextRequest) {
       rooms: body.rooms || [{ adults: 2, children: 0, childrenAges: [] }],
     };
 
-    // Forward browser cookies & headers
-    const clientCookies = request.headers.get("cookie") || "";
-    const clientCsrfToken = request.headers.get("x-csrftoken") || "";
-
-    const visitorId = request.headers.get("x-visitor-id") || "";
-    const sessionId = request.headers.get("x-session-id") || "";
-    const clientSignature = request.headers.get("x-client-signature") || "";
-    const visitorCountry = request.headers.get("x-vercel-ip-country") || "";
-    const visitorLocation = JSON.stringify({
-      country: request.headers.get("x-vercel-ip-country") || request.headers.get("cf-ipcountry") || "",
-      region: request.headers.get("x-vercel-ip-country-region") || request.headers.get("cf-region") || "",
-      city: request.headers.get("x-vercel-ip-city") || request.headers.get("cf-ipcity") || "",
-      latitude: request.headers.get("x-vercel-ip-latitude") || request.headers.get("cf-latitude") || "",
-      longitude: request.headers.get("x-vercel-ip-longitude") || request.headers.get("cf-longitude") || "",
-      timezone: request.headers.get("x-vercel-ip-timezone") || "",
-    });
-
     const response = await fetchBackend("/client/api/v1/searches", {
       method: "POST",
       headers: {
+        ...buildBackendContextHeaders(request.headers),
         "Content-Type": "application/json",
-        "Cookie": clientCookies,
-        "X-CSRFToken": clientCsrfToken,
-        "X-Visitor-ID": visitorId,
-        "X-Session-ID": sessionId,
-        "X-Client-Signature": clientSignature,
-        "X-Visitor-Country": visitorCountry,
-        "X-Visitor-Location": visitorLocation,
-        ...(clientIp && clientIp !== "unknown" ? { "X-Real-IP": clientIp } : {}),
+        "X-CSRFToken": request.headers.get("x-csrftoken") || "",
         ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
       },
       body: JSON.stringify(payload),
@@ -273,18 +212,18 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Django searches v2 backend error response:", errorText);
+      const retryAfter = response.headers.get("Retry-After");
       return NextResponse.json(
-        { success: false, error: "Search creation failed", backendStatus: response.status, details: errorText },
-        { status: response.status }
+        { success: false, error: "Search creation failed" },
+        { status: response.status, headers: retryAfter ? { "Retry-After": retryAfter } : undefined }
       );
     }
 
     const data = await response.json();
-    // console.log("Backend response data:", data);
 
     // Set cookies received from Django backend (like device_token) back to browser response
     const responseCookies = response.headers.getSetCookie();
-    const nextResponse = NextResponse.json({ success: true, ...data }, { status: 201 });
+    const nextResponse = NextResponse.json({ success: true, ...toClientSearchPayload(data) }, { status: 201 });
     for (const cookieStr of responseCookies) {
       nextResponse.headers.append("set-cookie", cookieStr);
     }
@@ -293,6 +232,6 @@ export async function POST(request: NextRequest) {
 
   } catch (err: any) {
     console.error("Internal error in searches v2 route handler:", err);
-    return NextResponse.json({ success: false, error: "Internal error", details: err.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }

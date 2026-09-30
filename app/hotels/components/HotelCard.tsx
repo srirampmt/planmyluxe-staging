@@ -4,6 +4,7 @@ import { extractDurationMinFromUrl, normalizeApiUrl } from "@/components/cardpri
 import { BOARD_BASIS_ID_TO_CODE, BOARD_BASIS_NAMES, getBoardBasisCode, getBoardBasisIdFromCode } from "@/lib/mappings/board-basis";
 import { trackEvent } from "@/lib/storage";
 import { attachCurrentPageToWhatsAppHref, getWhatsAppUrl } from "@/lib/utils";
+import { useUtmPhone } from "@/components/utm/UtmPhoneProvider";
 import { parseTopFacilities } from "@/lib/mappings/top-facilities";
 import { toIsoDateKey } from "@/lib/hotel-utils";
 
@@ -185,6 +186,7 @@ function OfferBanner({ label, saveAmount }: { label: string; saveAmount: number 
 }
 
 function ContactButtons({ source }: { source?: string }) {
+  const { phoneDisplay, phoneTel } = useUtmPhone();
   return (
     <>
       <a
@@ -200,9 +202,9 @@ function ContactButtons({ source }: { source?: string }) {
       </a>
       <button
         type="button"
-        onClick={(e) => { e.stopPropagation(); window.location.href = "tel:02037400744"; }}
-        aria-label="Call 020 3740 0744"
-        title="020 3740 0744"
+        onClick={(e) => { e.stopPropagation(); window.location.href = `tel:${phoneTel}`; }}
+        aria-label={`Call ${phoneDisplay}`}
+        title={phoneDisplay}
         className="flex h-10 w-10 flex-shrink-0 cursor-pointer items-center justify-center rounded-xl border border-slate-200 text-slate-700 transition-all hover:-translate-y-px hover:border-pink-300 hover:bg-pink-50/40 hover:text-pink-600 focus:outline-none"
       >
         <PhoneCall className="w-4 h-4 text-pink-600" />
@@ -423,7 +425,7 @@ export default function HotelCard({ hotel, index, isHighlighted }: HotelCardProp
         }`}>
       {/* Image */}
       <div className="relative h-[180px] w-full flex-shrink-0 overflow-hidden sm:h-auto sm:w-[260px] lg:w-[280px]">
-        <img src={img} alt={hotel.hotel_name ?? ""} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform" />
+        <img src={img} alt={hotel.hotelName ?? hotel.hotel_name ?? ""} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 will-change-transform" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
         {isOffer && <DiscountRibbon pct={pct} />}
         {isHighlighted && (
@@ -454,7 +456,7 @@ export default function HotelCard({ hotel, index, isHighlighted }: HotelCardProp
 
           <h3
             className="mb-2 line-clamp-1 text-xl font-bold leading-[1.2] tracking-tight text-slate-800 sm:mb-2 sm:text-2xl sm:font-extrabold"
-            title={hotel.hotel_name || hotel.offer_header}
+            title={hotel.hotelName || hotel.hotel_name || hotel.offer_header}
           >
             {hotel.hotelName || hotel.hotel_name}
           </h3>

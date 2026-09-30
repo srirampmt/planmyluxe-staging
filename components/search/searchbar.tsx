@@ -41,24 +41,22 @@ const REGIONS = [
   "Any Eurostar",
   "Any Northern Ireland",
   "Any Ireland (South)",
-  "Any East Anglia",
   "Any North East / Yorkshire",
   "Any North West",
-  "Any South East",
   "Any South West/Wales"
 ];
+// Each airport must appear in exactly one region, and must match the backend's
+// DEPARTURE_ID_TO_GROUP_IDS (pmlapp/constants.py).
 const regionAirports: Record<string, string[]> = {
-  "Any London": ["LCY", "LGW", "LHR", "LTN", "STN"],
+  "Any London": ["LCY", "LGW", "LHR", "LTN", "STN", "NWI", "JER"],
   "Any Midland": ["BHX", "CVT", "DSA", "EMA", "HUY", "LBA"],
   "Any Scotland": ["ABZ", "DND", "EDI", "GLA", "PIK", "INV"],
   "Any Eurostar": [],
   "Any Northern Ireland": ["BHD", "BFS", "LDY"],
   "Any Ireland (South)": ["ORK", "DUB", "SNN"],
-  "Any East Anglia": ["STN", "NWI"],
-  "Any North East / Yorkshire": ["DSA", "HUY", "NCL", "MME"],
-  "Any North West": ["BLK", "LBA", "LPL", "MAN"],
-  "Any South East": ["JER", "LCY", "LGW", "LHR", "LTN", "SEN", "STN", "SOU", "MSE"],
-  "Any South West/Wales": ["BOH", "BRS", "CWL", "EXT", "NQY", "PLY"],
+  "Any North East / Yorkshire": ["NCL", "MME"],
+  "Any North West": ["BLK", "LPL", "MAN"],
+  "Any South West/Wales": ["BOH", "BRS", "CWL", "EXT", "NQY", "PLY", "SEN", "SOU", "MSE"],
 };
 
 const LEVEL_LABEL: Record<DestinationLevel, string> = {
@@ -1231,7 +1229,7 @@ export default function SearchBar({
       setValidationErrors(prev => ({ ...prev, dest: undefined }));
     }
 
-    const DEFAULT_LONDON_AIRPORTS = ['LCY', 'LGW', 'LHR', 'LTN', 'STN'];
+    const DEFAULT_LONDON_AIRPORTS = regionAirports["Any London"];
 
     const effectiveAirports = selectedAirports.length > 0 ? selectedAirports : DEFAULT_LONDON_AIRPORTS;
     const departureAirports = effectiveAirports;
@@ -1460,7 +1458,7 @@ export default function SearchBar({
     // Authoritative from the destination's own from_airports_group_ids
     // (backend-driven) rather than guessing via airport-name overlap — only
     // the regions this destination actually lists are shown, everything
-    // else is hidden. Falls back to all 11 regions when nothing's selected.
+    // else is hidden. Falls back to all REGIONS when nothing's selected.
     const visibleRegions = selectedDestinationObj
       ? Array.from(new Set(
           (selectedDestinationObj.from_airports_group_ids || '')

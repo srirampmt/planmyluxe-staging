@@ -50,22 +50,22 @@ export default function RootLayout({
               {children}
               <Footer />
             </div>
-            {/* <GlobalConnectMenu /> */}
-            {/* <div className="block">
+            <GlobalConnectMenu />
+            <div className="block">
               <AmiWidgetLoader />
-            </div> */}
+            </div>
           </RouteWhatsAppProvider>
         </UtmPhoneServer>
         <PromoModal />
-        {/* <TawkToProvider /> */}
-        {/* <ThirdPartyScripts /> */}
-        {/* <Script
+        <TawkToProvider />
+        <ThirdPartyScripts />
+        <Script
           strategy="afterInteractive"
           data-website-id="0e597fc2-ba0d-4a6e-b6a1-a3167934426a"
           data-domain="planmyluxe.co.uk"
           src="https://pmt-monitoring-analytics-ivory.vercel.app/analytics.js"
-        /> */}
-        {/* <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/e75692a20ed359ff7a6eccfe387ce163/script.js"></script> */}
+        />
+        <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/e75692a20ed359ff7a6eccfe387ce163/script.js"></script>
       </body>
     </html>
   );

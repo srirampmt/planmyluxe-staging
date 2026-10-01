@@ -14,6 +14,7 @@ import {
   decodeDestinationParam,
   type DestinationRow,
 } from '@/lib/mappings/destinations';
+import { defaultCheckInRange, earliestCheckIn, MIN_CHECKIN_DAYS_AHEAD } from '@/lib/searchFilters';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -170,7 +171,7 @@ function TravelDatePicker({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const minDate = new Date(today);
-  minDate.setDate(minDate.getDate() + 3); // Tomorrow is the minimum selectable date
+  minDate.setDate(minDate.getDate() + MIN_CHECKIN_DAYS_AHEAD);
   const maxDate = new Date(today);
   maxDate.setFullYear(maxDate.getFullYear() + 1);
 
@@ -273,11 +274,7 @@ function TravelDatePicker({
           if (day === null) return <span key={idx} />;
           const current = new Date(calYear, calMonth, day);
           const isOutOfRange = current < minDate || current > maxDate;
-          const displayStart = isMobileView ? tempStart : tempStart;
-          const displayEnd = isMobileView ? tempEnd : tempEnd;
-          const isStart = displayStart && current.getTime() === displayStart.getTime();
-          const isEnd = displayEnd && current.getTime() === displayEnd.getTime();
-          const inRange = displayStart && displayEnd && current > displayStart && current < displayEnd;
+          const isStart = tempStart && current.getTime() === tempStart.getTime();
 
           return (
             <div key={idx} className="relative flex justify-center py-0.5">
@@ -286,9 +283,8 @@ function TravelDatePicker({
                 disabled={isOutOfRange}
                 onClick={() => isMobileView ? handleDateClickMobile(day) : handleDateClick(day)}
                 className={`w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs border-none transition-all ${isOutOfRange ? 'text-gray-300 cursor-not-allowed bg-transparent' :
-                  isStart || isEnd ? 'bg-[#CB2187] text-white cursor-pointer shadow-sm shadow-black/10 scale-110' :
-                    inRange ? 'bg-[#CB2187]/10 text-[#CB2187] cursor-pointer rounded-none w-full' :
-                      'text-gray-700 hover:bg-gray-100 cursor-pointer bg-transparent'
+                  isStart ? 'bg-[#CB2187] text-white cursor-pointer shadow-sm shadow-black/10 scale-110' :
+                    'text-gray-700 hover:bg-gray-100 cursor-pointer bg-transparent'
                   }`}
               >
                 {day}
@@ -583,7 +579,7 @@ export default function SearchBar({
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 3); // Aligned with minDate (today + 3)
+    tomorrow.setDate(tomorrow.getDate() + MIN_CHECKIN_DAYS_AHEAD);
     return tomorrow;
   };
 
@@ -672,14 +668,8 @@ export default function SearchBar({
   const [isFlexible, setIsFlexible] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<{ year: number; month: number } | null>(null);
 
-  const formatDateRangeText = (start: Date | null, end: Date | null) => {
-    if (start && end) {
-      const sDay = start.getDate();
-      const sM = MONTH_NAMES[start.getMonth()].slice(0, 3);
-      const eDay = end.getDate();
-      const eM = MONTH_NAMES[end.getMonth()].slice(0, 3);
-      return `${sDay} ${sM} — ${eDay} ${eM}`;
-    } else if (start) {
+  const formatDateRangeText = (start: Date | null, _end?: Date | null) => {
+    if (start) {
       const sDay = start.getDate();
       const sM = MONTH_NAMES[start.getMonth()].slice(0, 3);
       return `${sDay} ${sM}`;
@@ -772,7 +762,8 @@ export default function SearchBar({
     }
 
     const lastDayOfMinMonth = new Date(min.getFullYear(), min.getMonth() + 1, 0);
-    const isWholeMonth = min.getDate() === 1
+    const startsMonth = min.getDate() === 1 || min.getTime() <= earliestCheckIn().getTime();
+    const isWholeMonth = startsMonth
       && max.getFullYear() === lastDayOfMinMonth.getFullYear()
       && max.getMonth() === lastDayOfMinMonth.getMonth()
       && max.getDate() === lastDayOfMinMonth.getDate();
@@ -1069,7 +1060,7 @@ export default function SearchBar({
 
   const clampToSearchWindow = (d: Date): Date => {
     const t = new Date(); t.setHours(0, 0, 0, 0);
-    const min = new Date(t); min.setDate(min.getDate() + 3);
+    const min = new Date(t); min.setDate(min.getDate() + MIN_CHECKIN_DAYS_AHEAD);
     const max = new Date(t); max.setFullYear(max.getFullYear() + 1);
     if (d < min) return min;
     if (d > max) return max;
@@ -1199,9 +1190,12 @@ export default function SearchBar({
 
     // Month tab / flexible checkbox resolve to an explicit ISO {dateMin,
     // dateMax} pair -- both null in the default exact-date case.
-    const { dateMin: rangeDateMin, dateMax: rangeDateMax } = computeSearchDateRange();
+    const selectedRange = computeSearchDateRange();
+    const defaultRange = !selectedRange.dateMin && !startDate ? defaultCheckInRange() : null;
+    const rangeDateMin = selectedRange.dateMin ?? defaultRange?.date ?? null;
+    const rangeDateMax = selectedRange.dateMax ?? defaultRange?.date_max ?? null;
 
-    // If user didn't select a date, fall back to tomorrow as default.
+    // If user didn't select a date, fall back to the default month window.
     // Always ISO here (never the "15 Oct — 22 Oct" display text) -- a
     // non-ISO date in the URL gets silently normalized to ISO by
     // app/hotels/page.tsx's own dateToISO()+replaceState(), which Next's
@@ -1210,8 +1204,7 @@ export default function SearchBar({
     // after the first. Emitting ISO from the start keeps the URL canonical
     // from the first navigation, so that resync is a no-op.
     const effectiveTravelDate = rangeDateMin
-      || (startDate ? toISODate(startDate) : null)
-      || toISODate(getTomorrow());
+      || (startDate ? toISODate(startDate) : null);
 
     if (effectiveTravelDate) params.set('date', effectiveTravelDate);
     if (rangeDateMax) params.set('date_max', rangeDateMax);

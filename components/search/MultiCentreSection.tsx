@@ -1,8 +1,15 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import type { MultiCentreSnapshot } from "@/types/homepage";
 
 const STAR_PATH =
@@ -32,7 +39,7 @@ function StarRow({ rating }: { rating: number }) {
     <span className="inline-flex items-center gap-px" aria-label={`${filled} star`}>
       {Array.from({ length: 5 }, (_, index) => (
         <svg key={index} width="12" height="12" viewBox="-0.5 -0.5 15 15" aria-hidden="true">
-          <path d={STAR_PATH} fill={index < filled ? "#D4A017" : "#E4DFD8"} />
+          <path d={STAR_PATH} fill={index < filled ? "#CB2187" : "#E0E0E0"} />
         </svg>
       ))}
     </span>
@@ -58,57 +65,56 @@ function DealCard({ deal }: { deal: MultiCentreSnapshot }) {
   ].filter(Boolean);
 
   return (
-    <article className="w-[280px] shrink-0 snap-start sm:w-[320px]">
+    <article className="h-full w-[280px] shrink-0 sm:w-[320px]">
       <Link
         href={href}
-        className="flex h-full flex-col overflow-hidden rounded-[16px] border border-[#ece8e4] bg-white no-underline shadow-[0_8px_28px_rgba(26,27,75,0.06)]"
+        className="group flex h-full flex-col overflow-hidden rounded-[12px] border border-[#EDEDED] bg-white no-underline shadow-[0_4px_16px_rgba(0,0,0,0.06)]"
       >
-        <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#ece8e4]">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-[#EDEDED]">
           {deal.image ? (
             <img
               src={deal.image}
               alt={heading}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
               loading="lazy"
             />
           ) : null}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/40 to-transparent" />
           {tag ? (
-            <span className="absolute left-3 top-3 rounded-full bg-white/92 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b]">
+            <span className="pointer-events-none absolute left-0 top-0 max-w-[70%] rounded-br-[167px] bg-white pb-[4px] pl-[12px] pr-[32px] pt-[4px] text-[11px] font-semibold uppercase leading-[18px] tracking-[0.015em] text-[#CB2187] md:text-[13px]">
               {tag}
             </span>
           ) : null}
           {nights > 0 ? (
-            <span className="absolute right-3 top-3 rounded-full bg-[#1a1b4b]/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+            <span className="absolute right-3 top-3 rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.015em] text-[#CB2187]">
               {nights} night{nights === 1 ? "" : "s"}
             </span>
           ) : null}
         </div>
 
         <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
-          <h3 className="line-clamp-2 text-[16px] font-semibold leading-snug tracking-[-0.02em] text-[#1a1b4b]">
+          <h3 className="line-clamp-2 text-[16px] font-semibold leading-[24px] text-[#4c4c4c]">
             {heading}
           </h3>
           {subtitle ? (
-            <p className="mt-1.5 line-clamp-2 text-[12.5px] leading-5 text-[#6b6570]">{subtitle}</p>
+            <p className="mt-1.5 line-clamp-2 text-[12px] leading-[18px] tracking-[0.02em] text-[#7C7C7C]">{subtitle}</p>
           ) : null}
 
           {rating > 0 || meta.length > 0 ? (
-            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#6b6570]">
+            <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] text-[#7C7C7C]">
               {rating > 0 ? <StarRow rating={rating} /> : null}
               {meta.length > 0 ? <span>{meta.join(" · ")}</span> : null}
             </div>
           ) : null}
 
-          <div className="mt-auto border-t border-[#ece8e4] pt-3.5">
+          <div className="mt-auto border-t border-[#EDEDED] pt-3.5">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8a8490]">From</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7C7C7C]">From</p>
                 <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-[20px] font-semibold leading-none tracking-tight text-[#1a1b4b]">
+                  <span className="text-[20px] font-semibold leading-none tracking-tight text-[#4c4c4c]">
                     £{price.toLocaleString("en-GB")}
                   </span>
-                  <span className="text-[12px] font-medium text-[#8a8490]">pp</span>
+                  <span className="text-[12px] font-medium text-[#7C7C7C]">pp</span>
                 </div>
               </div>
               <span className="mb-0.5 inline-flex shrink-0 items-center gap-1 rounded-full bg-[#CB2187] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-white">
@@ -137,69 +143,43 @@ export default function MultiCentreSection({
   multicentre_collection_title,
   multicentre_collection_snapshots,
 }: MultiCentreSectionProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
   if (!multicentre_collection_snapshots || multicentre_collection_snapshots.length === 0) {
     return null;
   }
 
-  function scroll(dir: "left" | "right") {
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -340 : 340, behavior: "smooth" });
-  }
-
   return (
-    <section id="multi-centre-section" className="bg-white py-10 font-['Montserrat'] sm:py-14">
-      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-10">
+    <section id="multi-centre-section" className="relative left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] w-screen bg-white font-['Montserrat']">
+      <div className="mx-auto w-full max-w-[1440px] px-[16px] py-[20px] sm:px-[24px] md:px-[32px] md:py-[50px] lg:px-[40px]">
         <div className="mx-auto w-full max-w-[1280px]">
-          <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
-            <div className="min-w-0">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187]">
-                Multi-centre collection
-              </p>
-              <h2 className="text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1b4b] sm:text-[36px]">
-                {multicentre_collection_title || "Multi-centre holiday deals"}
-              </h2>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Link
-                href="/multi-centre"
-                className="mr-1 hidden text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] no-underline hover:text-[#CB2187] sm:inline"
-              >
-                View all
-              </Link>
-              <button
-                type="button"
-                onClick={() => scroll("left")}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ece8e4] bg-white text-[#1a1b4b] shadow-sm hover:border-[#CB2187] hover:text-[#CB2187]"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scroll("right")}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ece8e4] bg-white text-[#1a1b4b] shadow-sm hover:border-[#CB2187] hover:text-[#CB2187]"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
+          <div className="mb-3 flex items-end justify-between gap-4 md:mb-5">
+            <h2 className="min-w-0 text-[24px] font-semibold leading-[30px] tracking-[-0.005em] text-[#4c4c4c] md:text-[48px] md:leading-[60px]">
+              {multicentre_collection_title || "Multi-centre holiday deals"}
+            </h2>
+            <Link
+              href="/multi-centre"
+              className="hidden shrink-0 text-xs text-gray-500 underline hover:text-[#CB2187] sm:inline"
+            >
+              view all multi-centre holidays
+            </Link>
           </div>
 
-          <div
-            ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scroll-smooth pb-2 scrollbar-hide snap-x snap-mandatory sm:gap-5"
-          >
-            {multicentre_collection_snapshots.map((deal) => (
-              <DealCard key={deal.id} deal={deal} />
-            ))}
-          </div>
+          <Carousel opts={{ align: "start" }} className="w-full">
+            <CarouselContent className="pb-2">
+              {multicentre_collection_snapshots.map((deal) => (
+                <CarouselItem key={deal.id} className="basis-auto">
+                  <DealCard deal={deal} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselNext className="hidden md:flex" />
+            <CarouselPrevious className="hidden md:flex" />
+          </Carousel>
 
           <Link
             href="/multi-centre"
-            className="mt-5 inline-flex text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1b4b] no-underline hover:text-[#CB2187] sm:hidden"
+            className="mt-5 inline-flex text-xs text-gray-500 underline hover:text-[#CB2187] sm:hidden"
           >
-            View all holidays
+            view all multi-centre holidays
           </Link>
         </div>
       </div>

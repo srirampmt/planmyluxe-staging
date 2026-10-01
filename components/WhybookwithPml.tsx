@@ -14,11 +14,11 @@ export function WhybookwithPml() {
           <div className="space-y-[10px] md:space-y-[14px]">
             {/* Paragraph 1 */}
             <p className="font-['Montserrat'] text-[#595858] text-[14px] md:text-[16px] font-normal leading-[24px]">
-              <a href="https://wwwplanmyluxe.co.uk" className="text-[#CB2187] hover:underline">
+              <a href="https://planmyluxe.co.uk" className="text-[#CB2187] hover:underline">
                 PlanMyLuxe
               </a>
               {" "}is a trading name of{" "}
-              <a href="https://wwwplanmytour.co.uk" className="text-[#CB2187] hover:underline">
+              <a href="https://planmytour.co.uk" className="text-[#CB2187] hover:underline">
                 Plan My Tour Ltd.
               </a>
               , a registered, trusted, and expert travel booking company that has been operating in the UK for the last 8+ years. Our reputation is among the best in the travel industry, as one of the largest, leading travel agencies in the United Kingdom.

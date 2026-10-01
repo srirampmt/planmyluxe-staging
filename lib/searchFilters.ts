@@ -43,6 +43,36 @@ export const DEFAULT_FILTERS: SearchFilters = {
 
 type ParamReader = { get(key: string): string | null; has(key: string): boolean };
 
+// Suppliers need check-in at least this many days out (matches the search
+// bar's clampToSearchWindow).
+export const MIN_CHECKIN_DAYS_AHEAD = 5;
+
+function toISODate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+export function earliestCheckIn(today: Date = new Date()): Date {
+  const d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  d.setDate(d.getDate() + MIN_CHECKIN_DAYS_AHEAD);
+  return d;
+}
+
+// Default check-in window when none is chosen: the rest of this month before
+// the 15th, otherwise the whole of next month.
+export function defaultCheckInRange(today: Date = new Date()): { date: string; date_max: string } {
+  const monthOffset = today.getDate() < 15 ? 0 : 1;
+  const first = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const last = new Date(today.getFullYear(), today.getMonth() + monthOffset + 1, 0);
+  const earliest = earliestCheckIn(today);
+  return {
+    date: toISODate(first < earliest ? earliest : first),
+    date_max: toISODate(last),
+  };
+}
+
 export function seedFromUrl(searchParams: ParamReader): SearchFilters {
   const destination = decodeDestinationParam(searchParams.get("did"));
   const type = searchParams.get("type") || "";

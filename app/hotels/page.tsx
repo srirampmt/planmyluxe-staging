@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import SearchPageClient, { type ServerSearch } from "./SearchPageClient";
 import { fetchSearchPage, getDestinationRows } from "@/lib/searchServerData";
 import { encodeDestinationParam, findDestinationForName, makeDestinationSelection } from "@/lib/mappings/destinations";
-import { buildHydrationCriteria, DEFAULT_FILTERS, hasUrlParams, seedFromUrl } from "@/lib/searchFilters";
+import { buildHydrationCriteria, DEFAULT_FILTERS, defaultCheckInRange, hasUrlParams, seedFromUrl } from "@/lib/searchFilters";
 
 export const dynamic = "force-dynamic";
 
@@ -45,26 +45,40 @@ function toUrlParams(params: PageSearchParams): URLSearchParams {
 }
 
 // A bare ?q=<place> link (destination pages, area cards) carries a name but
-// no destination id — resolve it so the page lands on a real search.
-async function resolvePlaceSearchUrl(params: PageSearchParams): Promise<string | null> {
+// no destination id — resolve it so the page lands on a real search. Any
+// destination search without a check-in date gets the default month window.
+async function resolveSearchUrl(params: PageSearchParams): Promise<string | null> {
   const urlParams = toUrlParams(params);
+  if (urlParams.has("searchId")) return null;
+  let changed = false;
+
   const q = urlParams.get("q")?.trim();
-  if (!q || urlParams.has("did") || urlParams.has("searchId")) return null;
+  if (q && !urlParams.has("did")) {
+    const match = findDestinationForName(await getDestinationRows(), q);
+    if (match) {
+      urlParams.set("did", encodeDestinationParam(makeDestinationSelection(match)));
+      if (!urlParams.has("n") && !urlParams.has("nights")) urlParams.set("n", "7");
+      urlParams.set("search", "true");
+      changed = true;
+    }
+  }
 
-  const match = findDestinationForName(await getDestinationRows(), q);
-  if (!match) return null;
+  if (urlParams.has("did") && !urlParams.get("dt") && !urlParams.get("date")) {
+    const { date, date_max } = defaultCheckInRange();
+    urlParams.set("dt", date);
+    urlParams.set("dtmax", date_max);
+    urlParams.delete("date_max");
+    changed = true;
+  }
 
-  urlParams.set("did", encodeDestinationParam(makeDestinationSelection(match)));
-  if (!urlParams.has("n") && !urlParams.has("nights")) urlParams.set("n", "7");
-  urlParams.set("search", "true");
-  return `/hotels?${urlParams.toString()}`;
+  return changed ? `/hotels?${urlParams.toString()}` : null;
 }
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<PageSearchParams> }) {
   const params = await searchParams;
 
-  const placeSearchUrl = await resolvePlaceSearchUrl(params);
-  if (placeSearchUrl) redirect(placeSearchUrl);
+  const resolvedUrl = await resolveSearchUrl(params);
+  if (resolvedUrl) redirect(resolvedUrl);
 
   const searchId = typeof params.searchId === "string" ? params.searchId : undefined;
 

@@ -20,6 +20,7 @@ export async function getDestinationRows(): Promise<DestinationRow[]> {
 const CARD_FIELDS = [
   "slug",
   "hotelId",
+  "quoteReference",
   "hotelName",
   "location",
   "rating",

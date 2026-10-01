@@ -1,7 +1,7 @@
 import "server-only";
 
 import { BackendConfigError, fetchBackend } from "@/lib/backendFetch";
-import type { McDefaultPricingResponse, McPageResponse } from "@/types/multi-centre";
+import type { McDefaultPricingResponse, McPackageCard, McPageResponse } from "@/types/multi-centre";
 
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : value == null ? fallback : String(value);
@@ -236,4 +236,91 @@ export async function getMultiCentreContent(slug: string): Promise<Omit<McPageRe
 export async function getMultiCentreDefaultPricing(slug: string): Promise<McDefaultPricingResponse | null> {
   const result = await fetchMultiCentreDefaultPricing(slug);
   return result.ok ? result.data : null;
+}
+
+export const MULTI_CENTRE_PAGE_SIZE = 6;
+
+const CARD_FIELDS = [
+  "id",
+  "slug",
+  "title",
+  "image",
+  "pictures",
+  "thumbnail_1",
+  "thumbnail_2",
+  "thumbnail_3",
+  "destinations",
+  "route",
+  "location",
+  "duration_label",
+  "durationLabel",
+  "nights",
+  "hotels_count",
+  "board_basis",
+  "flights_included",
+  "transports",
+  "inclusions_preview",
+  "tag_for_card",
+  "save_upto",
+  "property_rating",
+  "starting_price",
+  "local_tax",
+] as const satisfies readonly (keyof McPackageCard)[];
+
+export type MultiCentreSearchParams = {
+  d: string;
+  air: string;
+  mon: string;
+  sort: string;
+  page: number;
+};
+
+export type MultiCentreSearchResult = {
+  packages: McPackageCard[];
+  total: number;
+  totalPages: number;
+};
+
+export function cleanMonthParam(mon: string): string {
+  if (!mon) return "";
+  const cleanMon = mon.replace(/[^0-9]/g, "").slice(0, 6);
+  return cleanMon || mon;
+}
+
+function toCard(raw: Record<string, unknown>): McPackageCard {
+  const card: Record<string, unknown> = {};
+  for (const field of CARD_FIELDS) {
+    if (raw[field] !== undefined) card[field] = raw[field];
+  }
+  return card as McPackageCard;
+}
+
+export async function fetchMultiCentrePackages(
+  params: MultiCentreSearchParams,
+): Promise<MultiCentreSearchResult> {
+  const query = new URLSearchParams();
+  if (params.d) query.set("d", params.d);
+  if (params.air) query.set("air", params.air);
+  if (params.mon) query.set("mon", cleanMonthParam(params.mon));
+  query.set("sort", params.sort);
+  query.set("page", String(params.page));
+  query.set("limit", String(MULTI_CENTRE_PAGE_SIZE));
+
+  try {
+    const res = await fetchBackend(`/client/api/multicentre-packages/?${query.toString()}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return { packages: [], total: 0, totalPages: 1 };
+    const data = await res.json();
+    if (!data?.success) return { packages: [], total: 0, totalPages: 1 };
+    const packages = Array.isArray(data.packages) ? data.packages.map(toCard) : [];
+    return {
+      packages,
+      total: Number(data.total) || 0,
+      totalPages: Number(data.total_pages) || 1,
+    };
+  } catch (error) {
+    console.error("Error fetching multi-centre packages:", error);
+    return { packages: [], total: 0, totalPages: 1 };
+  }
 }

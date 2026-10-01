@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { MapPin, Plane, Calendar, Search, ChevronDown, Check, X } from "lucide-react";
+import { MapPin, Plane, Calendar, Search, ChevronDown, Check, X, Loader2 } from "lucide-react";
 
 export type DestinationItem = {
   id: string;
@@ -97,6 +97,7 @@ export default function MultiCenterSearchBar({
   onSearch,
 }: MultiCenterSearchBarProps = {}) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
   // State
   const [destinations, setDestinations] = useState<DestinationItem[]>([]);
@@ -373,7 +374,10 @@ export default function MultiCenterSearchBar({
       const monStr = `${departureDate.getFullYear()}${String(departureDate.getMonth() + 1).padStart(2, "0")}`;
       params.set("mon", monStr);
     }
-    router.push(`/multi-centre?${params.toString()}`);
+    if (isPending) return;
+    startTransition(() => {
+      router.push(`/multi-centre?${params.toString()}`);
+    });
     onSearch?.();
   };
 
@@ -885,10 +889,18 @@ export default function MultiCenterSearchBar({
           <button
             data-testid="search-submit"
             type="submit"
-            className="relative flex min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full bg-[#CB2187] px-7 py-3 font-semibold tracking-wide text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-[#a81870] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] active:scale-95 cursor-pointer border-none group lg:min-w-[180px] lg:px-9"
+            disabled={isPending}
+            aria-busy={isPending}
+            className="relative flex min-h-[52px] w-full items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-full bg-[#CB2187] px-7 py-3 font-semibold tracking-wide text-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all duration-200 hover:bg-[#a81870] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] active:scale-95 cursor-pointer border-none group lg:min-w-[180px] lg:px-9 disabled:cursor-wait disabled:opacity-90"
           >
-            <Search size={18} className="relative z-10" />
-            <span className="relative z-10 text-[14px] md:text-[15px] font-bold">Search Holidays</span>
+            {isPending ? (
+              <Loader2 size={18} className="relative z-10 animate-spin" />
+            ) : (
+              <Search size={18} className="relative z-10" />
+            )}
+            <span className="relative z-10 text-[14px] md:text-[15px] font-bold">
+              {isPending ? "Searching..." : "Search Holidays"}
+            </span>
           </button>
         </div>
       </div>

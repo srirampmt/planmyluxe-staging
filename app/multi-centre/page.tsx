@@ -1,178 +1,76 @@
-"use client";
-
-import React, { useState, useEffect, useMemo, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
-import {Sun, Plane,Bed,Calendar,Camera,MapPin,Heart,ChevronLeft,ChevronRight,Gem, Home, Gift, Headphones, ShieldCheck, Search } from "lucide-react";
+import { ChevronRight, Gem, Home, Gift, Headphones, ShieldCheck } from "lucide-react";
 import MultiCenterSearchBar from "@/components/search/MultiCenterSearchBar";
 import MultiCentreMobileSearch from "@/components/search/MultiCentreMobileSearch";
 import MultiCentreBannerArt from "@/components/search/MultiCentreBannerArt";
-import { ListingPackageCard, ListingPackageCardSkeleton } from "@/components/multi-centre/ListingPackageCard";
-import { ListingSortControl } from "@/components/multi-centre/ListingSortControl";
-import type { McPackageCard } from "@/types/multi-centre";
+import { cleanMonthParam, fetchMultiCentrePackages } from "@/lib/multiCentreServerData";
+import MultiCentreResultsClient from "./components/MultiCentreResultsClient";
+import MultiCentreResultsSkeleton from "./components/MultiCentreResultsSkeleton";
 
-type SearchApiResponse = {
-  success: boolean;
-  total: number;
-  page: number;
-  total_pages: number;
-  limit: number;
+type SearchParams = Record<string, string | string[] | undefined>;
+
+function first(params: SearchParams, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = params[key];
+    const str = Array.isArray(value) ? value[0] : value;
+    if (str) return str;
+  }
+  return "";
+}
+
+type ResultsProps = {
   d: string;
   air: string;
   mon: string;
-  packages: McPackageCard[];
+  sort: string;
+  page: number;
+  destinationTitle: string;
 };
 
-function MultiCentreListing() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+async function MultiCentreResults({ d, air, mon, sort, page, destinationTitle }: ResultsProps) {
+  const { packages, total, totalPages } = await fetchMultiCentrePackages({ d, air, mon, sort, page });
+  return (
+    <MultiCentreResultsClient
+      packages={packages}
+      total={total}
+      totalPages={totalPages}
+      currentPage={page}
+      sort={sort}
+      d={d}
+      air={air}
+      mon={mon}
+      destinationTitle={destinationTitle}
+    />
+  );
+}
 
-  // Read URL query params
-  const destinationParam = searchParams.get("d") || searchParams.get("destination") || "";
-  const airportParam = searchParams.get("air") || searchParams.get("airport") || "";
-  const monthParam = searchParams.get("mon") || searchParams.get("month") || searchParams.get("date") || "";
-  const pageParam = parseInt(searchParams.get("page") || "1", 10);
-  const sortParam = searchParams.get("sort") || "recommended";
+export default async function MultiCentrePage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const d = first(params, "d", "destination");
+  const air = first(params, "air", "airport");
+  const mon = cleanMonthParam(first(params, "mon", "month", "date"));
+  const sort = first(params, "sort") || "recommended";
+  const parsedPage = parseInt(first(params, "page") || "1", 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
 
-  // Component state
-  const [packages, setPackages] = useState<McPackageCard[]>([]);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const [totalPages, setTotalPages] = useState<number>(1);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [sortBy, setSortBy] = useState<string>(sortParam);
-  const [currentPage, setCurrentPage] = useState<number>(pageParam || 1);
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
-
-  const limit = 6;
-
-  // Sync state when URL params change
-  useEffect(() => {
-    setCurrentPage(pageParam || 1);
-    setSortBy(sortParam);
-  }, [pageParam, sortParam]);
-
-  // Fetch packages from backend
-  useEffect(() => {
-    let isMounted = true;
-    setIsLoading(true);
-
-    const query = new URLSearchParams();
-    if (destinationParam) query.set("d", destinationParam);
-    if (airportParam) query.set("air", airportParam);
-    if (monthParam) {
-      const cleanMon = monthParam.replace(/[^0-9]/g, "").slice(0, 6);
-      query.set("mon", cleanMon || monthParam);
-    }
-    query.set("sort", sortBy);
-    query.set("page", String(currentPage));
-    query.set("limit", String(limit));
-
-    fetch(`/api/multicentre-packages?${query.toString()}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}: Failed to fetch packages`);
-        }
-        return res.json();
-      })
-      .then((data: SearchApiResponse) => {
-        if (isMounted && data.success) {
-          setPackages(data.packages || []);
-          setTotalCount(data.total || 0);
-          setTotalPages(data.total_pages || 1);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching multi-centre packages:", err);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [destinationParam, airportParam, monthParam, sortBy, currentPage]);
-
-  const buildSearchUrl = (overrides: { sort?: string; page?: number } = {}) => {
-    const params = new URLSearchParams();
-    if (destinationParam) params.set("d", destinationParam);
-    if (airportParam) params.set("air", airportParam);
-    if (monthParam) {
-      const cleanMon = monthParam.replace(/[^0-9]/g, "").slice(0, 6);
-      params.set("mon", cleanMon || monthParam);
-    }
-    const currentSort = overrides.sort !== undefined ? overrides.sort : sortBy;
-    if (currentSort && currentSort !== "recommended") {
-      params.set("sort", currentSort);
-    }
-    const currentPageNum = overrides.page !== undefined ? overrides.page : currentPage;
-    if (currentPageNum && currentPageNum > 1) {
-      params.set("page", String(currentPageNum));
-    }
-    const qs = params.toString();
-    return qs ? `/multi-centre?${qs}` : "/multi-centre";
-  };
-
-  // Handle Sort Change
-  const handleSortChange = (newSort: string) => {
-    setSortBy(newSort);
-    setCurrentPage(1);
-    router.push(buildSearchUrl({ sort: newSort, page: 1 }));
-  };
-
-  // Handle Page Change
-  const handlePageChange = (newPage: number) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setCurrentPage(newPage);
-    router.push(buildSearchUrl({ page: newPage }));
-    window.scrollTo({ top: 380, behavior: "smooth" });
-  };
-
-  // Toggle Wishlist Heart
-  const toggleWishlist = (slug: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWishlist((prev) => {
-      const next = new Set(prev);
-      if (next.has(slug)) next.delete(slug);
-      else next.add(slug);
-      return next;
-    });
-  };
-
-  // Generate pagination numbers
-  const paginationItems = useMemo(() => {
-    const items: (number | string)[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) items.push(i);
-    } else {
-      items.push(1);
-      if (currentPage > 3) items.push("...");
-
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        items.push(i);
-      }
-
-      if (currentPage < totalPages - 2) items.push("...");
-      items.push(totalPages);
-    }
-    return items;
-  }, [currentPage, totalPages]);
-
-  const destinationTitle = destinationParam
+  const destinationTitle = d
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean)
     .join(" | ") || "All Destinations";
 
+  const resultsKey = new URLSearchParams({ d, air, mon, sort, page: String(page) }).toString();
+
   return (
     <div className="min-h-screen bg-[#fafafa] font-['Montserrat']">
       <section className="sticky z-40 border-b border-gray-100 bg-white lg:hidden" style={{ top: "var(--main-nav-height)" }} >
         <div className="mx-auto w-full max-w-[1440px] px-4">
-          <MultiCentreMobileSearch d={destinationParam} air={airportParam} mon={monthParam} />
+          <MultiCentreMobileSearch d={d} air={air} mon={mon} />
           <div className="flex items-center gap-3 pb-2.5">
             <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
               <ol className="flex min-w-0 items-center gap-1 text-[12px] text-[#4C4C4C]">
@@ -190,7 +88,6 @@ function MultiCentreListing() {
                 </li>
               </ol>
             </nav>
-            <ListingSortControl variant="icon" value={sortBy} onChange={handleSortChange} />
           </div>
         </div>
       </section>
@@ -223,7 +120,7 @@ function MultiCentreListing() {
 
           <div className="flex flex-1 items-center justify-center py-4 sm:py-6">
             <h1 className="max-w-4xl text-center text-2xl font-extrabold leading-[1.15] tracking-tight text-white drop-shadow-md sm:text-3xl lg:text-[38px]">
-              {destinationParam
+              {d
                 ? `Discover More in ${destinationTitle}`
                 : "Discover All Multi-Centre Holidays"}
             </h1>
@@ -235,9 +132,9 @@ function MultiCentreListing() {
           <div className="mx-auto w-full max-w-[1280px]">
             <div className="rounded-[18px] border border-white bg-white p-2 shadow-[0_16px_40px_rgba(0,0,0,0.15)] sm:p-3">
               <MultiCenterSearchBar
-                d={destinationParam}
-                air={airportParam}
-                mon={monthParam}
+                d={d}
+                air={air}
+                mon={mon}
               />
             </div>
           </div>
@@ -247,130 +144,16 @@ function MultiCentreListing() {
       {/* 2. RESULTS CONTAINER */}
       <div className="relative z-10 mx-auto w-full max-w-[1440px] px-[16px] pt-6 pb-16 sm:px-[24px] sm:pt-7 md:px-[32px] lg:px-[40px]">
         <div className="mx-auto w-full max-w-[1280px]">
-        <div className="mb-6 flex flex-col gap-4 border-b border-[#e8e2dc] pb-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center justify-between gap-3 lg:block">
-            <p className="mb-0 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187] lg:mb-2">
-              Multi-centre collection
-            </p>
-            <h2 className="text-right text-[16px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1a1a] lg:text-left lg:text-[32px] xl:text-[36px]">
-              {totalCount} {totalCount === 1 ? "holiday" : "holidays"}
-              {destinationTitle !== "All Destinations" ? (
-                <>
-                  {" "}
-                  in <span className="font-semibold text-[#CB2187]">{destinationTitle}</span>
-                </>
-              ) : (
-                <span className="hidden font-normal text-[#6b6570] lg:inline"> across all destinations</span>
-              )}
-            </h2>
-          </div>
-
-          <div className="hidden lg:block">
-            <ListingSortControl value={sortBy} onChange={handleSortChange} />
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
-            {[1, 2, 3, 4, 5, 6].map((idx) => (
-              <ListingPackageCardSkeleton key={idx} />
-            ))}
-          </div>
-        ) : packages.length === 0 ? (
-          <div className="mx-auto my-16 max-w-xl border border-[#e8e2dc] bg-white px-8 py-14 text-center sm:px-12">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#CB2187]">
-              No matches
-            </p>
-            <h3 className="text-[22px] font-semibold tracking-tight text-[#1a1a1a]">
-              No holidays in this collection
-            </h3>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-[#6b6570]">
-              We couldn&apos;t find packages for &ldquo;{destinationTitle}&rdquo; with your selected airport and dates.
-            </p>
-            <Link
-              href="/multi-centre"
-              className="mt-8 inline-flex items-center gap-2 border border-[#1a1a1a] px-6 py-2.5 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#1a1a1a] transition-colors hover:border-[#CB2187] hover:text-[#CB2187]"
-            >
-              View all multi-centre holidays
-            </Link>
-          </div>
-        ) : (
-          <div className="mb-16 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
-            {packages.map((pkg) => {
-              const params = new URLSearchParams();
-              if (monthParam) {
-                const cleanMon = monthParam.replace(/[^0-9]/g, "").slice(0, 6);
-                params.set("mon", cleanMon || monthParam);
-              }
-              const qs = params.toString();
-              const href = qs ? `/multi-centre/${pkg.slug}?${qs}` : `/multi-centre/${pkg.slug}`;
-
-              return <ListingPackageCard key={pkg.id || pkg.slug} pkg={pkg} href={href} />;
-            })}
-          </div>
-        )}
-
-        {!isLoading && totalPages > 1 && (
-          <div className="mb-16 flex select-none items-center justify-center gap-2">
-            <button
-              type="button"
-              disabled={currentPage <= 1}
-              onClick={() => handlePageChange(currentPage - 1)}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
-                currentPage <= 1
-                  ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
-              }`}
-              aria-label="Previous page"
-            >
-              <ChevronLeft className="h-4 w-4 stroke-[1.8]" />
-            </button>
-
-            {paginationItems.map((item, idx) => {
-              if (item === "...") {
-                return (
-                  <span
-                    key={`ellipsis-${idx}`}
-                    className="flex h-10 w-8 items-center justify-center text-sm text-[#8a8490]"
-                  >
-                    ...
-                  </span>
-                );
-              }
-              const pageNum = Number(item);
-              const isActive = pageNum === currentPage;
-
-              return (
-                <button
-                  key={`page-${pageNum}`}
-                  type="button"
-                  onClick={() => handlePageChange(pageNum)}
-                  className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-sm font-semibold transition-colors ${
-                    isActive
-                      ? "bg-[#CB2187] text-white"
-                      : "border border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
-                  }`}
-                >
-                  {pageNum}
-                </button>
-              );
-            })}
-
-            <button
-              type="button"
-              disabled={currentPage >= totalPages}
-              onClick={() => handlePageChange(currentPage + 1)}
-              className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${
-                currentPage >= totalPages
-                  ? "cursor-not-allowed border-[#ece8e4] text-[#d0cbc4] bg-transparent"
-                  : "cursor-pointer border-[#ece8e4] bg-white text-[#1a1a1a] hover:border-[#CB2187] hover:text-[#CB2187]"
-              }`}
-              aria-label="Next page"
-            >
-              <ChevronRight className="h-4 w-4 stroke-[1.8]" />
-            </button>
-          </div>
-        )}
+        <Suspense key={resultsKey} fallback={<MultiCentreResultsSkeleton />}>
+          <MultiCentreResults
+            d={d}
+            air={air}
+            mon={mon}
+            sort={sort}
+            page={page}
+            destinationTitle={destinationTitle}
+          />
+        </Suspense>
 
         <div className="mt-4 border-t border-[#e8e2dc] pt-12 pb-4">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
@@ -415,19 +198,5 @@ function MultiCentreListing() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function MultiCentrePage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#CB2187]" />
-        </div>
-      }
-    >
-      <MultiCentreListing />
-    </Suspense>
   );
 }

@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { CheckCircle2, Loader2, Mail, X } from "lucide-react";
 import { createIdempotencyKey } from "@/lib/clientIdempotency";
 import { markThankyouUrl, restoreThankyouUrl } from "@/lib/thankyou-url";
+import { isValidPersonName } from "@/lib/utils";
 
 type NewsletterModalProps = {
   open: boolean;
@@ -70,7 +72,11 @@ export default function NewsletterModal({ open, onClose }: NewsletterModalProps)
     const email = fields.email.value.trim();
 
     return {
-      fullName: fullName ? "" : "Full name is required.",
+      fullName: !fullName
+        ? "Full name is required."
+        : isValidPersonName(fullName)
+          ? ""
+          : "Only letters (A–Z), spaces, \".\" and \"-\" are allowed.",
       email: email ? (isValidEmail(email) ? "" : "Please enter a valid email address.") : "Email address is required.",
     };
   }, [fields]);
@@ -104,10 +110,10 @@ export default function NewsletterModal({ open, onClose }: NewsletterModalProps)
     const state = fields[name];
     const err = errors[name];
 
-    if (state.focused) return "border-blue-600";
-    if (state.touched && err) return "border-red-600";
+    if (state.focused) return "border-[#CB2187] ring-2 ring-[#CB2187]/20";
+    if (state.touched && err) return "border-red-500";
     if (state.touched && !err && state.value.trim()) return "border-green-600";
-    return "border-[#9F9F9F]";
+    return "border-gray-200 hover:border-gray-300";
   };
 
   const showError = (name: FieldName) => {
@@ -176,59 +182,77 @@ export default function NewsletterModal({ open, onClose }: NewsletterModalProps)
       <button
         type="button"
         aria-label="Close newsletter signup"
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
         onClick={handleClose}
       />
 
       <div
         role="dialog"
         aria-modal="true"
-        className="relative w-full max-w-[560px] max-h-[calc(100vh-2rem)] bg-white rounded-[4px] overflow-hidden shadow-2xl font-['Montserrat']"
+        aria-labelledby="newsletter-modal-title"
+        className="relative w-full max-w-[480px] max-h-[calc(100vh-2rem)] overflow-y-auto rounded-[18px] border border-gray-100 bg-white p-6 shadow-[0_20px_50px_rgba(30,12,26,0.18)] font-['Montserrat'] sm:p-8"
       >
-        <div className="flex items-center justify-between bg-[#595858] text-white px-4 py-3">
-          <div className="text-[16px] md:text-[18px] font-semibold">Signup &amp; Save</div>
-          <button
-            type="button"
-            onClick={handleClose}
-            className="text-white/90 hover:text-white text-[22px] leading-none"
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-gray-50 text-slate-500 transition-colors hover:bg-[#CB2187]/10 hover:text-[#CB2187]"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-        <div className="p-4 md:p-5 bg-[#F3F3F3] overflow-y-auto">
-          <div className="bg-white rounded-[4px] p-4">
-            <div className="flex items-center justify-between text-[#4C4C4C] text-[14px] font-semibold mb-3">
-              Newsletter signup
+        {submitted ? (
+          <div className="pt-2 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-green-600">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <h2 id="newsletter-modal-title" className="text-[22px] font-semibold text-[#4c4c4c]">
+              You’re subscribed!
+            </h2>
+            <p className="mt-2 text-[14px] leading-[22px] text-[#7C7C7C]">
+              Thank you. You’ll now receive our weekly offers.
+            </p>
+            <button
+              type="button"
+              onClick={handleClose}
+              className="mt-6 w-full rounded-xl bg-pml-primary py-3.5 text-[14px] font-semibold text-white transition-all duration-200 hover:bg-pink-800"
+            >
+              Close
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-6 pr-8">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#CB2187]/10 text-[#CB2187]">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <h2 id="newsletter-modal-title" className="text-[22px] font-semibold leading-tight text-[#4c4c4c] sm:text-[26px]">
+                  Signup &amp; Save
+                </h2>
+              </div>
+              <p className="mt-2 text-[14px] leading-[22px] text-[#7C7C7C]">
+                Get exclusive deals, free extras and flash sales sent straight to your inbox.
+              </p>
             </div>
 
-            {submitted ? (
-              <div className="rounded-[4px] border border-green-600 bg-green-50 p-4 text-[#4C4C4C]">
-                <div className="font-semibold">You’re subscribed!</div>
-                <div className="text-sm mt-1">Thank you. You’ll now receive our weekly offers.</div>
-
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="mt-4 w-full bg-pml-primary hover:bg-pink-800 text-white font-semibold py-3 rounded-[8px] transition-all duration-200 text-[16px]"
-                >
-                  Close
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 {submitError ? (
-                  <div className="rounded-[4px] border border-red-600 bg-red-50 p-3 text-[13px] text-red-700">
+                  <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-700">
                     {submitError}
                   </div>
                 ) : null}
 
                 <div>
+                  <label htmlFor="newsletter-full-name" className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Full name
+                  </label>
                   <input
+                    id="newsletter-full-name"
                     type="text"
-                    placeholder="Full name"
-                    className={`w-full bg-white px-3 py-3 text-[14px] outline-none border ${getBorderClass(
+                    autoComplete="name"
+                    placeholder="Your full name"
+                    className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] font-medium text-gray-800 outline-none transition-all placeholder:font-normal placeholder:text-gray-400 ${getBorderClass(
                       "fullName"
                     )}`}
                     value={fields.fullName.value}
@@ -240,17 +264,20 @@ export default function NewsletterModal({ open, onClose }: NewsletterModalProps)
                     }}
                   />
                   {showError("fullName") && (
-                    <div className="mt-2 inline-block bg-red-600 text-white text-[12px] px-3 py-2 rounded-[2px]">
-                      {errors.fullName}
-                    </div>
+                    <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.fullName}</p>
                   )}
                 </div>
 
                 <div>
+                  <label htmlFor="newsletter-email" className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                    Email address
+                  </label>
                   <input
+                    id="newsletter-email"
                     type="email"
-                    placeholder="Email address"
-                    className={`w-full bg-white px-3 py-3 text-[14px] outline-none border ${getBorderClass(
+                    autoComplete="email"
+                    placeholder="you@example.com"
+                    className={`w-full rounded-xl border bg-white px-4 py-3 text-[14px] font-medium text-gray-800 outline-none transition-all placeholder:font-normal placeholder:text-gray-400 ${getBorderClass(
                       "email"
                     )}`}
                     value={fields.email.value}
@@ -262,23 +289,31 @@ export default function NewsletterModal({ open, onClose }: NewsletterModalProps)
                     }}
                   />
                   {showError("email") && (
-                    <div className="mt-2 inline-block bg-red-600 text-white text-[12px] px-3 py-2 rounded-[2px]">
-                      {errors.email}
-                    </div>
+                    <p className="mt-1.5 text-[12px] font-medium text-red-600">{errors.email}</p>
                   )}
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-pml-primary hover:bg-pink-800 text-white font-semibold py-3 rounded-[8px] transition-all duration-200 text-[16px] disabled:opacity-60"
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-pml-primary py-3.5 text-[14px] font-semibold text-white shadow-sm transition-all duration-200 hover:bg-pink-800 disabled:cursor-not-allowed disabled:opacity-60"
                   disabled={!canSubmit || submitting}
                 >
-                  {submitting ? "Submitting…" : "Submit"}
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Subscribing…
+                    </>
+                  ) : (
+                    "Sign me up"
+                  )}
                 </button>
+
+                <p className="text-center text-[11px] leading-[16px] text-gray-400">
+                  We respect your privacy. Unsubscribe at any time.
+                </p>
               </form>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

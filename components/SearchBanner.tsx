@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { GitBranch, Plane } from "lucide-react";
 import SearchBar from "./search/searchbar";
 import MultiCenterSearchBar from "./search/MultiCenterSearchBar";
+import TrustBadges from "./search/TrustBadges";
  
 const FALLBACK_HERO_IMAGE = "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=2500&q=80%22";
  
@@ -59,7 +60,7 @@ export function Banner({
   return (
     <div data-testid="home-page" className="relative w-screen left-[50%] right-[50%] ml-[-50vw] mr-[-50vw] font-['Montserrat']">
       {/* Hero Section */}
-      <section className="relative h-[300px] md:h-[480px] w-full overflow-hidden flex items-start justify-center">
+      <section className="relative h-[300px] md:h-[496px] w-full overflow-hidden flex items-start justify-center">
         {/* Background Image */}
         <Image
           src={heroImageSrc}
@@ -95,14 +96,14 @@ export function Banner({
       </section>
  
       {/* Floating Search Tabs Section */}
-      <div className="relative z-20 mx-auto -mt-36 sm:-mt-44 md:-mt-52 mb-10 md:mb-16 max-w-[1380px] px-4 sm:px-6 lg:px-8">
+      <div className="relative z-20 mx-auto -mt-36 sm:-mt-44 md:-mt-[248px] mb-10 md:mb-16 max-w-[1360px] px-[16px] sm:px-[24px] md:px-[32px] lg:px-[40px]">
         {showFlightsTab ? (
           <div className="relative z-20 mb-3 sm:mb-4 flex justify-center">
-            <div className="isolate relative inline-flex h-[46px] items-center gap-1.5 rounded-[12px] border border-white/20 bg-black/40 p-1.5 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] backdrop-blur-[12px]">
+            <div className="isolate relative inline-flex h-[46px] items-stretch overflow-hidden rounded-[12px] border border-white/20 bg-black/40 shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] backdrop-blur-[12px]">
               <button
                 type="button"
                 onClick={() => handleTabClick("packages")}
-                className={`z-[1] flex h-8 cursor-pointer items-center gap-2 whitespace-nowrap rounded-[12px] px-4 py-2 text-xs uppercase leading-4 tracking-[0.6px] transition-colors focus:outline-none ${
+                className={`z-[1] flex h-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-[11px] px-5 text-xs uppercase leading-4 tracking-[0.6px] transition-colors focus:outline-none ${
                   activeTab === "packages"
                     ? "bg-pml-primary font-bold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
                     : "bg-transparent font-semibold text-white/80 hover:text-white"
@@ -115,7 +116,7 @@ export function Banner({
               <button
                 type="button"
                 onClick={() => handleTabClick("multi-center")}
-                className={`z-[2] flex h-8 cursor-pointer items-center gap-2 whitespace-nowrap rounded-[12px] px-4 py-2 text-xs uppercase leading-4 tracking-[0.6px] transition-colors focus:outline-none ${
+                className={`z-[2] flex h-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-[11px] px-5 text-xs uppercase leading-4 tracking-[0.6px] transition-colors focus:outline-none ${
                   activeTab === "multi-center"
                     ? "bg-pml-primary font-bold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
                     : "bg-transparent font-semibold text-white/80 hover:text-white"
@@ -130,7 +131,7 @@ export function Banner({
 
         {/* Search Bar Container Card */}
         <div className="relative z-30">
-          <div className="relative flex w-full min-h-[76px] items-center overflow-visible rounded-[18px] border border-gray-100/90 bg-white p-2 shadow-[0_16px_40px_rgba(0,0,0,0.08)] sm:min-h-[88px] sm:p-3">
+          <div className="relative flex w-full min-h-[76px] flex-col justify-center overflow-visible rounded-[18px] border border-gray-100/90 bg-white p-2 shadow-[0_16px_40px_rgba(0,0,0,0.08)] sm:min-h-[88px] sm:p-3">
             {activeTab === "packages" ? (
               <div className="w-full min-w-0">
                 <SearchBar initialDest={initialDest} disablePrefill={disablePrefill} />
@@ -142,6 +143,8 @@ export function Banner({
                 <MultiCenterSearchBar />
               </div>
             ) : null}
+
+            <TrustBadges />
           </div>
         </div>
       </div>

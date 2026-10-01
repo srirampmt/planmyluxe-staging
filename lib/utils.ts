@@ -89,3 +89,8 @@ export function attachCurrentPageToWhatsAppHref(event: {
   event.currentTarget.href = getWhatsAppUrl(options);
 }
 
+
+// Person names: letters A-Z (any case), "." and "-" only, words separated by spaces.
+export function isValidPersonName(value: string): boolean {
+  return /^[A-Za-z.-]+(?: +[A-Za-z.-]+)*$/.test(value.trim());
+}

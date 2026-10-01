@@ -12,6 +12,7 @@ import {
   isAntiSpamEnabled,
 } from "@/lib/antiSpam";
 import { proxyToBackend } from "@/lib/backendProxy";
+import { isValidPersonName } from "@/lib/utils";
 
 export async function POST(req: Request) {
   const rawBody = await req.text();
@@ -24,6 +25,13 @@ export async function POST(req: Request) {
 
   if (!data || typeof data !== "object") {
     return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
+  }
+
+  if (typeof data.fullName !== "string" || !isValidPersonName(data.fullName)) {
+    return NextResponse.json(
+      { error: 'Full name can only contain letters (A–Z), spaces, "." and "-".' },
+      { status: 400 },
+    );
   }
 
   if (isAntiSpamEnabled()) {

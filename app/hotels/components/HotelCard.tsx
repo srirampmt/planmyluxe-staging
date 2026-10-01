@@ -185,13 +185,13 @@ function OfferBanner({ label, saveAmount }: { label: string; saveAmount: number 
   );
 }
 
-function ContactButtons({ source }: { source?: string }) {
+function ContactButtons({ source, contextLine }: { source?: string; contextLine?: string }) {
   const { phoneDisplay, phoneTel } = useUtmPhone();
   return (
     <>
       <a
-        href={getWhatsAppUrl({ source })}
-        onClick={(e) => { e.stopPropagation(); attachCurrentPageToWhatsAppHref(e, { source }); }}
+        href={getWhatsAppUrl({ source, contextLine })}
+        onClick={(e) => { e.stopPropagation(); attachCurrentPageToWhatsAppHref(e, { source, contextLine }); }}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat on WhatsApp"
@@ -461,12 +461,6 @@ export default function HotelCard({ hotel, index, isHighlighted }: HotelCardProp
             {hotel.hotelName || hotel.hotel_name}
           </h3>
 
-          {hotel.quoteReference && (
-            <div className="mb-2 text-[12px] font-semibold text-gray-500">
-              Quote Ref: {hotel.quoteReference}
-            </div>
-          )}
-
           <div className="grid grid-cols-2 gap-2 sm:gap-x-6 sm:gap-y-2.5">
             <FeatureChips
               nights={resolvedNights}
@@ -494,16 +488,23 @@ export default function HotelCard({ hotel, index, isHighlighted }: HotelCardProp
 
           <div className="flex w-full flex-col items-stretch gap-3 sm:items-end">
             <div className="flex w-full items-center justify-between gap-3 sm:block sm:text-right">
-              {price > 0 && (
-                <PriceSection price={price} oldPrice={oldPrice} tax={hotel.tax} />
-              )}
+              <div className="flex flex-col sm:items-end">
+                {hotel.quoteReference && (
+                  <div className="mb-1 text-[11px] font-medium text-slate-500">
+                    Quote Ref: <span className="font-semibold text-slate-700">{hotel.quoteReference}</span>
+                  </div>
+                )}
+                {price > 0 && (
+                  <PriceSection price={price} oldPrice={oldPrice} tax={hotel.tax} />
+                )}
+              </div>
               <div className="flex flex-shrink-0 items-center gap-2 sm:hidden">
-                <ContactButtons source={hotel.hotelName || hotel.hotel_name} />
+                <ContactButtons source={hotel.hotelName || hotel.hotel_name} contextLine={hotel.quoteReference} />
               </div>
             </div>
             <div className="flex w-full min-w-0 items-center gap-2">
               <div className="hidden flex-shrink-0 items-center gap-2 sm:flex">
-                <ContactButtons source={hotel.hotelName || hotel.hotel_name} />
+                <ContactButtons source={hotel.hotelName || hotel.hotel_name} contextLine={hotel.quoteReference} />
               </div>
               <a href={href}
                 className={`inline-flex min-w-0 w-full sm:w-auto sm:flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-[12px] bg-pml-primary px-4 py-2.5 text-[13px] font-semibold text-white shadow-lg sm:text-[14px] ${isOffer ? "shadow-pink-500/25" : "shadow-slate-900/20"} hover:bg-[#b01b74] hover:-translate-y-px hover:shadow-[0_4px_10px_rgba(203,33,135,0.2)] transition-all cursor-pointer`}

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin, Star } from "lucide-react";
+import { CircleChevronRight, Star } from "lucide-react";
 
 import {
   Carousel,
@@ -13,6 +13,12 @@ import type { DestinationHotel } from "@/types/destinationHotels";
 
 const PLACEHOLDER_IMAGE =
   "https://planmylux.s3.eu-west-2.amazonaws.com/placeholder.webp";
+
+function durationMin(apiUrl?: string | null): number | null {
+  const match = String(apiUrl ?? "").match(/(?:^|[?&])durationMin=(\d+)/);
+  const value = match ? Number.parseInt(match[1], 10) : NaN;
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
 
 function HotelCard({
   hotel,
@@ -28,84 +34,72 @@ function HotelCard({
   const freeAddon = hotel.addons.find(
     (addon) => addon.price?.trim().toLowerCase() === "free",
   );
-  const badge =
-    hotel.offer_on_card ||
-    (hotel.offer_mode && hotel.saveuptotext
-      ? `Save up to ${hotel.saveuptotext}%`
-      : hotel.holiday_styles[0]?.label || "Preferred");
   const price = Number(hotel.display_starting_price || 0);
+  const nights = durationMin(hotel.api_url) ?? 7;
+  const summary = freeAddon?.title
+    ? `Free ${freeAddon.title}`
+    : hotel.info_paragraph || hotel.intro_text || "";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[8px] border border-gray-200/80 bg-white shadow-[0_8px_24px_-16px_rgba(0,0,0,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_-16px_rgba(0,0,0,0.35)]">
-      <div className="relative h-[190px] overflow-hidden bg-gray-100">
+    <Link
+      href={`/hotels/${hotel.slug}`}
+      className="group flex h-full w-[260px] flex-col overflow-hidden rounded-[12px] border border-[#ececec] bg-white shadow-[0_6px_20px_-12px_rgba(0,0,0,0.18)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_32px_-16px_rgba(203,33,135,0.35)] focus:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary sm:w-[280px]"
+    >
+      <div className="relative h-[160px] shrink-0 overflow-hidden bg-[#f5f5f5]">
         <Image
           src={hotel.card_image || PLACEHOLDER_IMAGE}
           alt={`${hotel.name} in ${destinationName}`}
           fill
-          sizes="(max-width: 640px) 88vw, (max-width: 1280px) 50vw, 430px"
+          sizes="280px"
           className="object-cover transition duration-500 group-hover:scale-105"
         />
-        {badge ? (
-          <span className="absolute left-3 top-3 max-w-[80%] rounded-full bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-pml-primary shadow-sm">
-            {badge}
-          </span>
-        ) : null}
       </div>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col px-3 pb-3 pt-2">
+        <p className="line-clamp-1 min-h-[20px] text-[13px] font-semibold leading-5 text-[#4c4c4c]">
+          {hotel.location || destinationName}
+        </p>
+
         <div
-          className="flex items-center gap-0.5 text-pml-primary"
+          className="mt-1 flex items-center gap-0.5 text-pml-primary"
           aria-label={`${rating} star hotel`}
         >
           {Array.from({ length: 5 }).map((_, index) => (
             <Star
               key={index}
-              className={`h-3.5 w-3.5 ${
-                index < rating ? "fill-current" : "text-gray-300"
+              className={`h-4 w-4 ${
+                index < rating ? "fill-current" : "fill-[#E0E0E0] text-[#E0E0E0]"
               }`}
               aria-hidden="true"
             />
           ))}
         </div>
 
-        <h3 className="mt-2 text-[18px] font-semibold leading-6 text-[#1a1a1a]">
+        <h3 className="mt-1 truncate text-[16px] font-semibold leading-6 text-pml-primary">
           {hotel.name}
         </h3>
-        {hotel.location ? (
-          <p className="mt-1 flex items-start gap-1.5 text-[12px] leading-5 text-[#667085]">
-            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pml-primary" />
-            {hotel.location}
+
+        {summary ? (
+          <p className="mt-1.5 flex min-h-[40px] items-center justify-center rounded-[8px] border border-[#e4e4e4] bg-[#f3f3f3] px-3 py-1 text-center text-[11.5px] font-medium leading-[17px] text-[#4c4c4c]">
+            <span className="line-clamp-2">{summary}</span>
           </p>
         ) : null}
 
-        {freeAddon?.title ? (
-          <p className="mt-3 rounded-[8px] bg-[#FBE8F4] px-3 py-2 text-[11px] font-semibold text-[#4c4c4c]">
-            Free {freeAddon.title}
-          </p>
-        ) : hotel.intro_text ? (
-          <p className="mt-3 line-clamp-2 text-[11px] leading-5 text-[#667085]">
-            {hotel.intro_text}
-          </p>
-        ) : null}
-
-        <div className="mt-auto flex items-end justify-between gap-3 border-t border-gray-100 pt-4">
-          <p className="text-[12px] leading-4 text-[#667085]">
-            From
-            <span className="ml-1 text-[20px] font-bold text-pml-primary">
+        <div className="mt-auto flex items-center justify-end gap-1.5 pt-2 text-[13px] text-[#4c4c4c] sm:text-[14px]">
+          <span className="whitespace-nowrap">
+            {nights} nights from{" "}
+            <span className="text-[16px] font-semibold text-pml-primary">
               £{price.toLocaleString("en-GB", { maximumFractionDigits: 0 })}
-            </span>
-            <span className="block">per person</span>
-          </p>
-          <Link
-            href={`/hotels/${hotel.slug}`}
-            className="inline-flex items-center gap-1 rounded-[8px] bg-pml-primary px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#a81970] focus:outline-none focus:ring-2 focus:ring-pml-primary focus:ring-offset-2"
-          >
-            View hotel
-            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </Link>
+            </span>{" "}
+            per person
+          </span>
+          <CircleChevronRight
+            className="h-5 w-5 shrink-0 text-pml-primary transition-transform group-hover:translate-x-0.5"
+            aria-hidden="true"
+          />
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -127,39 +121,36 @@ export default function DestinationHotelCarousel({
   return (
     <section
       id={id}
-      className="scroll-mt-28 rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6 md:p-8"
+      className="scroll-mt-28 rounded-[8px] border border-gray-200/80 bg-white p-4 shadow-sm sm:p-5 md:p-6"
     >
-      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-pml-primary">
-        Hotel collection
-      </p>
-      <h2 className="mt-2 text-[24px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1a1a] md:text-[32px]">
-        {title}
-      </h2>
-      {description ? (
-        <p className="mt-3 max-w-3xl text-[14px] leading-6 text-[#5c6370] md:text-[15px]">
-          {description}
-        </p>
-      ) : null}
+      <Carousel opts={{ align: "start", loop: false }} aria-label={title}>
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-[20px] font-semibold leading-tight tracking-[-0.02em] text-[#1a1a1a] md:text-[24px]">
+              {title}
+            </h2>
+            {description ? (
+              <p className="mt-1 line-clamp-1 text-[13px] leading-5 text-[#5c6370]">
+                {description}
+              </p>
+            ) : null}
+          </div>
+          <div className="hidden shrink-0 gap-2 sm:flex">
+            <CarouselPrevious className="static h-8 w-8 translate-y-0" />
+            <CarouselNext className="static h-8 w-8 translate-y-0" />
+          </div>
+        </div>
 
-      <Carousel
-        opts={{ align: "start", loop: false }}
-        className="mt-6"
-        aria-label={title}
-      >
-        <CarouselContent className="-ml-3">
+        <CarouselContent className="-ml-4 mt-3 py-1">
           {hotels.map((hotel) => (
             <CarouselItem
               key={hotel.slug}
-              className="basis-[88%] pl-3 sm:basis-1/2"
+              className="basis-auto pl-4"
             >
               <HotelCard hotel={hotel} destinationName={destinationName} />
             </CarouselItem>
           ))}
         </CarouselContent>
-        <div className="mt-4 flex justify-end gap-2">
-          <CarouselPrevious className="static translate-y-0" />
-          <CarouselNext className="static translate-y-0" />
-        </div>
       </Carousel>
     </section>
   );

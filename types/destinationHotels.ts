@@ -99,12 +99,28 @@ export type DestinationHotelsMetadata = {
   generated_at: string;
 };
 
+export type DestinationPageTab = {
+  key: "hotels" | "places-to-visit" | "things-to-do" | "best-time-to-visit";
+  label: string;
+  path: string;
+  active: boolean;
+};
+
+export type DestinationHotelArea = {
+  name: string;
+  level: "region" | "resort";
+  path: string;
+  children: DestinationHotelArea[];
+};
+
 export type DestinationHotelsResponse = {
   success: boolean;
   source: "cms" | "hierarchy";
   destination: DestinationHotelsDestination;
   content?: DestinationHotelsContent | null;
   faqs: DestinationHotelsFaq[];
+  tabs?: DestinationPageTab[];
+  areas?: DestinationHotelArea[];
   hotels: DestinationHotel[];
   sections: DestinationHotelSection[];
   metadata: DestinationHotelsMetadata;

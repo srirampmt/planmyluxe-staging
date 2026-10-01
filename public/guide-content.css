@@ -1,0 +1,255 @@
+/*
+ * Destination guide page body (Places to visit, Things to do, Best time to visit).
+ *
+ * Loaded in two places so both render identically:
+ *   - the website, around the sanitised body: <div class="guide-content">
+ *   - the dashboard CKEditor, via contentsCss with bodyClass "guide-content"
+ *
+ * Tailwind's preflight resets headings, lists, borders and images on the website but
+ * is absent in the editor, so every property it touches is set explicitly here.
+ */
+
+.guide-content {
+  max-width: 880px;
+  margin: 0 auto;
+  font-family: var(--font-montserrat, "Montserrat"), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #4c4c4c;
+  overflow-wrap: break-word;
+  text-align: left;
+}
+
+/* Editor only: the editing iframe's <body> carries the class. */
+body.guide-content {
+  box-sizing: content-box;
+  padding: 20px;
+  background: #fff;
+}
+
+.guide-content *,
+.guide-content *::before,
+.guide-content *::after {
+  box-sizing: border-box;
+}
+
+.guide-content::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Text */
+.guide-content p {
+  margin: 0 0 1em;
+}
+
+.guide-content h2,
+.guide-content h3,
+.guide-content h4 {
+  color: #1f2937;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.6em 0 0.6em;
+}
+
+.guide-content h2 { font-size: 28px; }
+.guide-content h3 { font-size: 22px; }
+.guide-content h4 { font-size: 18px; }
+
+.guide-content > :first-child {
+  margin-top: 0;
+}
+
+.guide-content strong,
+.guide-content b {
+  font-weight: 700;
+}
+
+.guide-content em,
+.guide-content i {
+  font-style: italic;
+}
+
+.guide-content u {
+  text-decoration: underline;
+}
+
+.guide-content s,
+.guide-content strike {
+  text-decoration: line-through;
+}
+
+.guide-content sub,
+.guide-content sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.guide-content sub { bottom: -0.25em; }
+.guide-content sup { top: -0.5em; }
+
+.guide-content a {
+  color: #CB2187;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.guide-content a:hover {
+  color: #a3186b;
+}
+
+/* Anchors added with the Anchor tool have a name/id but no href. */
+.guide-content a:not([href]) {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+/* Lists */
+.guide-content ul,
+.guide-content ol {
+  margin: 0 0 1em;
+  padding-left: 1.6em;
+}
+
+.guide-content ul { list-style: disc; }
+.guide-content ol { list-style: decimal; }
+.guide-content ul ul { list-style: circle; }
+.guide-content ul ul ul { list-style: square; }
+.guide-content ol ol { list-style: lower-alpha; }
+.guide-content ol ol ol { list-style: lower-roman; }
+
+.guide-content li {
+  margin: 0 0 0.35em;
+}
+
+.guide-content li > ul,
+.guide-content li > ol {
+  margin: 0.35em 0 0;
+}
+
+/* Blocks */
+.guide-content blockquote {
+  margin: 1.5em 0;
+  padding: 0.75em 1.25em;
+  border: 0;
+  border-left: 4px solid #CB2187;
+  background: #fdf2f8;
+  color: #374151;
+  font-style: italic;
+}
+
+.guide-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.guide-content hr {
+  height: 0;
+  margin: 2em 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  color: inherit;
+}
+
+/* Images: CKEditor writes width, height and float as inline styles. */
+.guide-content img {
+  display: inline;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  border: 0;
+}
+
+.guide-content img[style*="float:left"],
+.guide-content img[style*="float: left"] {
+  margin: 0.25em 1.25em 1em 0;
+}
+
+.guide-content img[style*="float:right"],
+.guide-content img[style*="float: right"] {
+  margin: 0.25em 0 1em 1.25em;
+}
+
+/* Embeds (YouTube, Google Maps) */
+.guide-content iframe {
+  display: inline-block;
+  max-width: 100%;
+  border: 0;
+  vertical-align: middle;
+}
+
+/* Tables: honour the border attribute that Tailwind's border reset would remove. */
+.guide-content table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  margin: 0 0 1.25em;
+  max-width: 100%;
+  text-indent: 0;
+  font-size: 15px;
+}
+
+.guide-content table[align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.guide-content table[border]:not([border="0"]),
+.guide-content table[border]:not([border="0"]) > * > tr > th,
+.guide-content table[border]:not([border="0"]) > * > tr > td {
+  border: 1px solid #d1d5db;
+  border-style: solid;
+}
+
+.guide-content table:not([cellpadding]) th,
+.guide-content table:not([cellpadding]) td {
+  padding: 8px 10px;
+}
+
+.guide-content th,
+.guide-content td {
+  vertical-align: top;
+}
+
+.guide-content th {
+  background: #fdf2f8;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.guide-content caption {
+  caption-side: top;
+  padding: 0 0 0.5em;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Website only: tables are wrapped by the sanitiser so they scroll on small screens. */
+.guide-content .guide-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 0 1.25em;
+}
+
+.guide-content .guide-table-scroll > table {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .guide-content {
+    font-size: 15px;
+  }
+
+  .guide-content h2 { font-size: 24px; }
+  .guide-content h3 { font-size: 20px; }
+  .guide-content h4 { font-size: 17px; }
+
+  .guide-content img[style*="float"] {
+    float: none !important;
+    display: block;
+    margin: 0 auto 1em;
+  }
+}

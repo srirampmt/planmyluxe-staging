@@ -3,6 +3,7 @@
 import React, { useState, Fragment } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { renderInlineLinks } from "@/lib/inlineLinks";
 
 interface Crumb {
   name: string;
@@ -79,7 +80,7 @@ export default function IntroDescription({
               <>
                 {line1 && (
                   <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
-                    {line1}
+                    {renderInlineLinks(line1)}
                   </p>
                 )}
 
@@ -87,12 +88,12 @@ export default function IntroDescription({
                   <div className="space-y-4 transition-all duration-300 ease-in-out">
                     {line2 && (
                       <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
-                        {line2}
+                        {renderInlineLinks(line2)}
                       </p>
                     )}
                     {line3 && (
                       <p className="text-[15px] md:text-[16px] leading-7 text-[#4c4c4c] font-normal w-full">
-                        {line3}
+                        {renderInlineLinks(line3)}
                       </p>
                     )}
                   </div>

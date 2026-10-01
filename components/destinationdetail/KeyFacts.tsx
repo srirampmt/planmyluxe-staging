@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Plane, Clock, Wallet, Languages } from "lucide-react";
+import { Plane, Clock, Wallet, MessagesSquare } from "lucide-react";
 
 export interface KeyFactField {
   value?: string;
@@ -113,8 +113,8 @@ export default function KeyFacts({
       label: "Language",
       value: languageFact.value,
       detail: languageFact.detail,
-      icon: <Languages size={18} className="stroke-[1.9]" />,
-      watermark: <Languages size={88} className="stroke-[1.2]" />,
+      icon: <MessagesSquare size={18} className="stroke-[1.9]" />,
+      watermark: <MessagesSquare size={88} className="stroke-[1.2]" />,
       tone: "bg-[#FDF2F8] text-[#BE185D]",
       wash: "text-[#BE185D]",
     },

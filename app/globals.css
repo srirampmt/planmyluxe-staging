@@ -55,6 +55,25 @@ html, body {
 	background-color: #aaa;
 }
 
+/* Scrollbar hidden at rest, shown while hovering the scroll container */
+.scroll-on-hover {
+	scrollbar-width: thin;
+	scrollbar-color: transparent transparent;
+}
+.scroll-on-hover:hover {
+	scrollbar-color: #c4c4c4 transparent;
+}
+.scroll-on-hover::-webkit-scrollbar {
+	width: 6px;
+}
+.scroll-on-hover::-webkit-scrollbar-thumb {
+	background-color: transparent;
+	border-radius: 3px;
+}
+.scroll-on-hover:hover::-webkit-scrollbar-thumb {
+	background-color: #c4c4c4;
+}
+
 .scroll-visible {
 	scrollbar-width: thin;
 	scrollbar-color: #aaa transparent;

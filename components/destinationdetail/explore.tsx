@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ArrowRight, Download } from "lucide-react";
+import { renderInlineLinks } from "@/lib/inlineLinks";
 
 export interface ExploreProps {
   explore_title_1?: string;
@@ -196,8 +197,13 @@ export default function Explore(props: ExploreProps) {
                         <h3 className="font-['Montserrat'] text-[15px] md:text-[16px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 group-hover:text-[var(--brand-primary)] transition-colors">
                           {item.title}
                         </h3>
-                        <p className="font-['Montserrat'] text-[14px] md:text-[15px] font-normal text-[#4c4c4c] leading-6 line-clamp-2">
-                          {item.description}
+                        <p
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest("a")) e.stopPropagation();
+                          }}
+                          className="font-['Montserrat'] text-[14px] md:text-[15px] font-normal text-[#4c4c4c] leading-6 line-clamp-2"
+                        >
+                          {renderInlineLinks(item.description)}
                         </p>
                         <button
                           onClick={(e) => {
@@ -312,7 +318,7 @@ export default function Explore(props: ExploreProps) {
                 </div>
 
                 <p className="text-[#4c4c4c] text-[15px] sm:text-[17px] leading-[26px] sm:leading-[32px] font-normal whitespace-pre-line">
-                  {activeModalItem?.description}
+                  {renderInlineLinks(activeModalItem?.description)}
                 </p>
               </div>
             </div>
@@ -355,7 +361,7 @@ export default function Explore(props: ExploreProps) {
                   {activeModalItem.title}
                 </h3>
                 <p className="text-[#4c4c4c] text-[14px] sm:text-[15px] leading-[24px] sm:leading-[26px] font-normal whitespace-pre-line">
-                  {activeModalItem.description}
+                  {renderInlineLinks(activeModalItem.description)}
                 </p>
               </div>
             </div>

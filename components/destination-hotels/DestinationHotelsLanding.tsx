@@ -2,12 +2,22 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, BedDouble, Download, Search } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Download,
+  Gift,
+  MapPin,
+  MessageSquare,
+  Sparkles,
+} from "lucide-react";
 
 import SearchBanner from "@/components/SearchBanner";
+import DestinationGuideTabs from "@/components/destination-guides/DestinationGuideTabs";
 import BookingConfidence from "@/components/destinationdetail/BookingConfidence";
 import DestinationHotelCarousel from "@/components/destination-hotels/DestinationHotelCarousel";
 import HotelSignupCard from "@/components/destination-hotels/HotelSignupCard";
+import EnquiryForm from "@/components/hotels/EnquiryForm";
 import FAQs from "@/components/faqs";
 import JsonLd from "@/components/seo/JsonLd";
 import SeoHeadScripts from "@/components/seo/SeoHeadScripts";
@@ -16,6 +26,7 @@ import { buildMetadataFromSeo } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
 import type {
   DestinationHotel,
+  DestinationHotelArea,
   DestinationHotelsDestination,
   DestinationHotelsResponse,
 } from "@/types/destinationHotels";
@@ -32,66 +43,14 @@ export type DestinationHotelsPageProps = {
 
 type DestinationLevel = "country" | "region" | "resort";
 
-type AreaCard = {
-  name: string;
-  description: string;
-  image: string;
-};
-
 const HERO_IMAGE =
   "https://images.unsplash.com/photo-1602002418082-a4443e081dd1?auto=format&fit=crop&w=1800&q=85";
 
 const BROCHURE_URL =
   "https://accelerate-digital.paperturn-view.com/?pid=ODg8871976&v=8.5&p=1&source=qr";
 
-const AREA_IMAGES = [
-  "https://images.unsplash.com/photo-1602002418082-a4443e081dd1?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1544986581-efac024faf62?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?auto=format&fit=crop&w=900&q=80",
-];
-
-const TURKEY_AREAS: Record<DestinationLevel, string[]> = {
-  country: ["Antalya", "Belek", "Bodrum", "Fethiye", "Marmaris", "Istanbul"],
-  region: ["Belek", "Lara Beach", "Side", "Kemer", "Alanya", "Kaş"],
-  resort: [
-    "Beachfront resorts",
-    "Golf hotels",
-    "Family resorts",
-    "Adults-only stays",
-    "Spa retreats",
-    "All-inclusive hotels",
-  ],
-};
-
-const GENERIC_AREAS: Record<DestinationLevel, string[]> = {
-  country: [
-    "Coastal escapes",
-    "City stays",
-    "Island retreats",
-    "Historic hotels",
-    "Family resorts",
-    "Boutique stays",
-  ],
-  region: [
-    "Beachfront stays",
-    "Town-centre hotels",
-    "Family resorts",
-    "Quiet retreats",
-    "Spa hotels",
-    "All-inclusive stays",
-  ],
-  resort: [
-    "Near the beach",
-    "Near the old town",
-    "Family-friendly stays",
-    "Couples' retreats",
-    "Spa hotels",
-    "All-inclusive hotels",
-  ],
-};
+const BROCHURE_COVER =
+  "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=600&q=80";
 
 const NAME_OVERRIDES: Record<string, string> = {
   "balearic-islands": "Balearic Islands",
@@ -163,25 +122,6 @@ function getDestinationContext(
   };
 }
 
-function buildAreaCards(
-  level: DestinationLevel,
-  countrySlug: string
-): AreaCard[] {
-  const names =
-    countrySlug.toLowerCase() === "turkey"
-      ? TURKEY_AREAS[level]
-      : GENERIC_AREAS[level];
-
-  return names.map((name, index) => ({
-    name,
-    description:
-      level === "resort"
-        ? "Explore handpicked hotels for this style of stay."
-        : "Discover luxury hotels, package offers and tailored escapes.",
-    image: AREA_IMAGES[index],
-  }));
-}
-
 function getLevelCopy(level: DestinationLevel, destinationName: string) {
   if (level === "country") {
     return {
@@ -189,7 +129,7 @@ function getLevelCopy(level: DestinationLevel, destinationName: string) {
       intro: `${destinationName} brings together luxurious beach resorts, characterful city hotels and relaxing all-inclusive stays. Compare locations, hotel styles and holiday experiences before choosing the right escape.`,
       introMore: `When comparing hotels in ${destinationName}, look beyond the star rating. The location, room category, board basis, included facilities and airport transfer time can all shape the experience and total holiday price.`,
       areaTitle: `Where to stay in ${destinationName}`,
-      areaIntro: `Explore popular places and hotel styles across ${destinationName}.`,
+      areaIntro: `Browse hotels in every region and resort across ${destinationName}.`,
     };
   }
 
@@ -198,8 +138,8 @@ function getLevelCopy(level: DestinationLevel, destinationName: string) {
       eyebrow: "Regional hotel guide",
       intro: `${destinationName} offers a varied collection of luxury hotels, from beachfront resorts to smaller stays close to local attractions. Compare the areas, facilities and board options that suit your trip.`,
       introMore: `Choose your base in ${destinationName} around the experience that matters most to you, whether that is the beach, family facilities, dining or a quieter setting. Check each hotel’s exact location and transfer time before booking.`,
-      areaTitle: `Popular stays around ${destinationName}`,
-      areaIntro: `Compare resort areas and hotel styles within the wider ${destinationName} region.`,
+      areaTitle: `Where to stay in ${destinationName}`,
+      areaIntro: `Browse hotels in each resort within the ${destinationName} region.`,
     };
   }
 
@@ -207,8 +147,8 @@ function getLevelCopy(level: DestinationLevel, destinationName: string) {
     eyebrow: "Resort hotel guide",
     intro: `${destinationName} is an ideal base for a refined hotel escape, with options for couples, families and all-inclusive stays. Compare beachfront locations, facilities and room styles before you book.`,
     introMore: `For the best ${destinationName} stay, compare the hotel location, board basis and facilities alongside the complete package price. Room category and included extras can make a significant difference to the overall value.`,
-    areaTitle: `Find your ideal stay in ${destinationName}`,
-    areaIntro: `Browse the most popular ways to stay in and around ${destinationName}.`,
+    areaTitle: `More places to stay near ${destinationName}`,
+    areaIntro: `Browse hotels in the other resorts close to ${destinationName}.`,
   };
 }
 
@@ -238,6 +178,17 @@ function SectionHeading({
   );
 }
 
+function AreaPill({ area }: { area: DestinationHotelArea }) {
+  return (
+    <Link
+      href={area.path}
+      className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[12px] font-medium text-[#4c4c4c] transition-colors hover:border-pml-primary hover:bg-[#FBE8F4] hover:text-pml-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary"
+    >
+      {area.name}
+    </Link>
+  );
+}
+
 export function DestinationHotelsLanding({
   params,
   data,
@@ -245,14 +196,13 @@ export function DestinationHotelsLanding({
   params: DestinationHotelsRouteParams;
   data?: DestinationHotelsResponse | null;
 }) {
-  const { level, destinationName, breadcrumbs } =
+  const { level, destinationName, destinationPath, breadcrumbs } =
     getDestinationContext(params, data?.destination);
   const copy = getLevelCopy(level, destinationName);
   const content = data?.content;
   const introText = content?.intro_text || copy.intro;
   const introMore = content?.intro_more || copy.introMore;
-  const areaCards = buildAreaCards(level, params.slug);
-  const destinationArticle = /^[aeiou]/i.test(destinationName) ? "an" : "a";
+  const areas = data?.areas || [];
   const levelLabel =
     level === "country"
       ? "Country hotels"
@@ -278,7 +228,7 @@ export function DestinationHotelsLanding({
           : `${section.label} Hotels`,
       href: `#hotel-section-${section.key}`,
     })),
-    { label: "Where to stay", href: "#places-to-stay" },
+    ...(areas.length ? [{ label: "Where to stay", href: "#places-to-stay" }] : []),
     { label: "Hotel guide", href: "#hotel-guide" },
     ...(data?.faqs?.length
       ? [{ label: "FAQs", href: "#hotel-faqs" }]
@@ -290,36 +240,22 @@ export function DestinationHotelsLanding({
       <main className="w-full overflow-x-clip">
         <SearchBanner
           title={content?.banner_title || `Luxury Hotels in ${destinationName}`}
-          description={
-            content?.banner_subtitle ||
-            `Explore handpicked 4 and 5 star hotels, all-inclusive resorts and luxury stays in ${destinationName}.`
-          }
           image={content?.banner_image || HERO_IMAGE}
           disablePrefill
+          badge={`${destinationName} Luxury Holiday Planner`}
         />
 
         <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 md:px-8 lg:px-10">
           <div className="mx-auto w-full max-w-[1280px]">
-            <nav
-              aria-label="Hotel page sections"
-              className="scrollbar-hide flex gap-2 overflow-x-auto rounded-[8px] border border-gray-200/80 bg-white p-2 shadow-sm"
-            >
-              {navigation.map((item, index) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className={`shrink-0 rounded-[8px] px-3 py-2 text-[12px] font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-pml-primary ${
-                    index === 0
-                      ? "bg-pml-primary text-white"
-                      : "text-[#4c4c4c] hover:bg-[#FBE8F4] hover:text-pml-primary"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
+            <DestinationGuideTabs
+              tabs={
+                data?.tabs?.length
+                  ? data.tabs
+                  : [{ key: "hotels", label: "Hotels", path: `${destinationPath}/hotels`, active: true }]
+              }
+            />
 
-            <nav aria-label="Breadcrumb" className="py-5">
+            <nav aria-label="Breadcrumb" className="py-3 sm:py-5">
               <ol className="flex flex-wrap items-center gap-1.5 text-[12px] text-[#667085]">
                 {breadcrumbs.map((crumb, index) => {
                   const isLast = index === breadcrumbs.length - 1;
@@ -415,48 +351,62 @@ export function DestinationHotelsLanding({
                   </section>
                 )}
 
-                <section
-                  id="places-to-stay"
-                  className="scroll-mt-28 rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6 md:p-8"
-                >
-                  <SectionHeading
-                    eyebrow="Hotels by location"
-                    title={copy.areaTitle}
-                    description={copy.areaIntro}
-                  />
-                  <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                    {areaCards.map((area) => (
-                      <Link
-                        key={area.name}
-                        href={`/hotels?q=${encodeURIComponent(area.name)}`}
-                        className="group overflow-hidden rounded-[8px] border border-gray-200/80 bg-white transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-pml-primary"
-                      >
-                        <div className="relative h-[150px] overflow-hidden bg-gray-100">
-                          <Image
-                            src={area.image}
-                            alt={`Hotels in ${area.name}`}
-                            fill
-                            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 280px"
-                            className="object-cover transition duration-500 group-hover:scale-105"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/5 to-transparent" />
-                          <span className="absolute bottom-3 left-3 right-3 text-[17px] font-semibold text-white drop-shadow">
-                            {area.name}
-                          </span>
-                        </div>
-                        <div className="p-3.5">
-                          <p className="text-[12px] leading-5 text-[#667085]">
-                            {area.description}
-                          </p>
-                          <span className="mt-2 inline-flex items-center gap-1 text-[12px] font-semibold text-pml-primary">
-                            Find hotels
-                            <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </section>
+                {areas.length ? (
+                  <section
+                    id="places-to-stay"
+                    className="scroll-mt-28 rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6 md:p-8"
+                  >
+                    <SectionHeading
+                      eyebrow="Hotels by location"
+                      title={copy.areaTitle}
+                      description={copy.areaIntro}
+                    />
+                    {level === "country" ? (
+                      <div className="mt-6 grid gap-4 md:grid-cols-2">
+                        {areas.map((region) => (
+                          <div
+                            key={region.path}
+                            className="rounded-[8px] border border-gray-200/80 bg-[#FCFCFD] p-4"
+                          >
+                            <Link
+                              href={region.path}
+                              className="group flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary"
+                            >
+                              <span className="flex min-w-0 items-center gap-2.5">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FBE8F4] text-pml-primary">
+                                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                                </span>
+                                <span className="min-w-0 truncate text-[15px] font-semibold text-[#1a1a1a] transition-colors group-hover:text-pml-primary">
+                                  {region.name}
+                                </span>
+                              </span>
+                              <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold text-pml-primary">
+                                Hotels
+                                <ArrowRight
+                                  className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </Link>
+                            {region.children.length ? (
+                              <div className="mt-3 flex flex-wrap gap-1.5 border-t border-gray-100 pt-3">
+                                {region.children.map((resort) => (
+                                  <AreaPill key={resort.path} area={resort} />
+                                ))}
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-6 flex flex-wrap gap-2">
+                        {areas.map((resort) => (
+                          <AreaPill key={resort.path} area={resort} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                ) : null}
 
                 {data?.faqs?.length ? (
                   <FAQs
@@ -478,65 +428,89 @@ export function DestinationHotelsLanding({
                     title={`Choosing a luxury hotel in ${destinationName}`}
                     description={`The right hotel in ${destinationName} depends on the location, atmosphere and facilities that matter most to you.`}
                   />
-                  <div className="mt-6 rounded-[8px] bg-[#111111] p-5 text-white sm:flex sm:items-center sm:justify-between sm:gap-6">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#e8b5d3]">
-                        Holiday brochure
-                      </p>
-                      <h3 className="mt-2 text-[18px] font-semibold">
-                        Explore our latest luxury holiday collection
-                      </h3>
-                      <p className="mt-2 max-w-2xl text-[12px] leading-5 text-white/75">
-                        Browse handpicked destinations, exclusive offers and
-                        added extras in the latest PlanMyLuxe brochure.
-                      </p>
+                  <div className="relative mt-6 overflow-hidden rounded-[12px] bg-gradient-to-br from-[#111111] via-[#1d1320] to-[#4a0f33] p-4 text-white sm:p-8">
+                    <div
+                      className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-pml-primary/30 blur-3xl"
+                      aria-hidden="true"
+                    />
+                    <div className="relative flex flex-col items-center gap-8 sm:flex-row sm:items-center">
+                      <a
+                        href={BROCHURE_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open the PlanMyLuxe brochure"
+                        className="group relative h-[200px] w-[150px] shrink-0"
+                      >
+                        <span
+                          className="absolute inset-0 translate-x-3 translate-y-2 rotate-6 rounded-[6px] bg-white/15"
+                          aria-hidden="true"
+                        />
+                        <span
+                          className="absolute inset-0 translate-x-1.5 translate-y-1 rotate-3 rounded-[6px] bg-white/25"
+                          aria-hidden="true"
+                        />
+                        <span className="absolute inset-0 overflow-hidden rounded-[6px] shadow-2xl ring-1 ring-white/20 transition-transform duration-300 group-hover:-translate-y-1 group-hover:-rotate-2">
+                          <Image
+                            src={BROCHURE_COVER}
+                            alt=""
+                            fill
+                            sizes="150px"
+                            className="object-cover"
+                          />
+                          <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/30" />
+                          <span className="absolute left-3 top-3 text-[9px] font-bold uppercase tracking-[0.2em] text-white/90">
+                            PlanMyLuxe
+                          </span>
+                          <span className="absolute bottom-3 left-3 right-3 text-[14px] font-semibold leading-tight text-white">
+                            Luxury Holiday Collection
+                          </span>
+                        </span>
+                      </a>
+
+                      <div className="w-full min-w-0 flex-1 text-center sm:text-left">
+                        <p className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#f3c4e0]">
+                          <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                          Free brochure
+                        </p>
+                        <h3 className="mt-3 text-[20px] font-semibold leading-tight md:text-[24px]">
+                          Download our latest luxury holiday brochure
+                        </h3>
+                        <p className="mt-2 hidden text-[13px] leading-6 text-white/75 sm:block">
+                          Get inspired with handpicked hotels in {destinationName} and
+                          beyond, exclusive offers and the added extras our experts love.
+                        </p>
+                        <ul className="mt-4 flex flex-nowrap items-center justify-center whitespace-nowrap text-[10.5px] text-white/85 sm:grid sm:grid-cols-3 sm:gap-2 sm:text-left sm:text-[12px]">
+                          {[
+                            { icon: Sparkles, label: "Handpicked hotels" },
+                            { icon: Gift, label: "Exclusive extras" },
+                            { icon: MapPin, label: "Insider tips" },
+                          ].map(({ icon: Icon, label }) => (
+                            <li
+                              key={label}
+                              className="flex items-center before:mx-1.5 before:text-[#f3c4e0] before:content-['•'] first:before:content-none sm:gap-2 sm:before:content-none"
+                            >
+                              <Icon className="hidden h-4 w-4 shrink-0 text-[#f3c4e0] sm:block" aria-hidden="true" />
+                              {label}
+                            </li>
+                          ))}
+                        </ul>
+                        <a
+                          href={BROCHURE_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-5 inline-flex items-center gap-2 rounded-[8px] bg-pml-primary px-5 py-3 text-[13px] font-semibold text-white shadow-lg shadow-pml-primary/30 transition-colors hover:bg-[#a81970] focus:outline-none focus:ring-2 focus:ring-white"
+                        >
+                          <Download className="h-4 w-4" aria-hidden="true" />
+                          Download brochure
+                        </a>
+                      </div>
                     </div>
-                    <a
-                      href={BROCHURE_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-flex shrink-0 items-center gap-2 rounded-[8px] bg-pml-primary px-4 py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#a81970] focus:outline-none focus:ring-2 focus:ring-white sm:mt-0"
-                    >
-                      <Download className="h-4 w-4" aria-hidden="true" />
-                      Download brochure
-                    </a>
                   </div>
-                  <details className="group mt-5">
-                    <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-[8px] border border-pml-primary px-4 py-2 text-[13px] font-semibold text-pml-primary transition-colors hover:bg-pml-primary hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-pml-primary focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
-                      <span className="group-open:hidden">Read the hotel guide</span>
-                      <span className="hidden group-open:inline">Close hotel guide</span>
-                      <ArrowRight
-                        className="h-4 w-4 transition-transform group-open:rotate-90"
-                        aria-hidden="true"
-                      />
-                    </summary>
-                    <div className="mt-5 space-y-4 border-t border-gray-100 pt-5 text-[14px] leading-7 text-[#4c4c4c]">
-                      <p>
-                        Begin with location. A beachfront resort can make a
-                        relaxed holiday effortless, while a central hotel may
-                        be better for restaurants, shopping and sightseeing.
-                        Check the journey from the airport as well as the
-                        distance to the places you plan to visit.
-                      </p>
-                      <p>
-                        Look beyond the star rating when comparing hotels.
-                        Room category, board basis, pool and beach access,
-                        family facilities and included extras can all change
-                        the overall experience and final price.
-                      </p>
-                      <p>
-                        Package details will vary by travel date and departure
-                        airport. Review the complete offer before booking, and
-                        speak to a PlanMyLuxe expert if you want help narrowing
-                        down the options.
-                      </p>
-                    </div>
-                  </details>
                 </section>
               </div>
 
-              <aside className="space-y-4 lg:sticky lg:top-[calc(var(--main-nav-height)+24px)] lg:max-h-[calc(100vh-var(--main-nav-height)-32px)] lg:overflow-y-auto lg:pr-2">
-                <section className="rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm">
+              <aside className="space-y-4">
+                <section className="hidden rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm lg:block">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-pml-primary">
                     {levelLabel}
                   </p>
@@ -546,7 +520,10 @@ export function DestinationHotelsLanding({
                   <p className="mt-2 text-[12px] leading-5 text-[#667085]">
                     Jump directly to each section of this hotel guide.
                   </p>
-                  <nav aria-label="Hotel guide navigation" className="mt-4 space-y-1">
+                  <nav
+                    aria-label="Hotel guide navigation"
+                    className="scroll-on-hover mt-4 max-h-[320px] space-y-1 overflow-y-auto pr-1"
+                  >
                     {navigation.map((item) => (
                       <a
                         key={item.href}
@@ -565,67 +542,24 @@ export function DestinationHotelsLanding({
 
                 <section className="rounded-[8px] border border-gray-200/80 bg-white p-5 shadow-sm">
                   <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#FBE8F4] text-pml-primary">
-                    <BedDouble className="h-5 w-5" aria-hidden="true" />
+                    <MessageSquare className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <h2 className="mt-3 text-[20px] font-semibold text-[#1a1a1a]">
-                    Find {destinationArticle} {destinationName} hotel
+                    Enquire about {destinationName} hotels
                   </h2>
                   <p className="mt-1 text-[12px] leading-5 text-[#667085]">
-                    Start with a destination and hotel style. You can refine
-                    the results on the hotel search page.
+                    Tell us what you are looking for and a PlanMyLuxe expert
+                    will be in touch with tailored hotel options.
                   </p>
-                  <form action="/hotels" method="get" className="mt-4 space-y-3">
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-[#4c4c4c]">
-                        Destination
-                      </span>
-                      <input
-                        type="search"
-                        name="q"
-                        defaultValue={destinationName}
-                        className="h-10 w-full rounded-[8px] border border-gray-300 bg-white px-3 text-[12px] text-[#1a1a1a] outline-none transition focus:border-pml-primary focus:ring-2 focus:ring-pml-primary/20"
-                      />
-                    </label>
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-[#4c4c4c]">
-                        Hotel type
-                      </span>
-                      <select
-                        name="type"
-                        defaultValue=""
-                        className="h-10 w-full rounded-[8px] border border-gray-300 bg-white px-3 text-[12px] text-[#1a1a1a] outline-none transition focus:border-pml-primary focus:ring-2 focus:ring-pml-primary/20"
-                      >
-                        <option value="">All hotel types</option>
-                        <option value="5-star">5 Star</option>
-                        <option value="4-star">4 Star</option>
-                        <option value="all-inclusive">All Inclusive</option>
-                        <option value="family">Family</option>
-                        <option value="beach">Beach</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-[#4c4c4c]">
-                        Board basis
-                      </span>
-                      <select
-                        name="board_basis"
-                        defaultValue=""
-                        className="h-10 w-full rounded-[8px] border border-gray-300 bg-white px-3 text-[12px] text-[#1a1a1a] outline-none transition focus:border-pml-primary focus:ring-2 focus:ring-pml-primary/20"
-                      >
-                        <option value="">Any board basis</option>
-                        <option value="AI">All Inclusive</option>
-                        <option value="HB">Half Board</option>
-                        <option value="BB">Bed & Breakfast</option>
-                      </select>
-                    </label>
-                    <button
-                      type="submit"
-                      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[8px] bg-pml-primary px-4 text-[13px] font-semibold text-white transition-colors hover:bg-[#a81970] focus:outline-none focus:ring-2 focus:ring-pml-primary focus:ring-offset-2"
-                    >
-                      <Search className="h-4 w-4" aria-hidden="true" />
-                      Search hotels
-                    </button>
-                  </form>
+                  <EnquiryForm
+                    initialValues={{
+                      destination: destinationName,
+                      source: `Hotels Page - ${destinationPath}/hotels`,
+                    }}
+                    showQuickHelp={false}
+                    containerClassName="mt-4"
+                    messageRows={3}
+                  />
                 </section>
 
                 <HotelSignupCard destinationName={destinationName} />
@@ -634,7 +568,10 @@ export function DestinationHotelsLanding({
           </div>
         </div>
 
-        <BookingConfidence destinationName={destinationName} />
+        <BookingConfidence
+          destinationName={destinationName}
+          source={`${destinationName} hotels page`}
+        />
       </main>
     </div>
   );

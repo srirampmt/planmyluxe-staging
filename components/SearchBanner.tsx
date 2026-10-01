@@ -19,6 +19,7 @@ type BannerProps = {
   showFlightsTab?: boolean;
   initialDest?: string;
   disablePrefill?: boolean;
+  badge?: string;
 };
  
 type TabId = "packages" | "multi-center";
@@ -31,6 +32,7 @@ export function Banner({
   showFlightsTab = true,
   initialDest,
   disablePrefill,
+  badge = "Elevate Your Escape",
 }: BannerProps) {
   const [activeTab, setActiveTab] = useState<TabId>("packages");
  
@@ -80,7 +82,7 @@ export function Banner({
         {/* Hero Text Content */}
         <div className="relative z-10 mx-auto w-full max-w-[1380px] px-4 text-center pt-[60px] sm:px-6 lg:px-8">
           <div className="mb-3 md:mb-6 block w-fit mx-auto rounded-full border border-white/30 bg-white/10 px-2 md:px-4 py-1 md:py-1.5 text-[10px] md:text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md text-center">
-            Elevate Your Escape
+            {badge}
           </div>
  
           <div className="mx-auto max-w-[980px] text-center">
@@ -88,9 +90,11 @@ export function Banner({
               {title}
             </h1>
  
-            <p className="hidden sm:block mx-auto max-w-5xl text-lg font-light tracking-wide text-white/90 drop-shadow-md md:text-2xl">
-              {description}
-            </p>
+            {description ? (
+              <p className="hidden sm:block mx-auto max-w-5xl text-lg font-light tracking-wide text-white/90 drop-shadow-md md:text-2xl">
+                {description}
+              </p>
+            ) : null}
           </div>
         </div>
       </section>

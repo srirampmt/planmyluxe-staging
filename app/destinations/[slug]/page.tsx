@@ -33,6 +33,7 @@ import { getDestinationRows } from "@/lib/searchServerData";
 import { destinationBreadcrumbs } from "@/lib/destinations/path";
 import { buildMetadataFromSeo, getSeoMetadata } from "@/lib/seo/metadata";
 import { getSiteUrl } from "@/lib/site-url";
+import { stripInlineLinks } from "@/lib/inlineLinks";
 import PopularResorts from "@/components/destinationdetail/PopularResorts";
  
 type PageProps = {
@@ -44,7 +45,7 @@ function asArray<T>(value: T[] | "" | null | undefined): T[] {
 }
 
 function plainText(value?: string): string {
-  return (value || "")
+  return stripInlineLinks(value)
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/gi, " ")
     .replace(/\s+/g, " ")
@@ -236,7 +237,7 @@ export async function DestinationCmsPage({
       <JsonLd data={destinationJsonLd} />
       <div className="min-h-screen bg-[#F9FAFB]">
         <main className="w-full bg-[#F9FAFB] overflow-x-clip">
-          <SearchBanner title={page.banner_title} description={page.banner_subtitle} image={page.banner_image} initialDest={initialDest} disablePrefill />
+          <SearchBanner title={page.banner_title} description={page.banner_subtitle} image={page.banner_image} initialDest={initialDest} disablePrefill badge={`${targetName} Luxury Holiday Planner`} />
           <IntroDescription
             title={page.best_experience_title || `Luxury Holidays in ${targetName}`}
             line1={page.best_experience_line_1}

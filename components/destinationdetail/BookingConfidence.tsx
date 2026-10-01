@@ -1,20 +1,27 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { Headphones, MessageCircle, Phone, ShieldCheck } from "lucide-react";
+import { Headphones, Phone, ShieldCheck } from "lucide-react";
+import { ChatIcon, WhatsAppIcon } from "@/app/hotels/[slug]/components/icons";
 import TrustpilotWidget from "@/components/TrustpilotWidget";
+import { useUtmPhone } from "@/components/utm/UtmPhoneProvider";
+import { openTawkChat } from "@/lib/tawk";
 import {
   attachCurrentPageToWhatsAppHref,
   getWhatsAppUrl,
 } from "@/lib/utils";
 
+const CONTACT_BUTTON =
+  "inline-flex h-10 items-center justify-center gap-1 whitespace-nowrap rounded-[8px] px-1 text-[11.5px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:gap-1.5 sm:px-4 sm:text-[13px]";
+
 export default function BookingConfidence({
   destinationName,
+  source = `${destinationName} destination page`,
 }: {
   destinationName: string;
+  source?: string;
 }) {
-  const source = `${destinationName} destination page`;
+  const { phoneDisplay, phoneTel } = useUtmPhone();
 
   return (
     <section className="w-full bg-[#F9FAFB] font-['Montserrat'] py-6 md:py-8">
@@ -37,20 +44,20 @@ export default function BookingConfidence({
                 membership.
               </p>
             </div>
-            <div className="mt-4 grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="mt-4 grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
               <a
                 href="https://thetravelnetworkgroup.co.uk/verify-a-member/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Verify Travel Trust Association member Q6399"
-                className="flex min-h-[72px] items-center justify-center gap-3 rounded-[8px] border border-gray-200 px-3 py-3 transition-colors hover:border-[#CB2187]"
+                className="flex min-h-[72px] items-center justify-center gap-2 rounded-[8px] border border-gray-200 px-2 py-3 transition-colors hover:border-[#CB2187] sm:gap-3 sm:px-3"
               >
                 <Image
                   src="https://planmylux.s3.eu-west-2.amazonaws.com/uploads/media-library/homepage/TTA.webp"
                   alt="Travel Trust Association"
                   width={120}
                   height={64}
-                  className="h-10 w-auto object-contain"
+                  className="h-8 w-auto object-contain sm:h-10"
                 />
                 <span className="text-[11px] leading-4 text-[#4B5563]">
                   Member
@@ -64,14 +71,14 @@ export default function BookingConfidence({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Check ATOL protection T7655"
-                className="flex min-h-[72px] items-center justify-center gap-3 rounded-[8px] border border-gray-200 px-3 py-3 transition-colors hover:border-[#CB2187]"
+                className="flex min-h-[72px] items-center justify-center gap-2 rounded-[8px] border border-gray-200 px-2 py-3 transition-colors hover:border-[#CB2187] sm:gap-3 sm:px-3"
               >
                 <Image
                   src="https://planmylux.s3.eu-west-2.amazonaws.com/ATOL-3.webp"
                   alt="ATOL protected"
                   width={64}
                   height={64}
-                  className="h-12 w-12 object-contain"
+                  className="h-10 w-10 object-contain sm:h-12 sm:w-12"
                 />
                 <span className="text-[11px] leading-4 text-[#4B5563]">
                   ATOL
@@ -80,13 +87,13 @@ export default function BookingConfidence({
                   </strong>
                 </span>
               </a>
-              <div className="flex min-h-[72px] items-center justify-center overflow-hidden rounded-[8px] border border-gray-200 px-2 py-2 transition-colors hover:border-[#CB2187]">
+              <div className="col-span-2 flex min-h-[72px] items-center justify-center overflow-hidden rounded-[8px] border border-gray-200 px-2 py-2 transition-colors hover:border-[#CB2187] sm:col-span-1">
                 <TrustpilotWidget embedded />
               </div>
             </div>
           </div>
 
-          <div className="flex h-full flex-col justify-center rounded-[8px] bg-[#F9FAFB] p-5 lg:col-span-5">
+          <div className="flex h-full flex-col justify-center rounded-[8px] bg-[#F9FAFB] p-4 sm:p-5 lg:col-span-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-[#FBE3F1] text-[#CB2187]">
               <Headphones className="h-5 w-5" />
             </div>
@@ -96,12 +103,13 @@ export default function BookingConfidence({
             <p className="mt-1 text-[13px] leading-5 text-[#667085]">
               Talk through dates, resorts and package options with our team.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-4 grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
               <a
-                href="tel:+442037400744"
-                className="inline-flex items-center gap-2 rounded-[8px] bg-[#CB2187] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#A81970]"
+                href={`tel:${phoneTel}`}
+                aria-label={`Call ${phoneDisplay}`}
+                className={`${CONTACT_BUTTON} bg-[#CB2187] text-white hover:bg-[#A81970] focus-visible:ring-[#CB2187]`}
               >
-                <Phone className="h-4 w-4" />
+                <Phone className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                 Call us
               </a>
               <a
@@ -111,17 +119,22 @@ export default function BookingConfidence({
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-[8px] border border-[#CB2187] bg-white px-4 py-2.5 text-[13px] font-semibold text-[#CB2187]"
+                aria-label="Send a WhatsApp message"
+                className={`${CONTACT_BUTTON} bg-[#25D366] px-2 text-white hover:bg-[#1DA851] focus-visible:ring-[#25D366]`}
               >
-                <MessageCircle className="h-4 w-4" />
+                <WhatsAppIcon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                 WhatsApp
               </a>
-              <Link
-                href="/contact-us"
-                className="inline-flex items-center rounded-[8px] bg-[#25D366] px-4 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-[#1DA851]"
+              <button
+                type="button"
+                onClick={openTawkChat}
+                aria-label="Open chat"
+                className={`${CONTACT_BUTTON} border border-[#CB2187] bg-white text-[#CB2187] hover:bg-[#FBE3F1] focus-visible:ring-[#CB2187]`}
               >
-                Send an enquiry
-              </Link>
+                <ChatIcon className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="sm:hidden">Chat</span>
+                <span className="hidden sm:inline">Chat online</span>
+              </button>
             </div>
           </div>
         </div>
